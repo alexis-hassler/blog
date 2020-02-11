@@ -202,8 +202,18 @@ pre {
 .clear:after {
   clear: both;
 }
-.center img {
-  margin: 20px auto;
-  max-width: 80%;
-  display: block;
+.imageblock.center {
+  margin: 20px 0;
+  
+  div {
+    margin: 0 auto;
+    max-width: 100%;
+    text-align: center;
+  }
+  img {
+    margin: 0 auto;
+    max-width: 80%;
+    display: block;
+  }
+
 }
