@@ -1,0 +1,115 @@
+---
+layout: post
+title: Comment j'ai ralenti mon réseau local
+author: Alexis Hassler
+tags: wiki
+---
+
+[.right]
+image::/images/network/loading.gif[Loading..., 120]
+
+En 2018, je présentais les https://prez.sewatech.fr/http2/[avantages du protocole HTTP/2] en terme de temps de chargement des pages Web.
+Ma première démo reprenait un classique : comparer le temps de chargment d'une image scindée entre HTTP/1 et HTTP/2.
+On la trouve par exemple sur le site d'https://http2.akamai.com/demo[Akamai].
+
+Pour éviter le risque avec les accès réseaux, il fallait qu'elles soient en local alors que pour être visuelles, il faut de la latence.
+Pour résoudre cette contradiction, j'ai choisi d'utiliser des conteneurs Docker et d'ajouter volontairement de la latence au niveau du réseau virtuel.
+//<!--more-->
+
+== Préparer l'environnement avec un réseau Docker
+
+Evidemment, Docker est un outil pratique pour ce genre de démo.
+Ça permet d'isoler les serveurs les uns des autres et de remonter l'environnement en quelques commandes `docker pull ...`.
+
+[.center]
+image::/images/docker/logo-engine.png[Docker logo, 180]
+
+Au passage, ça permet aussi de configurer un réseau virtuel dédié à la démo.
+
+[source, subs="verbatim,quotes"]
+----
+docker network create  \
+    -o "com.docker.network.bridge.name"="**br-demo**" \
+    --subnet=172.44.0.0/16 \
+    **demo**
+----
+
+Au démarrage, les conteneurs doivent être configurés pour utiliser ce réseau.
+Voici ce que ça donne pour _nginx_.
+
+[source, subs="verbatim,quotes"]
+----
+#! /bin/bash
+docker run --network **demo** -d nginx
+----
+
+[.center]
+image::/images/docker/network-custom.svg[Docker custom network, 500]
+
+Tel quel, l'accès au serveur Web est rapide, de l'ordre de 15 à 20 ms pour la page d'accueil.
+
+[source, subs="verbatim,quotes"]
+----
+start=$(date +%s%3N)                      && \
+**curl -s -o /dev/null http://172.44.0.2**    && \
+echo $(($(date +%s%3N) - $start))
+----
+
+Une telle latence est trop basse pour que les démos soient visuelles.
+
+== Augmenter la latence réseau
+
+Maintenant qu'on est équipé de conteneurs et d'un réseau dédié, on va faire quelques incatations magiques pour qu'il soit plus lent.
+Pour ça, un gourou, qu'on appelle parfois ingénieur réseau, m'a conseillé la commande Linux `tc` (pour _traffic control_).
+
+[source, subs="verbatim,quotes"]
+----
+sudo tc qdisc add dev **br-demo** root handle 1: netem **delay** 80msec
+----
+
+Il semblerait que ça injecte une sorte de filtre entre le driver de la carte du réseau br-demo et la couche IP, capable d'https://wiki.linuxfoundation.org/networking/netem#emulating_wide_area_network_delays[émuler un délai] supplémentaire.
+
+Maintenant, la lecture de la page d'accueil met aux alentours de 180 ms.
+La différence est de 2 x 80ms, soit le délai ajouté pour la requête plus celui pour la réponse.
+
+[.center]
+image::/images/network/netem.svg[netem, 500]
+
+Pour revenir en arrière, il faut supprimer le filtre.
+
+[source, subs="verbatim,quotes"]
+----
+sudo tc qdisc **del** dev br-demo root netem
+----
+
+== Brider le débit
+
+Habituellement, le débit est un facteur plus important que la latence pour tester les applications.
+
+[source, subs="verbatim,quotes"]
+----
+sudo tc qdisc add dev **br-demo** root handle 1: netem **rate** 10MBit
+----
+
+On peut aussi cumuler les deux contraintes.
+
+[source, subs="verbatim,quotes"]
+----
+sudo tc qdisc add dev **br-demo** root handle 1: netem **delay** 80msec **rate** 10MBit
+----
+
+Et la technique peut aussi être appliquée à localhost.
+
+[source, subs="verbatim,quotes"]
+----
+sudo tc qdisc add dev **lo** root handle 1: netem **delay** 80msec **rate** 10MBit
+----
+
+Voilà, c'est bizarre de faire tous ces efforts pour ralentir le réseau.
+Mais c'est pour la bonne cause.
+En ralentissant un réseau local à la machine, son comportement ressemble à un réseau distant et rend les tests locaux plus crédibles.
+
+== Référence
+
+* https://bencane.com/2012/07/16/tc-adding-simulated-network-latency-to-your-linux-server/[Adding simulated network latency to your Linux server] par Benjamin Cane
+* https://wiki.linuxfoundation.org/networking/netem[netem] par The Linux Foundation
