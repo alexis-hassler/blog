@@ -1,0 +1,179 @@
+---
+layout: post
+title: Comment mettre en forme un Distinguished Name en Java ?
+author: Alexis Hassler
+tags: java16, x509, x500
+---
+
+[.right]
+image::/images/common/java16.png[Java 16, 180]
+
+Java 16 est sorti ! Mais comme c'est une version à maintenance courte, ce n'est pas vrai événement. On attendra la version 17 pour s’enthousiasmer.
+
+Ceci dit, en parcourant la liste des changements, je suis tombé sur la https://www.oracle.com/java/technologies/javase/16-all-relnotes.html#JDK-8257572[dépréciation des méthodes] qui permettent d'avoir une représentation textuelle d'un nom X.500.
+
+Comme je me suis fait avoir avec ces méthodes dans un projet récent, je vais vous raconter pourquoi c'est une mauvaise idée de les utiliser.
+
+//<!--more-->
+
+== Lire un Certificat
+
+Dans le projet en question, l'utilisateur peut téléverser un certificat qu'on lit et analyse côté serveur et dont on stocke des métadonnées, 
+en particulier le _Subject DN_ et l'_Issuer DN_.
+
+Pour illustrer le problème, on génère un certificat X.509 avec OpenSSL.
+
+[source.bash, subs="verbatim,quotes"]
+----
+$ openssl req -x509 -sha256 -nodes -newkey rsa:2024 -subj "/O=Sewatech/OU=Blog/C=FR"   \
+              -keyout cert.key -out cert/cert.pem
+----
+
+Puis on lit ce certificat X.509 et on en extrait le SubjectDN.
+
+[source.java, subs="verbatim,quotes"]
+----
+CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
+InputStream is = Files.newInputStream(Path.of("cert/cert.pem"));
+X509Certificate x509Certificate 
+        = (X509Certificate) certificateFactory.generateCertificate(is);
+
+System.out.println("SubjectDN:            " + x509Certificate.getSubjectDN());
+----
+
+Le résultat est le suivant
+
+[source, subs="verbatim,quotes"]
+----
+SubjectDN:            C=FR, OU=Blog, O=Sewatech
+----
+
+== Bouncy Castle
+
+Reprenons le même exemple avec un certificat au format PKCS#7.
+On peut partir du certificat X.509 précédent et le transformer en PKCS#7 avec OpenSSL.
+
+[source.bash, subs="verbatim,quotes"]
+----
+$ openssl crl2pkcs7 -nocrl -certfile cert/cert.pem -outform DER -out cert/cert.p7b
+----
+
+On peut utiliser la bibliothèque Bouncy Castle pour le convertir en X.509.
+
+[source.java, subs="verbatim,quotes"]
+----
+Security.addProvider(new BouncyCastleProvider());
+JcaX509CertificateConverter certificateConverter 
+        = new JcaX509CertificateConverter().setProvider("BC");
+
+X509CertificateHolder certificateHolder = new CMSSignedData(is)
+                    .getCertificates()
+                    .getMatches(null)
+                    .stream().findFirst().orElseThrow();
+X509Certificate x509Certificate = certificateConverter.getCertificate(certificateHolder);
+
+System.out.println("SubjectDN:            " + x509Certificate.getSubjectDN());
+----
+
+Le résultat est le suivant
+
+[source, subs="verbatim,quotes"]
+----
+SubjectDN:            O=Sewatech,OU=Blog,C=FR
+----
+Alors que le contenu des certificats est identique, le résultat est différent.
+
+== Problème ?
+
+Concrètement, ça m'a posé problème dans Keycloak.
+Et visiblement, je ne suis pas le seul à avoir eu ce problème puisque Java 16 a déprécié les méthodes problématiques.
+
+== Solution
+
+Le problème vient du fait que l'implémentation de X509Certificate n'est pas la même entre le JDK (X.509) et Bouncy Castle.
+Pour ne pas avoir ce type de problème, il ne faudrait pas récupérer directement le texte ou le principal à partir du certificat, mais passer par un X500Principal.
+Ensuite on peut extraire le nom en précisant le format.
+3 formats sont supportés Canonical, RFC2253 et RFC1779.
+
+[source.java, subs="verbatim,quotes"]
+----
+X500Principal subject = x509Certificate.getSubjectX500Principal();
+System.out.println("Subject as X500Principal: " + subject);
+System.out.println("  Name :              " + subject.getName());
+System.out.println("  Name (RFC2253) :    " + subject.getName(X500Principal.RFC2253));
+System.out.println("  Name (RFC1779) :    " + subject.getName(X500Principal.RFC1779));
+System.out.println("  Name (CANONICAL) :  " + subject.getName(X500Principal.CANONICAL));
+----
+
+Les résultats montrent la sensibilité au format.
+
+[source, subs="verbatim,quotes"]
+----
+Subject as X500Principal: C=FR, OU=Blog, O=Sewatech
+  Name :                  C=FR,OU=Blog,O=Sewatech
+  Name (RFC2253) :        C=FR,OU=Blog,O=Sewatech
+  Name (RFC1779) :        C=FR, OU=Blog, O=Sewatech
+  Name (CANONICAL) :      c=fr,ou=blog,o=sewatech
+----
+
+On constate que `getName()` utilise le format link:https://tools.ietf.org/html/rfc2253[RFC-2253]. C'est confirmé à la lecture du link:https://github.com/openjdk/jdk/blob/32cbd193d9655825d10e07be50ab3b7550ecb401/src/java.base/share/classes/javax/security/auth/x500/X500Principal.java#L283[code source]. +
+On constate que `toString()` ressemble au format link:https://tools.ietf.org/html/rfc1779[RFC-1779] (il peut y avoir des différences sur des certificats plus complexes). +
+On constate que le tout premier résultat ressemblait à du RFC-1779 (pas sûr que ce soit toujours le cas).
+
+== Keycloak
+
+J'ai rencontré ce problème sur un projet qui utilise https://www.keycloak.org/[Keycloak].
+
+L'application utilise l'link:https://www.keycloak.org/docs/latest/server_admin/#_x509[authentification par certificat] avec l'option de correspondance par n° de série et nom distinct de l'émetteur.
+
+De plus, elle crée et configure elle-même les comptes d'utilisateurs via le _keycloak-admin-client_ à partir des certificats téléversés par les utilisateurs.
+Le code ci-dessous sert à créer un nouvel utilisateur en téléversant un certificat.
+
+[source.java, subs="verbatim,quotes"]
+----
+Map<String, List<String>> attributes = new HashMap<>();
+attributes.put("issuerdn", List.of(x509Certificate.getIssuerDN());
+
+UserRepresentation user = new UserRepresentation();
+user.setAttributes(attributes);
+...
+----
+
+Ça fonctionne bien avec un certificat X509 simple, mais pas lorsqu'il est au format PKCS#7.
+Pour que l'ensemble fonctionne correctement, il faut que l'application produise un _IssuerDN_ au même format que _Keycloak_.
+Pour ça, _Keycloak_ conseille d'activer l'option "Canonical DN representation enabled".
+Ainsi, si de mon coté je dois utiliser `getName(CANONICAL)` pour avoir le même résultat.
+
+[.center]
+image::/images/x500/keycloak-x509-configuration.png[Keycloak configuration, 600]
+
+Malheureusement cette option n'était pas activée et _Keycloak_ ne passe pas par `X500Principal`. 
+
+En utilisant `getName(RFC1779)` les résultats sont conformes aux attentes. 
+C'est confirmé pour les _IssuerDN_ qui m'intéressent, mais ce n'est pas garantie pour 100% des certificats.
+
+== Conclusion
+
+* Activez l'option "Canonical DN representation enabled" dans keycloak
+* Utilisez X500Principal dans votre code
+
+[source.java, subs="verbatim,quotes"]
+----
+Map<String, List<String>> attributes = new HashMap<>();
+X500Principal subject = x509Certificate.getIssuerX500Principal();
+attributes.put("issuerdn", List.of(*subject.getName(X500Principal.CANONICAL))*);
+
+UserRepresentation user = new UserRepresentation();
+user.setAttributes(attributes);
+...
+----
+
+== Notes du relecteur
+
+https://twitter.com/elecharny_tek/[Emmanuel Lécharny] a relu le billet avant sa publication.
+Il m'a fait un retour intéressant sur les RFC que j'ai citées...
+
+La RFC 1779 est obsolète, elle correspond à LDAP V2 qui est mort et enterré depuis des années (24 ans exactement).
+La RFC 2253 est également obsolète depuis 14 ans, mais l'encodage des DN qu'elle précise reste valide.
+
+En pratique, les différences entre la RFC 1779 et 2253 sont mineures. Tout ce qui est supporté par 1779 est également supporté par 2253. La link:https://tools.ietf.org/html/rfc4514[RFC 4514] qui est aujourd'hui la norme en vigueur, est plus restrictive. En pratique, un DN va généralement être encodé en respectant la RFC 2253.
