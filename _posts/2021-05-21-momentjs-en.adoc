@@ -1,0 +1,115 @@
+---
+layout: post
+title: Utiliser Moment.js pour afficher les dates en anglais
+author: Alexis Hassler
+tags: 
+- javascript 
+- momentjs
+- i18n
+---
+
+[.right]
+image::/images/i18n/momentjs.svg[Moment.js logo, 120]
+
+Ce billet prend racine dans un problème d'internationalisation de mon application, plus précisément pour la mise en forme des dates avec https://momentjs.com/[Moment.JS].
+
+Mais avant de me lancer, j'aimerais partager mon émotion.
+J'ai commencé ce blog il y a un peu plus de 10 ans, et c'est mon premier billet sur du développement front.
+Autant vous dire que je me sens complètement illégitime, mais comme ça fait longtemp que ce sentiment ne me freine plus, je me lance.
+
+//<!--more-->
+
+== Afficher les dates en anglais
+
+Dans un premier temps, mon application doit supporter le français et l'anglais.
+On stocke la langue préférée d'un utilisateur dans son profil et s'il n'a enregistré aucune préférence, on se base sur celle qui est configurée pour son navigateur.
+La langue est utilisée pour tous les textes, mais aussi pour adapter le format des nombres, des dates et des heures.
+
+Pour la mise en forme des dates et heures, on utilise Moment.JS.
+
+Voici comment les dates sont affichées en français :
+
+[source, subs="verbatim,quotes"]
+----
+moment.locale('**fr**');
+const date = moment('2000-12-31');
+const short = date.format('L');        // 31/12/2000
+const medium = date.format('ll');      // 31 déc. 2000
+const long = date.format('dddd LL');   // dimanche 31 décembre 2000
+----
+
+Et voici comment elles sont affichées en anglais : 
+
+[source, subs="verbatim,quotes"]
+----
+moment.locale('**en**');
+const date = moment('2000-12-31');
+const short = date.format('L');        // 12/31/2000
+const medium = date.format('ll');      // Dec 31, 2000
+const long = date.format('dddd LL');   // Sunday December 31, 2000
+----
+
+Et là, les anglais, australiens et néo-zélandais commencent à râler parce que ce n'est pas leur façon de présenter des dates.
+
+En effet, en utilisant la _locale_ 'en', la librairie utilise le format des américains.
+En effet les américains sont à peu près les seuls au monde à adopter un format aussi peu logique.
+
+[quote, 'https://twitter.com/amazingmap/status/599931666803597312[@amazingmap]', subs="verbatim,quotes"]
+____
+Amazingly comprehensive  map of every  country in the world that uses the MMDDYYYY format
+
+[.center]
+image::/images/i18n/map-MMDDYYYY.jpeg[Map,50%]
+____
+
+Je ne dois pas me contenter de supporter l'anglais mais aussi ses différentes variantes : l'anglais américains (en-US), l'anglais britannique (en-GB), l'anglais australiens (en-AU),...
+Il y a ainsi une dizaine de cultures de langue anglaise.
+
+== L'anglais américain contre l'anglais britannique
+
+Ou alors, je peux supporter explicitement l'anglais américain (en-US), avec ses dates toutes bizarres, et faire en sorte que l'anglais générique (en) se rapproche de l'anglais britannique (en-GB).
+
+Revenons à Moment.js. 
+Il peut fournir la liste des _locales_ supportées :
+
+[source, subs="verbatim,quotes"]
+----
+moment.locales();
+----
+
+Et là on constate que en-US n'existe pas.
+Ça semble logique puisque c'est implémenté dans en.
+
+La solution est donc de personnaliser Moment.js, en lui ajoutant la culture manquante puis de reconfigurer la langue en pour qu'elle soit britannique.
+
+[source, subs="verbatim,quotes"]
+----
+    moment.defineLocale('en-us', {parentLocale:'en'});
+    moment.updateLocale('en', {...moment.localeData('en-gb')._config, abbr: 'en'});
+----
+
+Dans cette nouvelle configuration, voici comment les dates sont affichées en anglais : 
+
+[source, subs="verbatim,quotes"]
+----
+moment.locale('**en**');
+const date = moment('2000-12-31');
+const short = date.format('L');        // 31/12/2000
+const medium = date.format('ll');      // 31 Dec 2000
+const long = date.format('dddd LL');   // Sunday 31 December 2000
+----
+
+NOTE: Le format `ll` ne donne pas toujours le résultat attendu lorsqu'on reconfigure Moment.js à la volée.
+En revanche, ça fonctionne de façon plus stable si la personnalisation est faite dès le démarrage.
+
+== Le résultat
+
+En conclusion, l'erreur initiale a été de considérer que la mise en forme des dates dépend de la langue.
+En réalité, il dépend plus du pays.
+
+[.center]
+link:https://en.wikipedia.org/wiki/Date_format_by_country[image:/images/i18n/date-format-by-country.svg[Formats de dates par pays]]
+
+Finalement, il ne faut que 3 lignes de codes pour que l'anglais générique soit celui des britanniques et pas celui des américains.
+Mais ça reste de la bidouille, et le jour où il faudra virer Moment.js ça ne marchera plus.
+Vous pouvez les voir à l'oeuvre dans ce https://jsfiddle.net/sewatech/eq3j5ods/[bac à sable].
