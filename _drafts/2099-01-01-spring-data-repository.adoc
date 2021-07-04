@@ -1,0 +1,92 @@
+---
+layout: post
+title: Du bon usage des Spring Data JPA repositories
+author: Alexis Hassler
+tags: spring jpa
+---
+
+[.right]
+image::/images/spring/spring-logo.svg[Spring logo, 140]
+
+On parle de Spring Data JPA, dont le but est de simplifier le développement de requêtes JPA.
+On y implémente un accès à une base de données relationnelle en déclarant quelques méthodes aux noms bien choisis dans des interfaces, ou en ajoutant des requêtes JPQL via des annotations.
+//<!--more-->
+
+== JPA Entity
+
+Le point de départ est une entité JPA, sans aucune spécificité liée à Spring.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+@Entity
+public class User {
+    @Id private Long id;
+    private String lastName;
+    private String firstName;
+    private LocalDate birthDate;
+    // Getters and setters...
+}
+----
+
+== Simple JPA Repository
+
+[source.width-80, subs="verbatim,quotes"]
+----
+public class UserRepository extends JpaRepository<User, Long> {
+}
+----
+
+== Method driven queries
+
+[source.width-80, subs="verbatim,quotes"]
+----
+public class UserRepository extends JpaRepository<User, Long> {
+    Collection<User> findByFirstNameAndLastName(String firstName, String lastName);
+
+    Optional<User> findFirstByFirstNameAndLastName(String firstName, String lastName);
+}
+----
+
+Plus complexe...
+
+[source.width-80, subs="verbatim,quotes"]
+----
+public class UserRepository extends JpaRepository<User, Long> {
+    List<User> findByFirstNameLikeAndLastNameLikeAndBirthDateBetweenOrderByBirthDate(
+        String firstNameLike, String lastNameLike, 
+        LocalDate startDate,  LocalDate endDate);
+}
+----
+
+== @Queries annotation
+
+[source.width-80, subs="verbatim,quotes"]
+----
+public class UserRepository extends JpaRepository<User, Long> {
+    @Query("select u from User "
+          + "where u.firstName like :firstNameLike and u.lastName like :lastNameLike " 
+            + "and u.birthDate between :startDate and :endDate "
+       + "order by u.birthDate")
+    List<User> search(
+        String firstNameLike, String lastNameLike, 
+        LocalDate startDate,  LocalDate endDate);
+}
+----
+
+== Default method
+
+public class UserRepository extends JpaRepository<User, Long> {
+    List<User> findByFirstNameLikeAndLastNameLikeAndBirthDateBetweenOrderByBirthDate(
+        String firstNameLike, String lastNameLike, 
+        LocalDate startDate,  LocalDate endDate);
+
+    default List<User> findByCriteria(UserCriteria criteria) {
+        return this.findByFirstNameLikeAndLastNameLikeAndBirthDateBetweenOrderByBirthDate(criteria.firstNameLike, criteria.lastNameLike, criteria.startDate, criteria.endDate);
+    }
+}
+
+
+== Références et ajouts
+
+* https://blog.frankel.ch/custom-spring-data-repository/
+* https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.repositories

@@ -1,0 +1,240 @@
+---
+layout: post
+title: J'aime pas les custom repositories
+author: Alexis Hassler
+tags: spring jpa
+---
+
+[.right]
+image::/images/spring/spring-logo.svg[Spring logo, 140]
+
+On parle de **Spring Data JPA**, dont le but est de simplifier le développement de requêtes JPA.
+On y implémente un accès à une base de données relationnelle en déclarant quelques méthodes aux noms bien choisis dans des interfaces, ou en ajoutant des requêtes JPQL via des annotations.
+
+Bref, avec les repositories de Spring Data JPA, on ne fait plus de code.
+Sauf si ce qui est proposé en standard ne suffit pas et dans ce cas il faut faire des **custom repositories**.
+C'est précisément ça que je n'aime pas.
+//<!--more-->
+
+== J'aime bien les repositories...
+
+Dans l'ensemble j'aime bien Spring Data JPA, ça réduit de beaucoup le code pour accéder à une base de données relationnelle.
+
+Par exemple, en faisant une interface qui hérite de https://docs.spring.io/spring-data/jpa/docs/2.5.2/api/org/springframework/data/jpa/repository/JpaRepository.html[`JpaRepository`], on a directement les méthodes pour _**F**ind all_, _**F**ind by id_, _**U**pdate_ / _**C**reate_ et _**D**elete_.
+
+[source, subs="verbatim,quotes"]
+----
+public interface UserRepository extends **JpaRepository**<User, Long> {
+}
+----
+
+En ajoutant des méthodes abstraites, par la convention de nommage, on spécifie les critères de sélection pour des recherches avec des critères plus complexes. 
+Par exemple, dans un UserRepository une méthode `findByLogin(...)` génèrera une requête avec une clause where sur le login.
+
+[source, subs="verbatim,quotes"]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+    List<User> **findByLogin**(String login);
+}
+----
+
+Enfin, si ça ne suffit pas, on peut aussi écrire une requête JPQL dans l'annotation https://docs.spring.io/spring-data/jpa/docs/2.5.2/api/org/springframework/data/jpa/repository/Query.html[`@Query`] d'une méthode.
+
+[source, subs="verbatim,quotes"]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+    List<User> findByLogin(String login);
+
+    **@Query**("SELECT u FROM User u JOIN u.contract c " +
+            "WHERE u.id in (:ids) " +g
+            "AND u.active = true " +
+            "AND c.validityStart <= current_date " +
+            "AND (c.validityEnd IS NULL OR current_date <= c.validityEnd) " +
+            "ORDER BY u.lastname, u.firstname")
+    List<User> **findWithValidContract**(Set<String> ids);
+}
+----
+
+== ...sauf pour les méthodes trop longues
+
+Si la technique de requêtage par convention de nommage est pratique, elle atteint ses limites en lisibilité quand on augmente le nombre de critères.
+
+[source, subs="verbatim,quotes"]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+    List<User> **findByLastnameLikeAndFirstnameLikeAndBirthdateAfterAndBirthdateBefore**
+                    (String lastnamePrefix, String firstnamePrefix, 
+                     Instant birthdateIntervalLow, Instant birthdateIntervalHigh);
+}
+----
+
+Cette méthode fait un peu tache dans l'interface `UserRepository`. 
+Mais surtout elle fait tache dans les méthodes qui doivent l'utiliser.
+
+Pour ce problème, on peut utiliser une _default method_ dans l'interface.
+
+[source, subs="verbatim,quotes"]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+  List<User> findByLastnameLikeAndFirstnameLikeAndBirthdateAfterAndBirthdateBefore(
+                String lastnamePrefix, String firstnamePrefix, 
+                Instant birthdateIntervalLow, Instant birthdateIntervalHigh);
+
+  _default_ List<User> **findByIdentity**(UserIdentity identity) {
+    return findByLastnameLikeAndFirstnameLikeAndBirthdateAfterAndBirthdateBefore(
+                identity.getLastname(), identity.getFirstname(), 
+                identity.getBirthdateIntervalLow(), identity.getBirthdateIntervalHigh());
+  }
+}
+----
+
+La méthode au nom à rallonge peut toujours être utilisé, mais on préfèrera `findByIdentity(...)` bien plus lisible.
+
+== ...sauf pour les critères dynamiques
+
+Le gros point faible des repositories c'est qu'ils sont prévus pour des requêtes statiques.
+Or il est classique de générer des requêtes en fonction des critères.
+L'API _Criteria_ de JPA est assez pratique pour ça.
+Mais c'est assez antinomique avec la logique des repositories.
+
+Avec une classe repository codée, on aurait à peu près ça :
+
+[source, subs="verbatim,quotes"]
+----
+@Repository
+public class UserDao {
+    private EntityManager em;
+
+    public List<User> **findByIdentity**(UserIdentity identity) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<User> query = cb.createQuery(v.class);
+        Root<User> root = query.from(User.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(cb.like(root.get("lastname"), identity.getLastname()));
+        predicates.add(cb.like(root.get("firstname"), identity.getFirstname()));
+        if (identity.getBirthdateIntervalLow() != null) {
+          predicates.add(
+            cb.greaterThan(root.get("birthdate"), identity.getBirthdateIntervalLow()));
+        }
+        if (identity.getBirthdateIntervalHigh() != null) {
+          predicates.add(
+            cb.lessThan(root.get("birthdate"), identity.getBirthdateIntervalHigh()));
+        }
+        query.where(predicates.toArray(new Predicate[] {}));
+
+        return em.createQuery(query).getResultList();
+    }
+}
+----
+
+Spring Data propose la notion de Specification pour utiliser les JPA _Criteria_.
+Pour ça, l'interface de repository doit hériter de https://docs.spring.io/spring-data/jpa/docs/2.5.2/api/org/springframework/data/jpa/repository/JpaSpecificationExecutor.html[`JpaSpecificationExecutor`].
+
+[source, subs="verbatim,quotes"]
+----
+@Repository
+public interface UserRepository 
+    extends JpaRepository<User, Long>, **JpaSpecificationExecutor<User>** {
+  __default__ List<User> **findByIdentity**(UserIdentity identity) {
+    return this.**findAll**(
+        (root, query, cb) -> {
+          List<Predicate> predicates = new ArrayList<>();
+          predicates.add(cb.like(root.get("lastname"), identity.getLastname()));
+          predicates.add(cb.like(root.get("firstname"), identity.getFirstname()));
+          if (identity.getBirthdateIntervalLow() != null) {
+            predicates.add(
+              cb.greaterThan(root.get("birthdate"), identity.getBirthdateIntervalLow()));
+          }
+          if (identity.getBirthdateIntervalHigh() != null) {
+            predicates.add(
+              cb.lessThan(root.get("birthdate"), identity.getBirthdateIntervalHigh()));
+          }
+          return cb.and(predicates.toArray(new Predicate[] {}));
+    });
+  }
+}
+----
+
+Et on n'a toujours pas eu besoin de classe pour ça, tout tient dans l'interface.
+
+== ...sauf pour aller plus loin
+
+Pour aller plus loin avec l'API _Criteria_, comme par exemple ajouter des jointures, on aurait besoin d'utiliser l'API dans son ensemble. 
+Le sous-ensemble proposé par Specification ne suffit plus.
+Mais pour ça, il faudrait avoir accès à l'EntityManager, et ça ce n'est pas possible dans une interface.
+... à moins qu'on contourne le problème.
+
+Si on avait une méthode `getEntityManager()` dans notre repositor_y, on pourrait l'utiliser dans nos méthodes _default_.
+
+Qu'à celà ne tienne, faisons une telle interface.
+
+[source, subs="verbatim,quotes"]
+----
+@NoRepositoryBean
+public interface EntityManagerRepository {
+  **EntityManager getEntityManager();**
+}
+----
+
+Et maintenant créons une classe qui implémente cette interface, avec l'injection de l'EntityManager.
+
+[source, subs="verbatim,quotes"]
+----
+public class SewaRepositoryImpl<T, ID extends Serializable> 
+    extends SimpleJpaRepository<T, ID>
+    implements EntityManagerRepository {
+
+  private final EntityManager entityManager;
+
+  public SewaRepositoryImpl(
+            JpaEntityInformation<T, ?> entityInformation, 
+            EntityManager entityManager) {
+    super(entityInformation, entityManager);
+    this.entityManager = entityManager;
+  }
+
+  @Override
+  public EntityManager getEntityManager() {
+    return entityManager;
+  }
+}
+----
+
+Enfin, faisons en sorte que les instances de _repositories_ héritent de cette classe.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+@EnableJpaRepositories(**repositoryBaseClass = SewaRepositoryImpl.class**)
+public class SewaApplication {
+  ...
+}
+----
+
+A partir de là, je peux utiliser l'_entity manager_ dans n'importe quelle interface de _repository_, il suffit qu'elle hérite de `EntityManagerRepository`.
+
+[source, subs="verbatim,quotes"]
+----
+@Repository
+public interface UserRepository 
+    extends JpaRepository<User, Long>, **EntityManagerRepository** {
+  __default__ List<User> **findByIdentity**(UserIdentity identity) {
+    EntityManager em = this.getEntityManager();
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<User> query = cb.createQuery(v.class);
+    Root<User> root = query.from(User.class);
+
+    //...
+  }
+}
+----
+
+== Finalement c'est pas grave
+
+Finalement, j'aime pas les custom repositories mais c'est pas grave.
+Avec les techniques décrites ci-dessus (default method, Specification et repositoryBaseClass), il n'y en a presque jamais besoin.
+
+Référence : 
+
+* https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories.custom-implementations[Spring Data reference]
+* https://gitlab.com/bojoblog/spring-example/-/tree/master/repository-examples[Exemples de code]
