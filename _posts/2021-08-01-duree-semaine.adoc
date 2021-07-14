@@ -1,0 +1,179 @@
+---
+layout: post
+title: Combien de temps dure une semaine ?
+author: Alexis Hassler
+tags: java date time
+---
+
+[.left.margin-top-3]
+image::/images/date/semainier.jpg[Semaine, 200]
+
+Tout le monde sait qu'**une semaine dure 7 jours** !
+Et même en Java, c'est simple à vérifier.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+LocalDate start = LocalDate.parse("2000-01-01");
+System.out.println(
+    ChronoUnit.DAYS.between(start, start.plus(1, ChronoUnit.WEEKS))
+);
+// => 7 jours
+----
+
+Si on prend un peu de recul, on peut se rappeler que le https://fr.wikipedia.org/wiki/Calendrier_r%C3%A9publicain[calendrier révolutionnaire français] avait une semaine de 10 jours.
+Ça prouve que la durée de 7 jours est arbitraire et qu'il n'est pas exclu que des calendriers s'en éloignent.
+Et quand on parle de la durée d'un mois ou d'une année, les exemples sont plus faciles à trouver avec les calendriers lunaires.
+
+Voyons comment ça peut se traduire pour un développeur Java...
+//<!--more-->
+
+== Chronology
+
+En Java, la notion de calendrier est implémentée sous la forme d'instances de https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/chrono/Chronology.html[`Chronology`].
+
+Le https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien[calendrier grégorien], à la base du standard https://fr.wikipedia.org/wiki/ISO_8601[ISO 8601], est utilisé par défaut en Java.
+Ainsi, quand on utilise une https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/LocalDate.html[`LocalDate`] ou une https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/ZonedDateTime.html[`ZonedDateTime`], c'est basé sur https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/chrono/IsoChronology.html[`IsoChronology`].
+
+[source.width-80, subs="verbatim,quotes"]
+----
+System.out.println(LocalDate.now());
+// => 2021-07-13
+----
+
+Java 11 supporte 4 autres chronologies : https://fr.wikipedia.org/wiki/Calendrier_h%C3%A9girien[Hijrah-umalqura], https://fr.wikipedia.org/wiki/Ann%C3%A9e_imp%C3%A9riale_japonaise[Japanese], https://fr.wikipedia.org/wiki/Calendrier_minguo[Minguo] et https://fr.wikipedia.org/wiki/Calendrier_bouddhiste[Thai Buddhist].
+
+[source.width-80, subs="verbatim,quotes"]
+----
+System.out.println(HijrahDate.now());
+// => Hijrah-umalqura AH 1442-12-03
+----
+
+Et en intégrant la librairie https://www.threeten.org/threeten-extra/[ThreeTen Extra], on récupère une dizaine d'autres chronologies, parfois un peu exotiques.
+
+== Combien de temps dure un mois ?
+
+Commençons par étudier la durée d'un mois, avec les différences entre calendrier solaire et lunaire, on trouvera vite des différences.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+LocalDate isoStart = LocalDate.parse("2000-03-01");
+System.out.println(
+    ChronoUnit.DAYS.between(isoStart, isoStart.plus(1, ChronoUnit.MONTHS))
+);
+// => 1 mois = **31 jours**
+System.out.println(
+    ChronoUnit.DAYS.between(isoStart, isoStart.plus(1, ChronoUnit.YEARS))
+);
+// => 1 an = **365 jours**
+
+
+HijrahDate hijrahStart = HijrahDate.from(isoStart);
+System.out.println(
+    ChronoUnit.DAYS.between(hijrahStart, hijrahStart.plus(1, ChronoUnit.MONTHS))
+);
+// => 1 mois = **29 jours**
+System.out.println(
+    ChronoUnit.DAYS.between(hijrahStart, hijrahStart.plus(1, ChronoUnit.YEARS))
+);
+// => 1 an = **354 jours**
+----
+
+En comparant des mois et années des calendriers grégorien et hégirien, on trouve directement une différence nette.
+Par contre pour toutes les chronologies du JDK ont des semaines de 7 jours.
+
+== Une semaine dure forcément 7 jours ?
+
+Si les 5 calendriers supportés par le JDK ont des semaines de jours, ça ne veut pas dire que c'est une règle universelle.
+J'ai déjà cité le cas du calendrier révolutionnaire français, mais il est trop ancien.
+En cherchant un peu dans la librairie ThreeTen Extra, je suis tombé sur le https://fr.wikipedia.org/wiki/Discordianisme#Pratique_du_discordianisme[calendrier discordien].
+
+[.center]
+image::/images/date/calendrier-discordien.jpg[Calendrier discordien, 400]
+
+OK, on n'utilise pas couramment ce calendrier, mais il permet de répondre à la question en titre : combien de temps dure une semaine ?
+
+[source.width-80, subs="verbatim,quotes"]
+----
+LocalDate isoStart = LocalDate.parse("2000-03-01");
+System.out.println(
+    ChronoUnit.DAYS.between(isoStart, isoStart.plus(1, ChronoUnit.WEEKS))
+);
+// => 1 semaine = **7 jours**
+
+DiscordianDate discordianStart = DiscordianDate.from(isoStart);
+System.out.println(
+    ChronoUnit.DAYS.between(discordianStart, discordianStart.plus(1, ChronoUnit.WEEKS))
+);
+// => 1 semaine = **5 jours**
+----
+
+Donc une semaine dure généralement 7 jours, sauf pour les adeptes du discordianisme pour qui elle dure 5 jours .
+
+== Pourquoi c'est important ?
+
+Parce que clairement, on n'utilise pas souvent le calendrier discordien...
+En réalité la question s'est posée en d'autres termes : pourquoi est-ce qu'on ne peut pas ajouter une semaine à un instant ?
+Alors qu'on peut ajouter 7 jours.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+System.out.println(Instant.EPOCH.plus(7, ChronoUnit.DAYS));
+// => 1970-01-08T00:00:00Z
+
+System.out.println(Instant.EPOCH.plus(1, ChronoUnit.WEEKS));
+// => java.time.temporal.UnsupportedTemporalTypeException: **Unsupported unit: Weeks**
+----
+
+Une instance d'Instant représente un moment indépendant de tout contexte : calendrier, fuseau horaire, langue,...
+On ne peut lui ajouter que des valeurs dont l'unité est universelle.
+Le JDK considère que les unités jusqu'au jour sont utilisables, mais que celles au dessus (semaine, mois,...) sont trop dépendantes du contexte.
+
+Par conséquent, pour ajouter une semaine ou un mois, il faut passer par objet temporel contextualisé.
+Plus précisément, il doit être associé à une chronologie.
+
+== Et pourquoi c'est discutable ?
+
+Jusqu'ici, on a parlé de calendriers / chronologies qui peuvent avoir une influence sur la durée de semaines, mois ou années.
+Mais il n'est pas nécessaire de chercher si loin pour trouver des durées instables.
+
+En effet, la durée d'une journée peut dépendre du **fuseau horaire**, en fonction des **changements d'heure**.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+Instant instantBeforeWinterTime = Instant.parse("2000-10-29T00:00:00Z");
+System.out.println(
+    ChronoUnit.HOURS.between(instantBeforeWinterTime, 
+                             instantBeforeWinterTime.plus(1, ChronoUnit.DAYS))
+);
+// => 1 jour = **24 heures**
+
+ZonedDateTime beforeWinterTimeUtc = ZonedDateTime.ofInstant(
+    instantBeforeWinterTime, ZoneId.of("UTC")
+);
+System.out.println(
+    ChronoUnit.HOURS.between(beforeWinterTimeUtc, 
+                             beforeWinterTimeUtc.plus(1, ChronoUnit.DAYS))
+);
+// => 1 jour = **24 heures** (pas de changement d'heure en UTC)
+
+ZonedDateTime beforeWinterTimeParis = ZonedDateTime.ofInstant(
+    instantBeforeWinterTime, ZoneId.of("Europe/Paris")
+);
+System.out.println(
+    ChronoUnit.HOURS.between(beforeWinterTimeParis, 
+                             beforeWinterTimeParis.plus(1, ChronoUnit.DAYS))
+);
+// => 1 jour = **25 heures** (passage à l'heure d'hiver)
+----
+
+Ajouter une journée à une date / heure est donc aussi dépendant d'un contexte.
+Ajouter 24 heures et ajouter une journée ne sont pas forcément équivalents.
+
+== Conclusion
+
+Il est toujours important de définir le contexte d'une opération sur les dates / heures.
+Et il est toujours important de savoir ce qui est significatif.
+
+Références :
+
+** https://gitlab.com/bojoblog/spring-example/-/tree/master/java-examples/datetime-example[Exemples de code]
