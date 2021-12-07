@@ -1,0 +1,86 @@
+---
+layout: post
+title: Générer un document KML pour Google Maps
+date: '2013-07-11T00:50:00.000+02:00'
+author: Alexis Hassler
+tags:
+- KML
+- Google Maps
+modified_time: '2013-07-11T11:08:29.983+02:00'
+---
+
+Dans mon article précédent, j'expliquais comment j'avais obtenu des http://blog.alexis-hassler.com/2013/07/09/du-sig-google-maps.html[coordonnées géographiques à partir de coordonnées Lambert 93]. 
+La dernière étape pour valider la conversion était la soumission d'une carte au client.
+
+Pour afficher ses points sur Google Maps, sans passer par l'API, j'ai choisi de passer par un fichier KML. 
+Je dois générer un tel fichier à partir des points convertis, en utilisant la longitude et la latitude, puis je dois rendre ce fichier accessible sur le Web et enfin, je passe l'URL du fichier en paramètre à Google Maps.
+
+// <!--more-->
+Pour générer le fichier KML, je pars d'un fichier CSV contenant tous les points à afficher. Pour l'article, j'utilise un fichier contenant la liste des communes de France, avec leurs coordonnées et leurs populations.
+
+[source, subs="verbatim,quotes"]
+----
+01001,L'Abergement-Clémenciat,01400,46.15,4.916667,579
+01002,L'Abergement-de-Varey,01640,46.0,5.416667,159
+01003,Amareins,01090,46.083333,4.8,0
+01004,Ambérieu-en-Bugey,01500,45.95,5.35,10455
+01005,Ambérieux-en-Dombes,01330,46.0,4.9,1156
+01006,Ambléon,01300,45.75,5.6,76
+----
+
+Je vais donc charger ce fichier, découper chaque ligne et générer un Placemark KML pour chacune d'entre elles. Pour la génération KML, j'utilise la librairie https://code.google.com/p/javaapiforkml/[JAK], ou{nbsp}Java API for KML. 
+Donc avant d'entrer dans le code, quelques mots sur la librairie.
+
+Le premier abord est bien meilleur que pour proj4j : http://search.maven.org/#browse%7C-469414455[artefact dans le repository central de Maven] et http://labs.micromata.de/display/jak/Home[un peu de doc]. 
+Par contre, je ne trouve pas l'API très intuitive ; certainement un effet de mon manque de vocabulaire, là aussi.
+
+Allez, un peu de code. 
+Je commence par charger mon fichier CSV.
+
+[source, subs="verbatim,quotes"]
+----
+Path file = Paths.get("data", "cities.csv"); 
+List<string> lines = readAllLines(file, Charset.forName("UTF-8"));
+----
+
+Puis je prépare mon document KML, on déclarant deux styles. 
+Ça permettra de mettre des icônes différentes selon la taille des communes. 
+
+[source, subs="verbatim,quotes"]
+----
+Kml kml = new Kml(); 
+Document kmlDocument = kml.createAndSetDocument(); 
+kmlDocument.getStyleSelector().addAll(asList(City.SMALL_STYLE, City.BIG_STYLE));
+----
+
+Ensuite, por chaque ligne je crée un objet City, je retire les objets null, ainsi que les villes trop petites (ça ferait trop de points sur la carte avec toutes les communes) et je crée transforme la City en Placemark. 
+J'ajoute la liste de Feature ainsi obtenue au document.
+
+[source, subs="verbatim,quotes"]
+----
+kmlDocument.setFeature(
+    from(lines)
+         .transform(City.fromLine)
+         .filter(notNull())
+         .filter(not(tooSmall))
+         .transform(City.toPlacemark)
+         .toList()); 
+----
+         
+Enfin, je génère un fichier KMZ, qui est un document KML zippé. 
+
+[source, subs="verbatim,quotes"]
+----
+kml.marshalAsKmz("data/" + "cities.kmz");
+----
+
+Le travail est presque terminé. 
+Il me reste à rendre ce fichier consultable sur le Web ; 
+par exemple dans le répertoire public de mon compte DropBox. 
+Les points seront affichés en passant l'URL du fichier KMZ en paramètre de Google Maps :
+https://maps.google.fr/?q=https://dl.dropboxusercontent.com/u/2133194/cities.kmz
+
+NOTE: Je n'ai pas fait le choix d'exclure les communes trop petites que pour la lisibilité ; je l'ai aussi fait parce que Google Maps refusait d'afficher le fichier complet pour cause de dépassement des limites.
+
+NOTE: En utilisant https://support.google.com/fusiontables[Google Tables], j'aurais pu afficher les mêmes données dans Google Maps, sans les contraintes de taille ; 
+par contre, c'est un clicodrome, ce qui est moins amusant que faire du code.
