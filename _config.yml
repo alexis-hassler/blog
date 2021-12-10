@@ -5,7 +5,7 @@ description:  > # this means to ignore newlines until "baseurl:"
     <p>J'ai créé la société <b>Sewatech</b> en 2005, pour y exercer mon métier de développeur <i title="ie. je fais du Java et de l'Angular">full stack</i>, à dominante <i title="ie. je suis meilleur en Spring qu'en CSS">back end</i>.</p>
     <p>Vous pouvez me <a href="https://www.sewatech.fr/contacts.html">contacter</a> si vous cherchez un développeur indépendant expérimenté (plus de 25 ans d'expérience) pour intégrer votre équipe de projet.
     Je peux aussi intervenir pour un audit ou une mission de conseil.</p>
-    <p>Enfin, je donne des formations sur <a href="https://www.sewatech.fr/formation-spring.html">Spring</a>, <a href="https://www.sewatech.fr/formation-vertx.html">Vert.x</a>, <a href="https://www.sewatech.fr/formation-wildfly.html">WildFly</a>,... en intra sur site ou à distance</p>
+    <p>Enfin, je donne des formations sur <a href="https://www.sewatech.fr/formation-spring.html">Spring</a>, <a href="https://www.sewatech.fr/formation-vertx.html">Vert.x</a>, <a href="https://www.sewatech.fr/formation-wildfly.html">WildFly</a>,... en intra sur site ou à distance.</p>
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blog.alexis-hassler.com/"
 author: Alexis Hassler

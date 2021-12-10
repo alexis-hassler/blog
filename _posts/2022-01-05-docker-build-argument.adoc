@@ -1,0 +1,141 @@
+---
+layout: post
+title: Passer des arguments au build de Docker
+author: Alexis Hassler
+tags: docker
+courses:
+- docker
+---
+
+[.right.margin-top-3]
+image::/images/docker/moby-armor.png[Docker Moby, 100]
+
+Depuis quelques années, je gère un repository sur GitHub pour que chacun puisse faire un build à partir du code source de JBoss EAP.
+Récemment, j'ai voulu automatiser ce build avec Docker, sur plusieurs systèmes (Debian, CentOS, Alpine), pour plusieurs versions du JDK (8 et 11) et pour plusieurs versions de JBoss EAP.
+
+C'est là que j'ai découvert la possibilité d'utiliser des arguments dans `Dockerfile` et de les passer en option de `docker build`.
+Ainsi, je peux choisir les versions du JDK et de JBoss EAP au lancement du build :
+
+[source.width-80, subs="verbatim,quotes"]
+----
+~# docker build *--build-arg* JDK_VERSION=8 *--build-arg* EAP_VERSION=7.2.3     \
+                --tag hasalex/eap:7.2.3_jdk8 .
+----
+
+Voyons pourquoi et comment j'en suis arrivé à ce résultat...
+// <!--more-->
+
+
+== Qu'est-ce que JBoss EAP ?
+
+Avant de parler des arguments de _build_ de Docker, je vais remettre en place le contexte.
+
+JBoss EAP est un serveur d'application Java EE / Jakarta EE édité de Red Hat. 
+Il est payant dans le cadre d'une souscription.
+Son équivalent gratuit est https://www.wildfly.org/[WildFly].
+
+image::/images/redhat/JBossEAP.png[JBoss EAP, 300, role="center", link="https://www.redhat.com/fr/technologies/jboss-middleware/application-platform"]
+
+Le modèle économique de Red Hat est le même que pour ses distributions Linux : 
+RHEL est un produit payant avec une souscription et Fedora est un artéfact gratuit issu d'un projet communautaire.
+
+JBoss EAP <==> RHEL et WildFly <==> Fedora.
+
+
+== Et pourquoi faire un build soi-même ?
+
+*Parce que c'est possible !*
+
+Comme pour tout ce que fait Red Hat, JBoss EAP est Open Source.
+Et pouvoir accéder au code source sans pouvoir le compiler et l'utiliser, je trouve ça triste.
+
+Il y a quelques années, j'ai regardé de plus prêt ce que Red Hat publiait et j'ai essayé de faire le _build_.
+Depuis, j'ai mis ça en forme dans un repo GitHub et visiblement c'est utile à quelques personnes.
+Il y a même quelques contributeurs icon:heart[role="red"] icon:heart[role="red"] icon:heart[role="red"].
+
+
+== Le build Docker
+
+Dans un premier temps, j'ai préparé un fichier Dockerfile pour construire une image avec la dernière version de JBoss EAP et le JDK 11, sur un base de Debian.
+
+[source, subs="verbatim,quotes"]
+----
+# =====
+FROM azul/zulu-openjdk-debian:11 as eap-build
+
+RUN apt-get update -y                                            && \
+    apt-get install -y wget unzip patch curl maven xmlstarlet
+
+WORKDIR eap-build-master
+COPY . ./
+RUN ./build-eap7.sh                                              && \
+    unzip -q -d /opt dist/jboss-eap-\*.zip                        && \
+    mv /opt/jboss-eap-* /opt/jboss-eap
+
+
+# =====
+FROM azul/zulu-openjdk-debian:11
+
+RUN groupadd -r jboss -g 1000                                    && \
+    useradd -u 1000 -r -g jboss -m -d /opt/jboss-eap                \
+                    -s /sbin/nologin -c "JBoss user" jboss       && \
+    chmod 755 /opt/jboss-eap
+
+COPY --from=eap-build --chown=jboss:0 /opt/jboss-eap /opt/jboss-eap
+
+WORKDIR /opt/jboss-eap
+USER jboss
+ENV LAUNCH_JBOSS_IN_BACKGROUND true
+
+EXPOSE 8080
+EXPOSE 9990
+
+CMD ["bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]
+----
+
+Par la suite, j'ai voulu laisser le choix de la version à construire ainsi que la version du JDK à utiliser.
+L'objectif était de donner un maximum de liberté à l'utilisateur, mais sans multiplier les fichiers Dockerfile.
+
+Faites le calcul : fin 2021 on pouvait choisir entre 36 versions mineurs et updates de JBoss EAP 7.
+Le build pouvant fonctionner avec tous les JDKs entre les versions 8 et 16, sur 3 systèmes Linux (Debian, CentOS et Alpine), ça fait *presque 1000 possibilités*.
+
+image::/images/docker/docker-build.png[Docker build, 350, role="center", link="https://docs.docker.com/engine/reference/commandline/build/"]
+
+== ... avec des arguments
+
+La solution à mon problème, c'est le _build argument_.
+Ça se déclare dans le fichier Dockerfile avec l'instruction `*ARG*`, soit dans le corp du fichier de la même façon qu'une variable `ENV`, soit avant le `FROM`.
+
+[source, subs="verbatim,quotes"]
+----
+*ARG JDK_VERSION=11*
+FROM azul/zulu-openjdk-alpine:**$JDK_VERSION** as eap-build
+
+...
+*ARG EAP_VERSION*
+RUN ./build-eap7.sh *$EAP_VERSION*
+...
+----
+
+Dans cette exemple, la version du JDK a une valeur par défaut et la version d'EAP est vide par défaut.
+Avec la commande simple, on construit donc la dernière version d'EAP avec le JDK 11.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+~# docker build --tag hasalex/eap .
+----
+
+En passant les _build arguments_, on peut construire une version plus ancienne avec un JDK 8.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+~# docker build *--build-arg JDK_VERSION=8* *--build-arg EAP_VERSION=7.2.3*     \
+                --tag hasalex/eap:7.2.3_jdk8 .
+----
+
+
+== Conclusion
+
+Avec les _build arguments_ et 3 fichiers `Dockerfile`, on s'ouvre le choix entre près de 1000 combinaisons système / JDK / EAP.
+
+Si vous voulez essayer, vous trouverez les scripts et les Dockerfile sur le GitHub d'https://github.com/hasalex/eap-build[eap-build].
