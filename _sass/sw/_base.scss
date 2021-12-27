@@ -315,3 +315,11 @@ th.valign-top, td.valign-top {
   }
 }
 
+.year .active a {
+  color: #333;
+  cursor: unset;
+
+  &:hover {
+    text-decoration: none;
+  }
+}

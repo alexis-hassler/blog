@@ -1,0 +1,23 @@
+---
+layout: post
+title: Démarrage du blog
+author: Alexis Hassler
+---
+
+Je n'avais pas de blog. 
+Il m'en fallait un sous peine d'être ridicule. 
+Si vous n'êtes pas convaincu par mes motivations, je vais essayer de tourner cela autrement. 
+
+C'est vrai que j'ai déjà des espaces pour m'exprimer :
+
+* un wiki dans lequel je consigne mes http://www.jtips.info/[notes techniques], 
+* le site de http://www.sewatech.fr/[Sewatech], ma société, sur lequel j'ai publié quelques articles,
+* le site du http://www.lyonjug.org/[LyonJUG], sur lequel je réagis aux présentations auxquelles j'ai assistées.
+
+Dans ces conditions, quel est l'intérêt d'ouvrir ce blog ? 
+Et bien tout simplement parce que le blog personnel est un espace d'expression différent. 
+Il est plus approprié pour émettre un avis subjectif que le wiki et il n'implique que moi, à titre personnel, indépendamment de Sewatech et du JUG.
+
+Si tout va bien, je devrais travailler sur un projet GAE ; 
+je pense utiliser ce blog pour y consigner mes réactions et mes trouvailles. 
+Une partie de l'information se retrouvera probablement aussi sur http://www.jtips.info/[JTips], plus tard, et sous forme plus synthétique.

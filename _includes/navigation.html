@@ -1,39 +1,21 @@
 {% capture html %}
 <ul class="treeview">
     {% capture current_year  %}{{ page.date | date: "%Y" }}{% endcapture %}
-    {% capture current_month %}{{ page.date | date: "%m" }}{% endcapture %}
     {% assign entries = site.posts %}
-    {% for entry in entries %}
+    {% assign years = site.data['years'] | reverse %}
 
-        {% capture year  %}{{ entry.date | date: "%Y" }}{% endcapture %}
-        {% capture month %}{{ entry.date | date: "%m" }}{% endcapture %}
-
-        {% if year != previous_year %}
-            {% if previous_year != null %}
-                </ul></li></ul></li><!-- year -->
-            {% endif %}
-            <li> <input type="checkbox" id="cb-{{year}}" {% if year == current_year %}checked{% endif %} />
-                <label for="cb-{{year}}">{{ year }}</label>
-                <ul class="year">
-            {% capture previous_month %}{% endcapture %}
-        {% endif %}
-
-        {% if month != previous_month %}
-            {% if previous_month != "" %}
-                </ul><!-- month --></li>
-            {% endif %}
-            <li> <input type="checkbox" id="cb-{{year}}{{month}}" {% if year == current_year and month == current_month %}checked{% endif %} />
-                <label for="cb-{{year}}{{month}}">{{ month }}</label>
-                <ul class="month">
-        {% endif %}
-
-        <li class="{% if page.url contains entry.url %}active{% endif %}">
-            <a href="{{ site.baseurl }}{{ entry.url }}">{{ entry.title }}</a>
-        </li>
-
-        {% capture previous_year  %}{{ year  }}{% endcapture %}
-        {% capture previous_month %}{{ month }}{% endcapture %}
-        
+    {% for year in years %}
+    {% assign year_entries = entries | where: "year",year %}
+    <li> <input type="checkbox" id="cb-{{year}}" {% if year == current_year %}checked{% endif %} />
+        <label for="cb-{{year}}">{{ year }} ({{ year_entries | size }})</label>
+        <ul class="year">
+            {% for entry in year_entries %}
+            <li class="{% if page.url contains entry.url %}active{% endif %}">
+                <a href="{{ site.baseurl }}{{ entry.url }}" title="{{ entry.date | date: '%d/%m/%Y' }}">{{ entry.title }}</a>
+            </li>    
+            {% endfor %}
+        </ul>
+    </li>
     {% endfor %}
 </ul><!-- global -->
 {% endcapture %}{{ html }}
