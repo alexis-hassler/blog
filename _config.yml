@@ -1,23 +1,11 @@
-# Welcome to Jekyll!
-#
-# This config file is meant for settings that affect your whole blog, values
-# which you are expected to set up once and rarely edit after that. If you find
-# yourself editing this file very often, consider using Jekyll's data files
-# feature for the data you need to update frequently.
-#
-# For technical reasons, this file is *NOT* reloaded automatically when you use
-# 'bundle exec jekyll serve'. If you change this file, please restart the server process.
-
-# Site settings
-# These are used to personalize your new site. If you look in the HTML files,
-# you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
-# You can create any custom variable you would like, and they will be accessible
-# in the templates via {{ site.myvariable }}.
 title: Bojo Blog
 subtitle: Dev & Ops en Beaujolais
 email: bojb@sewatech.fr
 description:  > # this means to ignore newlines until "baseurl:"
-    J'ai créé la société Sewatech en 2005, pour y exercer mon métier de conseil et de formation en informatique. Je suis spécialisé dans les technologies Java (développement et administration de serveurs d'applications).
+    <p>J'ai créé la société <b>Sewatech</b> en 2005, pour y exercer mon métier de développeur <i title="ie. je fais du Java et de l'Angular">full stack</i>, à dominante <i title="ie. je suis meilleur en Spring qu'en CSS">back end</i>.</p>
+    <p>Vous pouvez me <a href="https://www.sewatech.fr/contacts.html">contacter</a> si vous cherchez un développeur indépendant expérimenté (plus de 25 ans d'expérience) pour intégrer votre équipe de projet.
+    Je peux aussi intervenir pour un audit ou une mission de conseil.</p>
+    <p>Enfin, je donne des formations sur <a href="https://www.sewatech.fr/formation-spring.html">Spring</a>, <a href="https://www.sewatech.fr/formation-vertx.html">Vert.x</a>, <a href="https://www.sewatech.fr/formation-wildfly.html">WildFly</a>,... en intra sur site ou à distance</p>
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blog.alexis-hassler.com/"
 author: Alexis Hassler
@@ -41,9 +29,23 @@ paginate: 5
 
 links:
   - title: "JTips, mon wiki"
-    url: "https://jtips.info"
+    url: "https://www.jtips.info/Accueil"
+    logo: "jtips.svg"
   - title: "Sewatech, mon entreprise"
-    url: "https://sewatech.fr"
+    url: "https://www.sewatech.fr"
+    logo: "sw.svg"
+  - title: "Mon compte Twitter"
+    url: "https://twitter.com/AlexisHassler"
+    logo: "twitter.svg"
+  - title: "Mon compte LinkedIn"
+    url: "https://www.linkedin.com/in/hassler/"
+    logo: "linkedin.svg"
+  - title: "Mon compte GitLab"
+    url: "https://gitlab.com/hasalex"
+    logo: "gitlab.svg"
+  - title: "Mon compte GitHub"
+    url: "https://github.com/hasalex"
+    logo: "github.svg"
 
 asciidoctor:
   attributes:

@@ -1,9 +1,3 @@
-{% capture html %}
-<ul class="treeview">
-    {% for link in site.links %}
-        <li>
-            <a href="{{ link.url }}">{{ link.title }}</a>
-        </li>
-    {% endfor %}
-</ul>
-{% endcapture %}{{ html }}
+{% for link in site.links %}
+    <a href="{{ link.url }}"><img src="/images/links/{{ link.logo }}" alt="{{ link.title }}" title="{{ link.title }}" height="40"/></a>
+{% endfor %}
