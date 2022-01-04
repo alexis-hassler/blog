@@ -1,4 +1,3 @@
-{% capture html %}
 <ul class="treeview">
     {% capture current_year  %}{{ page.date | date: "%Y" }}{% endcapture %}
     {% assign entries = site.posts %}
@@ -17,5 +16,5 @@
         </ul>
     </li>
     {% endfor %}
-</ul><!-- global -->
-{% endcapture %}{{ html }}
+</ul>
+<div class="rss-subscribe">Abonnement <a href="{{ "/feed.xml" | relative_url }}">via RSS</a></div>

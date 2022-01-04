@@ -25,17 +25,14 @@ layout: default
   <div class="pagination">
     {% if paginator.previous_page %}
       <span class="newer-link">
-          <a href="{{ paginator.previous_page_path }}" class="previous">Articles plus récents</a>
+          <a href="{{ paginator.previous_page_path }}" class="previous">«« Articles plus récents</a>
       </span>
     {% endif %}
     {% if paginator.next_page %}
       <span class="older-link">
-          <a href="{{ paginator.next_page_path }}" class="next">Articles plus anciens</a>
+          <a href="{{ paginator.next_page_path }}" class="next">Articles plus anciens »»</a>
       </span>
     {% endif %}
   </div>
   <div class="clear"></div>
-
-  <div class="rss-subscribe">Abonnement <a href="{{ "/feed.xml" | relative_url }}">via RSS</a></div>
-
 </div>
