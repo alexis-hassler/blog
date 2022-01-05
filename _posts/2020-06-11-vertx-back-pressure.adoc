@@ -3,6 +3,8 @@ layout: post
 title: Exemple de back-pressure avec Vert.x
 author: Alexis Hassler
 tags: wiki
+courses:
+- vertx
 ---
 
 [.right]

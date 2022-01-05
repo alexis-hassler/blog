@@ -3,6 +3,8 @@ layout: post
 title: J'aime pas les custom repositories
 author: Alexis Hassler
 tags: spring jpa
+courses:
+- spring
 ---
 
 [.right]

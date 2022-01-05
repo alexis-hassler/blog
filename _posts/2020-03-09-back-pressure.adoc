@@ -3,6 +3,8 @@ layout: post
 title: Back-pressure avec RxJava
 author: Alexis Hassler
 tags: wiki
+courses:
+- rxjava
 ---
 
 [.right]

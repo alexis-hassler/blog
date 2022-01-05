@@ -3,6 +3,8 @@ layout: post
 title: Lecture de gros fichier avec Vert.x
 author: Alexis Hassler
 tags: java, file, performance, vertx
+courses:
+- vertx
 ---
 
 [.left]

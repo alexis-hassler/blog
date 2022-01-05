@@ -3,6 +3,8 @@ layout: post
 title: Combien de temps dure une semaine ?
 author: Alexis Hassler
 tags: java date time
+courses:
+- java-jdk8
 ---
 
 [.left.margin-top-3]

@@ -1,0 +1,32 @@
+spring:
+  url: https://www.sewatech.fr/formation-spring.html
+  title: Spring Boot pour les applications Web
+  duration: 3
+docker:
+  url: https://www.sewatech.fr/formation-docker-developpeurs.html
+  title: Docker pour les développeurs
+  duration: 3
+java-jdk8:
+  url: https://www.sewatech.fr/formation-java-nouveautes-jdk-8.html
+  title: Java, nouveautés du JDK 8 
+  duration: 2
+vertx:
+  url: https://www.sewatech.fr/formation-vertx.html
+  title: Développement réactif avec Vert.x
+  duration: 3
+rxjava:
+  url: https://www.sewatech.fr/formation-rxjava.html
+  title: Développement réactif avec RxJava
+  duration: 2
+wildfly:
+  url: https://www.sewatech.fr/formation-wildfly.html
+  title: Administration WildFly
+  duration: 3
+tomcat:
+  url: https://www.sewatech.fr/formation-tomcat.html
+  title: Administration Tomcat
+  duration: 3
+wildfly-cluster:
+  url: https://www.sewatech.fr/formation-wildfly-cluster.html
+  title: Déployer WildFly en cluster
+  duration: 3

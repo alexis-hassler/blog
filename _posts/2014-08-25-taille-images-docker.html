@@ -1,14 +1,82 @@
 ---
 layout: post
 title: Réduire la taille des images Docker
-date: '2014-08-25T08:30:00.000+02:00'
 author: Alexis Hassler
 tags:
 - Docker
-modified_time: '2014-08-25T08:30:00.498+02:00'
-blogger_id: tag:blogger.com,1999:blog-1829028238633284708.post-724655692629555097
-blogger_orig_url: http://blog.alexis-hassler.com/2014/08/taille-images-docker.html
-
+courses:
+- docker
 ---
 
-La semaine dernière, j'ai publié un billet sur&nbsp;la mise en place d'un <a href="http://blog.alexis-hassler.com/2014/08/cluster-wildfly-avec-docker.html" target="_blank">cluster WildFly avec Docker</a>. Une des premières réactions est venue de <a href="https://hypedrivendev.wordpress.com/" target="_blank">Cédric Exbrayat</a> pour me donner quelques conseils pour <a href="http://www.centurylinklabs.com/optimizing-docker-images/" target="_blank">réduire la taille de mes images</a>. J'ai donc testé les pistes de cet article avec mes deux images : sewatech/modcluster et sewatech/wildfly.<br /><br />Les pistes qui sont proposées sont :<br /><ul><li>le chaînage des commandes, pour réduire le nombre de couches,</li><li>l'import&nbsp;+ export, qui réduit encore plus les couches.</li></ul>Enfin, j'ai testé l'utilisation de plusieurs images de base, dont BusyBox, comme me l'a suggéré&nbsp;<a href="https://twitter.com/DamienDuportal" target="_blank">Damien Duportal</a>.<br /><br /><!--more--><b><br /></b><b>Taille des images</b><br /><div><br /></div>J'ai construit mes deux images avec des Dockerfiles. Chaque Dockerfile est une séquence de <a href="https://docs.docker.com/reference/builder/" target="_blank">commandes ADD, COPY, RUN,...</a>&nbsp;Le résultat est une image Docker constituée d'une image de base et de couches (<i>layers</i>) successives, chaque commande générant une nouvelle couche. La taille d'une image étant la somme de ses couches, chaque couche supplémentaire fait grossir le résultat final. En revanche, si deux images utilisent la même image de base, celle-ci n'est présente qu'une seule fois.<br /><br />Les versions initiales de mes images occupent respectivement <b><span style="color: #274e13;">401 Mo</span></b> (sewatech/modcluster) et <b><span style="color: #274e13;">794 Mo</span></b> (sewatech/wildfly), pour une taille totale de <b><span style="color: #274e13;">1105 Mo</span></b>&nbsp;; l'image debian:jessie partagée par les deux images fait 90 Mo.<br /><br /><b>Chaînage des commandes</b><br /><br />Commençons par le chaînage des commandes. Plutôt que de faire une succession de commandes RUN, on regroupe toutes les commandes shell dans un seul RUN pour réduire le nombre de couches intermédiaires.<br /><br />J'ai commencé à tester pour <b>sewatech/modcluster</b>. Avec le script initial, l'image faisait <span style="color: #274e13;"><b>401 Mo</b></span>, en chaînant les commandes, on est passé à <span style="color: #274e13;"><b>395 Mo</b></span>. C'est mieux, mais ce n'est pas vraiment impressionnant.<br /><br />J'ai fait la même opération pour <b>sewatech/wildfly</b>, qui a fait passer la taille de <b><span style="color: #274e13;">794 Mo</span></b> à <b><span style="color: #274e13;">794 Mo</span></b>. Bof. L'effort n'en vaut vraiment pas la peine. Si en plus, ça nuit à la lisibilité du Dockerfile, c'est même contre-productif. En regardant le détail de l'image, avec <span style="font-family: Courier New, Courier, monospace;">docker history</span>, montre que le téléchargement de WildFly par la commande ADD occupe une place de 120 Mo dans sa propre couche. En remplaçant ADD par RUN&nbsp;+ curl, et en le chaînant aux autres commandes on gagne une place importante, faisant passer l'image à <b><span style="color: #274e13;">680 Mo</span></b>. Ah, là ça commence à être intéressant.<br /><br />En optimisant le chainage, on arrive à une taille totale de <b><span style="color: #274e13;">971 Mo</span></b>.<br /><br /><b>Choisir l'image de base</b><br /><br />En démarrant, j'avais choisi de partir d'une image Debian parce que c'est un système que je connais un peu et que l'image est relativement petite (90 Mo). C'est nettement moins que Ubuntu (225 Mo), Fedora (374 Mo) ou CentOS (244 Mo), mais plus que BusyBox (2,5 Mo) ou BusyBox:ubuntu (5,5 Mo).<br /><br />Par curiosité, j'ai créé la même image en partant d'Ubuntu:14.04. Le résultat est effectivement plus gros (766 Mo au lieu de 680 Mo), mais la différence est moins importante que la différence entre les images de base.<br /><br />Pour ce qui est de Busybox, la tâche me semble un peu plus ardue.<br /><br /><b>Aplatir l'image</b><br /><div><br />Lorsqu'on a construit une image à partir d'un Dockerfile, elle est constituée de couches qui conservent dans les métadonnées la façon dont elles ont été produite. On peut aussi créer une image en exportant un conteneur dans un fichier tar puis en réimportant ce fichier. De cette manière, l'image n'est constituée que d'une seule couche. On arrive à un résultat similaire à la construction directe d'une image de base, suggérée par <a href="https://twitter.com/hguemar" target="_blank">Haïkel Guémar</a>.<br /><br />Si on applique ça à l'image sewatech/wildfly initiale, qui faisait <b><span style="color: #274e13;">794 Mo</span></b>, on obtient l'image <i>aplatie</i> de <span style="color: #274e13;"><b>674 Mo</b></span>.<br /><br /><pre class="brush:bash">docker export $(docker run -d sewatech/wildfly) | docker import - sewatech/wildfly:flat<br /></pre><br />Pour sewatech/modcluster, on passe de <span style="color: #274e13;"><b>401 Mo</b></span> à <b><span style="color: #274e13;">393 Mo</span></b>.</div><br />Le gain de cette technique est relativement faible par rapport à un bon chaînage et fait perdre le partage des images de base. Avec les images plates, on arrive à un total de <b><span style="color: #274e13;">1067 Mo</span></b>, ce qui est plus que pour le chaînage. Et j'y vois un autre défaut : cette technique ne fonctionne pas avec les builds automatiques de Docker Hub, basés sur un Dockerfile,<br /><br /><b>Spécialisation des images</b><br /><div><b><br /></b></div><div>Concernant sewatech/modcluster, il est difficile de faire ce ménage. En effet, pendant la construction de l'image, on a besoin de package de développement pour compiler les modules. Or à l'exécution, tous ces packages sont inutiles. La meilleure façon de réduire la taille de l'image est de construire une image préliminaire pour la compilation et de transférer les fichiers binaires vers une autre image. En procédant ainsi, on obtient une image finale de <b>162 Mo</b>. WIN !</div><div><b><br /></b></div><b>Conclusion</b><br /><br />Ma préférence va au chaînage des commandes, avec quelques trucs à respecter :<br /><ul><li>ne pas utiliser ADD pour télécharger un fichier temporaire,</li><li>faire le ménage en fin de chaîne : retirer des&nbsp;répertoires et packages temporaires.</li></ul>Pour le choix de l'image de base, je reste sur Debian qui est à mon goût le bon compromis entre taille et facilité d'utilisation, ou Ubuntu pour des packages qui ne sont pas encore présents sur Debian. Et en utilisant une petite gamme d'images de base, on optimise les possibilités de partage.<br /><br /><span style="font-size: x-small;">Remarque : les tailles indiquées dans ce billet étaient valables le jour des tests, le 18 août, et on changé depuis à cause d'une mise à jour des packages Debian.</span><br /><br />
+La semaine dernière, j'ai publié un billet sur&nbsp;la mise en place d'un <a
+    href="http://blog.alexis-hassler.com/2014/08/cluster-wildfly-avec-docker.html" target="_blank">cluster WildFly avec
+    Docker</a>. Une des premières réactions est venue de <a href="https://hypedrivendev.wordpress.com/"
+    target="_blank">Cédric Exbrayat</a> pour me donner quelques conseils pour <a
+    href="http://www.centurylinklabs.com/optimizing-docker-images/" target="_blank">réduire la taille de mes images</a>.
+J'ai donc testé les pistes de cet article avec mes deux images : sewatech/modcluster et sewatech/wildfly.<br /><br />Les
+pistes qui sont proposées sont :<br />
+<ul>
+    <li>le chaînage des commandes, pour réduire le nombre de couches,</li>
+    <li>l'import&nbsp;+ export, qui réduit encore plus les couches.</li>
+</ul>Enfin, j'ai testé l'utilisation de plusieurs images de base, dont BusyBox, comme me l'a suggéré&nbsp;<a
+    href="https://twitter.com/DamienDuportal" target="_blank">Damien Duportal</a>.<br /><br />
+<!--more--><b><br /></b><b>Taille des images</b><br />
+<div><br /></div>J'ai construit mes deux images avec des Dockerfiles. Chaque Dockerfile est une séquence de <a
+    href="https://docs.docker.com/reference/builder/" target="_blank">commandes ADD, COPY, RUN,...</a>&nbsp;Le résultat
+est une image Docker constituée d'une image de base et de couches (<i>layers</i>) successives, chaque commande générant
+une nouvelle couche. La taille d'une image étant la somme de ses couches, chaque couche supplémentaire fait grossir le
+résultat final. En revanche, si deux images utilisent la même image de base, celle-ci n'est présente qu'une seule
+fois.<br /><br />Les versions initiales de mes images occupent respectivement <b><span style="color: #274e13;">401
+        Mo</span></b> (sewatech/modcluster) et <b><span style="color: #274e13;">794 Mo</span></b> (sewatech/wildfly),
+pour une taille totale de <b><span style="color: #274e13;">1105 Mo</span></b>&nbsp;; l'image debian:jessie partagée par
+les deux images fait 90 Mo.<br /><br /><b>Chaînage des commandes</b><br /><br />Commençons par le chaînage des
+commandes. Plutôt que de faire une succession de commandes RUN, on regroupe toutes les commandes shell dans un seul RUN
+pour réduire le nombre de couches intermédiaires.<br /><br />J'ai commencé à tester pour <b>sewatech/modcluster</b>.
+Avec le script initial, l'image faisait <span style="color: #274e13;"><b>401 Mo</b></span>, en chaînant les commandes,
+on est passé à <span style="color: #274e13;"><b>395 Mo</b></span>. C'est mieux, mais ce n'est pas vraiment
+impressionnant.<br /><br />J'ai fait la même opération pour <b>sewatech/wildfly</b>, qui a fait passer la taille de
+<b><span style="color: #274e13;">794 Mo</span></b> à <b><span style="color: #274e13;">794 Mo</span></b>. Bof. L'effort
+n'en vaut vraiment pas la peine. Si en plus, ça nuit à la lisibilité du Dockerfile, c'est même contre-productif. En
+regardant le détail de l'image, avec <span style="font-family: Courier New, Courier, monospace;">docker history</span>,
+montre que le téléchargement de WildFly par la commande ADD occupe une place de 120 Mo dans sa propre couche. En
+remplaçant ADD par RUN&nbsp;+ curl, et en le chaînant aux autres commandes on gagne une place importante, faisant passer
+l'image à <b><span style="color: #274e13;">680 Mo</span></b>. Ah, là ça commence à être intéressant.<br /><br />En
+optimisant le chainage, on arrive à une taille totale de <b><span style="color: #274e13;">971
+        Mo</span></b>.<br /><br /><b>Choisir l'image de base</b><br /><br />En démarrant, j'avais choisi de partir d'une
+image Debian parce que c'est un système que je connais un peu et que l'image est relativement petite (90 Mo). C'est
+nettement moins que Ubuntu (225 Mo), Fedora (374 Mo) ou CentOS (244 Mo), mais plus que BusyBox (2,5 Mo) ou
+BusyBox:ubuntu (5,5 Mo).<br /><br />Par curiosité, j'ai créé la même image en partant d'Ubuntu:14.04. Le résultat est
+effectivement plus gros (766 Mo au lieu de 680 Mo), mais la différence est moins importante que la différence entre les
+images de base.<br /><br />Pour ce qui est de Busybox, la tâche me semble un peu plus ardue.<br /><br /><b>Aplatir
+    l'image</b><br />
+<div><br />Lorsqu'on a construit une image à partir d'un Dockerfile, elle est constituée de couches qui conservent dans
+    les métadonnées la façon dont elles ont été produite. On peut aussi créer une image en exportant un conteneur dans
+    un fichier tar puis en réimportant ce fichier. De cette manière, l'image n'est constituée que d'une seule couche. On
+    arrive à un résultat similaire à la construction directe d'une image de base, suggérée par <a
+        href="https://twitter.com/hguemar" target="_blank">Haïkel Guémar</a>.<br /><br />Si on applique ça à l'image
+    sewatech/wildfly initiale, qui faisait <b><span style="color: #274e13;">794 Mo</span></b>, on obtient l'image
+    <i>aplatie</i> de <span style="color: #274e13;"><b>674 Mo</b></span>.<br /><br />
+    <pre
+        class="brush:bash">docker export $(docker run -d sewatech/wildfly) | docker import - sewatech/wildfly:flat<br /></pre>
+    <br />Pour sewatech/modcluster, on passe de <span style="color: #274e13;"><b>401 Mo</b></span> à <b><span
+            style="color: #274e13;">393 Mo</span></b>.
+</div><br />Le gain de cette technique est relativement faible par rapport à un bon chaînage et fait perdre le partage
+des images de base. Avec les images plates, on arrive à un total de <b><span style="color: #274e13;">1067 Mo</span></b>,
+ce qui est plus que pour le chaînage. Et j'y vois un autre défaut : cette technique ne fonctionne pas avec les builds
+automatiques de Docker Hub, basés sur un Dockerfile,<br /><br /><b>Spécialisation des images</b><br />
+<div><b><br /></b></div>
+<div>Concernant sewatech/modcluster, il est difficile de faire ce ménage. En effet, pendant la construction de l'image,
+    on a besoin de package de développement pour compiler les modules. Or à l'exécution, tous ces packages sont
+    inutiles. La meilleure façon de réduire la taille de l'image est de construire une image préliminaire pour la
+    compilation et de transférer les fichiers binaires vers une autre image. En procédant ainsi, on obtient une image
+    finale de <b>162 Mo</b>. WIN !</div>
+<div><b><br /></b></div><b>Conclusion</b><br /><br />Ma préférence va au chaînage des commandes, avec quelques trucs à
+respecter :<br />
+<ul>
+    <li>ne pas utiliser ADD pour télécharger un fichier temporaire,</li>
+    <li>faire le ménage en fin de chaîne : retirer des&nbsp;répertoires et packages temporaires.</li>
+</ul>Pour le choix de l'image de base, je reste sur Debian qui est à mon goût le bon compromis entre taille et facilité
+d'utilisation, ou Ubuntu pour des packages qui ne sont pas encore présents sur Debian. Et en utilisant une petite gamme
+d'images de base, on optimise les possibilités de partage.<br /><br /><span style="font-size: x-small;">Remarque : les
+    tailles indiquées dans ce billet étaient valables le jour des tests, le 18 août, et on changé depuis à cause d'une
+    mise à jour des packages Debian.</span><br /><br />

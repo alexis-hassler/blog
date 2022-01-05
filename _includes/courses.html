@@ -1,0 +1,17 @@
+{%- if page.courses -%}
+{% capture list %}
+{%- for code in page.courses -%}
+{%- assign course = site.data.courses[code] -%}
+{%- if course -%}<li><a href="{{ course.url }}">{{ course.title }}</a>, sur {{ course.duration }} jours</li>{%- endif -%}
+{%- endfor -%}
+{% endcapture list %}
+
+{%- if list != empty -%}
+<div class="courses">
+<p>Sewatech propose {% if page.courses.size == 1 %}la formation suivante{% else %}les formations suivantes{% endif %}, sur site ou à distance :</p>
+<ul>
+    {{ list }}
+</ul>
+</div>
+{%- endif -%}
+{%- endif -%}

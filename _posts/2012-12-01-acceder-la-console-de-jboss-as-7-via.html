@@ -1,14 +1,33 @@
 ---
 layout: post
 title: Accéder à la console de JBoss AS 7 via Apache Web Server
-date: '2012-12-01T15:22:00.001+01:00'
 author: Alexis Hassler
 tags:
 - JBossAS7
-modified_time: '2013-07-02T10:10:28.731+02:00'
-blogger_id: tag:blogger.com,1999:blog-1829028238633284708.post-1583608781404678262
-blogger_orig_url: http://blog.alexis-hassler.com/2012/12/acceder-la-console-de-jboss-as-7-via.html
-
+courses:
+- wildfly
 ---
 
-Dernièrement, j'ai eu besoin d'exposer la console d'administration de JBoss AS 7.1 sur un serveur Web Apache. Le choix de la technique à utiliser a été rapide : puisque l'interface de management ne propose pas d'accès AJP, il faut utiliser Apache en reverse proxy HTTP.<br /><br />Dans un premier temps, j'ai exposé le contexte http://localhost:9990/console via mod_proxy. Je me suis rapidement rendu compte que c'était insuffisant car l'application fait des requêtes AJAX sur le contexte management. La configuration suivante de mod_proxy semblait raisonnable :<br /><br /><pre class="brush:xml">ProxyPass /console http://localhost:9990/console<br />ProxyPassReverse /console http://localhost:9990/console<br /><br />ProxyPass /management http://localhost:9990/management<br />ProxyPassReverse /management http://localhost:9990/management<br /></pre>Ça fonctionnait sans problème sous Firefox, mais sous Chrome, j'avais une erreur 403. N'étant pas certain que tous les administrateurs de mes clients utilisent Firefox, je me suis mis en quête d'une meilleure solution.<br /><!--more--><br />J'ai posé la <a href="https://community.jboss.org/message/779435">question sur le forum JBoss</a>, et on m'a orienté vers une <a href="https://community.jboss.org/wiki/ApacheHttpdJBossAS7AdminConsoleProxy">page du wiki</a> expliquant la bonne configuration. Il me manquait une directive ProxyPreserveHost. La bonne configuration est donc :<br /><br /><pre class="brush:xml">ProxyPass /console http://localhost:9990/console<br />ProxyPassReverse /console http://localhost:9990/console<br /><br />ProxyPass /management http://localhost:9990/management<br />ProxyPassReverse /management http://localhost:9990/management<br /><br />ProxyPreserveHost On<br /></pre><br />Par la suite, j'ai essayé d'accéder à la console par SSL. Ça concerne quand même l'administration de mon serveur, j'ai envie d'un peu d'intimité. Et là, retour à la case départ : ProxyPreserveHost ne fonctionne pas. Par contre, avec l'option non recommandée de suppression du header Origin, ça fonctionne. <br /><br /><pre class="brush:xml">ProxyPass /console http://localhost:9990/console<br />ProxyPassReverse /console http://localhost:9990/console<br /><br />ProxyPass /management http://localhost:9990/management<br />ProxyPassReverse /management http://localhost:9990/management<br /><br />RequestHeader unset Origin<br /></pre><br />Le wiki parlait aussi d'une directive ProxyPassReverseCookieDomain que je n'ai pas utilisée. Je verrai à l'usage si elle était vraiment nécessaire. <br /><br />
+Dernièrement, j'ai eu besoin d'exposer la console d'administration de JBoss AS 7.1 sur un serveur Web Apache. Le choix
+de la technique à utiliser a été rapide : puisque l'interface de management ne propose pas d'accès AJP, il faut utiliser
+Apache en reverse proxy HTTP.<br /><br />Dans un premier temps, j'ai exposé le contexte http://localhost:9990/console
+via mod_proxy. Je me suis rapidement rendu compte que c'était insuffisant car l'application fait des requêtes AJAX sur
+le contexte management. La configuration suivante de mod_proxy semblait raisonnable :<br /><br />
+<pre
+    class="brush:xml">ProxyPass /console http://localhost:9990/console<br />ProxyPassReverse /console http://localhost:9990/console<br /><br />ProxyPass /management http://localhost:9990/management<br />ProxyPassReverse /management http://localhost:9990/management<br /></pre>
+Ça fonctionnait sans problème sous Firefox, mais sous Chrome, j'avais une erreur 403. N'étant pas certain que tous les
+administrateurs de mes clients utilisent Firefox, je me suis mis en quête d'une meilleure solution.<br />
+<!--more-->
+<br />J'ai posé la <a href="https://community.jboss.org/message/779435">question sur le forum JBoss</a>, et
+on m'a orienté vers une <a href="https://community.jboss.org/wiki/ApacheHttpdJBossAS7AdminConsoleProxy">page du wiki</a>
+expliquant la bonne configuration. Il me manquait une directive ProxyPreserveHost. La bonne configuration est donc
+:<br /><br />
+<pre
+    class="brush:xml">ProxyPass /console http://localhost:9990/console<br />ProxyPassReverse /console http://localhost:9990/console<br /><br />ProxyPass /management http://localhost:9990/management<br />ProxyPassReverse /management http://localhost:9990/management<br /><br />ProxyPreserveHost On<br /></pre>
+<br />Par la suite, j'ai essayé d'accéder à la console par SSL. Ça concerne quand même l'administration de mon serveur,
+j'ai envie d'un peu d'intimité. Et là, retour à la case départ : ProxyPreserveHost ne fonctionne pas. Par contre, avec
+l'option non recommandée de suppression du header Origin, ça fonctionne. <br /><br />
+<pre
+    class="brush:xml">ProxyPass /console http://localhost:9990/console<br />ProxyPassReverse /console http://localhost:9990/console<br /><br />ProxyPass /management http://localhost:9990/management<br />ProxyPassReverse /management http://localhost:9990/management<br /><br />RequestHeader unset Origin<br /></pre>
+<br />Le wiki parlait aussi d'une directive ProxyPassReverseCookieDomain que je n'ai pas utilisée. Je verrai à l'usage
+si elle était vraiment nécessaire. <br /><br />

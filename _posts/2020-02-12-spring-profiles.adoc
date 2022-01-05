@@ -4,6 +4,8 @@ title: Petit guide d'utilisation des profils Spring
 author: Alexis Hassler
 tags: 
 - spring
+courses:
+- spring
 ---
 
 [.right]

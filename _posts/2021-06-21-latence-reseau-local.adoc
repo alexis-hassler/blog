@@ -3,6 +3,8 @@ layout: post
 title: Comment j'ai ralenti mon réseau local
 author: Alexis Hassler
 tags: network docker
+courses:
+- docker
 ---
 
 [.left]
