@@ -13,11 +13,12 @@
       </div>
 
       <div class="sidebar">
+        <div>{% include search.html %}</div>
         <div>
           <h3>{{ site.author }}</h3>
           <div>{{ site.description }}</div>
           <div>{% include links.html %}</div>
-          </div>
+        </div>
         <div class="post-navigation">
           <h3>Archives</h3>
           {% include navigation.html %}
