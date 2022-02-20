@@ -1,0 +1,43 @@
+---
+layout: post
+title: JBoss EAP 6 et les bonnes nouvelles
+author: Alexis Hassler
+tags:
+- JBossAS7
+courses:
+- wildfly
+---
+
+La nouvelle n'est pas très fraîche puisqu'elle date de juin 2012, mais je n'en avais pas encore parlé : link:https://community.jboss.org/blogs/mark.little/2012/06/20/eap-60-ga[RedHat a sorti JBoss EAP 6].
+
+JBoss EAP est la version avec support de JBoss. 
+Pour avoir le droit d'utiliser JBoss EAP, il faut payer une souscription annuelle à RedHat, mais si vous voulez juste jeter un coup d'oeil, il existe un version d'évaluation (30 jours), sans support qu'on peut télécharger sur le link:https://access.redhat.com/[Customer Portal] de RedHat (avec inscription préalable). 
+Pour schématiser, c'est un JBoss AS avec des bugs en moins et un contrat de support en plus.
+
+Dans le processus de développement, il y a d'abord JBoss AS, développé par RedHat avec des contributions externes, puis lorsqu'une bonne partie des bugs est corrigée, une version de JBoss EAP est livrée. 
+Cette version EAP 6 est basée sur un JBoss AS 7.1. 
+Je ne vais pas revenir sur cette histoire de versions puisque j'en ai parlé dans un billet sur les link:/2011/08/18/versions-mineures-de-jboss-as.html[versions mineures de JBoss] publié l'an dernier.
+
+Basé sur JBoss AS 7, EAP 6 fait donc partie de la nouvelle génération des serveurs d'applications, modernes, légers et rapides. 
+C'est la première bonne nouvelle.
+
+Ensuite, les développeurs qui utilisent Maven ont été entendus. Il est possible de link:http://maven.repository.redhat.com/techpreview/eap6/6.0.0/jboss-eap-6.0.0-maven-repository.zip[télécharger un repository], sous forme d'archive zip, comprenant les artefacts utilisés pour le build de EAP. 
+On pourra donc déclarer des dépendances vers les versions qui utilisées lors du déploiement. 
+Ce link:http://maven.repository.redhat.com/techpreview/eap6/6.0.0/maven-repository/[repository] est aussi accessible en ligne.
+
+Enfin, le link:ftp://ftp.redhat.com/redhat/jbeap/6.0.0/en/source/[code source de EAP 6] est disponible en ligne. 
+Le code est ouvert, même si le binaire n'est pas redistribuable. 
+Le seul bémol, c'est qu'il n'est link:https://community.jboss.org/thread/201103[pas possible de faire le build soi-même]. 
+Bon, c'est vrai que ce n'est pas fait pour ça ! Si vous voulez jouer  à faire des builds, il y a JBoss AS pour ça.
+
+Justement, jetons un coup d'oeil de ce coté-ci. EAP 6 a été construit à partir de AS 7.1.2, avec des différences qui semblent faibles. 
+Ça aussi, c'est une bonne nouvelle car les différences entre EAP et AS étaient vraiment marquée en version 5. 
+Voir une version AS dont la qualité est proche d'une EAP est rassurant pour la communauté et l'idée de lancer une distribution CentAS, sur le même principe que CentOS dans le monde linux, me semble s'éloigner, du moins pour l'instant. 
+Le hic, c'est qu'il n'y a pas de release 7.1.2 ; problème juridique et de licence, link:https://community.jboss.org/thread/197780[semble-t-il]. 
+Pour utiliser cette version, il faut la link:/2012/09/08/build-de-jboss-as-7.html[construire soi-même]. 
+Aujourd'hui, c'est cette version-ci que j'utilise. 
+C'est d'ailleurs la première qui corrige le link:https://community.jboss.org/message/714814[bug d'intégration avec Log4J] qui m'embêtait depuis des mois.
+
+Donc si vous avez une application Java EE à déployer, vous avez le choix entre JBoss EAP 6 ou JBoss  AS 7.1.2. 
+A moins que vous préfériez Glassfish, TomEE,... 
+Mais dans ce cas, je serais surpris que vous ayez lu ce billet jusqu'ici ! 

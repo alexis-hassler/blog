@@ -1,0 +1,37 @@
+---
+layout: post
+title: Présentation Arquillian
+date: '2012-01-24T20:07:00.000+01:00'
+author: Alexis Hassler
+tags:
+- Arquillian
+- JavaEE
+- Test
+---
+
+Arquillian est un outil de test pour JavaEE. 
+Je pense que c'est même le maillon manquant entre JavaEE et JUnit. 
+C'est vrai que j'ai longtemps pensé que si JavaEE était devenu un concurrent sérieux pour Spring, il lui restait une lacune importante au niveau des tests. 
+Cette lacune est probablement comblée par Arquillian.
+
+J'ai découvert Arquillian lors d'un atelier à Devoxx 2010. 
+C'était une occasion incroyable de découvrir l'outil, en compagnie d'Aslak Knutsen (actuel lead du projet), Pete Muir et Dan Allen, stars de la Dream Team RedHat/JBoss. 
+Depuis j'utilise l'outil de temps en temps, pas assez souvent à mon goût parce que je fais plus de Spring que de JavaEE sur mes projets. 
+
+En 2011, j'ai eu l'occasion de présenter Arquillian à Softshake. 
+C'était une expérience nouvelle pour moi, que j'ai trouvée enrichissante et excitante. 
+J'ai donc saisi les opportunités de la renouveler, d'une part devant les étudiants de l'INSA Lyon, puis chez les parisiens de Ippon. 
+Lors de cette session, j'ai enregistré un screencast que j'ai inséré ci-dessous.
+
+J'espère continuer à présenter ce talk et je pense en proposer d'autres dans le futur. 
+Certes, je n'ai pas la légitimité de certains développeurs, mais j'aime ça et j'ai envie de continuer.
+
+.Présentation d'Arquillian, l'outil pour les tests d'intégrations JavaEE
+++++
+<div style="text-align: center;">
+    <iframe allowfullscreen="" frameborder="0" height="416" mozallowfullscreen="" src="http://player.vimeo.com/video/35436963?portrait=0" webkitallowfullscreen="" width="640"></iframe>
+</div>
+++++
+
+[.center]
+link:http://vimeo.com/35436963[Tests d'intégration avec Arquillian] par link:http://vimeo.com/sewatech[Alexis Hassler].

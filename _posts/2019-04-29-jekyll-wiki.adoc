@@ -27,7 +27,7 @@ Et comme j'ai déjà fait connaissance avec lui, ça va me faciliter le travail.
 
 //<!--more-->
 
-Si vous n'avez pas envie de lire la suite, vous pouvez directement aller voir le résultat de mon travail sur link:là[https://jek4wik.github.io/].
+Si vous n'avez pas envie de lire la suite, vous pouvez directement aller voir le résultat de mon travail link:https://jek4wik.github.io/[là].
 
 == Plan d'action
 

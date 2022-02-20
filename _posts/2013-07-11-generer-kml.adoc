@@ -1,12 +1,10 @@
 ---
 layout: post
 title: Générer un document KML pour Google Maps
-date: '2013-07-11T00:50:00.000+02:00'
 author: Alexis Hassler
 tags:
 - KML
 - Google Maps
-modified_time: '2013-07-11T11:08:29.983+02:00'
 ---
 
 Dans mon article précédent, j'expliquais comment j'avais obtenu des http://blog.alexis-hassler.com/2013/07/09/du-sig-google-maps.html[coordonnées géographiques à partir de coordonnées Lambert 93]. 
@@ -14,8 +12,8 @@ La dernière étape pour valider la conversion était la soumission d'une carte 
 
 Pour afficher ses points sur Google Maps, sans passer par l'API, j'ai choisi de passer par un fichier KML. 
 Je dois générer un tel fichier à partir des points convertis, en utilisant la longitude et la latitude, puis je dois rendre ce fichier accessible sur le Web et enfin, je passe l'URL du fichier en paramètre à Google Maps.
-
 // <!--more-->
+
 Pour générer le fichier KML, je pars d'un fichier CSV contenant tous les points à afficher. Pour l'article, j'utilise un fichier contenant la liste des communes de France, avec leurs coordonnées et leurs populations.
 
 [source, subs="verbatim,quotes"]
@@ -28,7 +26,8 @@ Pour générer le fichier KML, je pars d'un fichier CSV contenant tous les point
 01006,Ambléon,01300,45.75,5.6,76
 ----
 
-Je vais donc charger ce fichier, découper chaque ligne et générer un Placemark KML pour chacune d'entre elles. Pour la génération KML, j'utilise la librairie https://code.google.com/p/javaapiforkml/[JAK], ou{nbsp}Java API for KML. 
+Je vais donc charger ce fichier, découper chaque ligne et générer un Placemark KML pour chacune d'entre elles. 
+Pour la génération KML, j'utilise la librairie https://code.google.com/p/javaapiforkml/[JAK], ou{nbsp}Java API for KML. 
 Donc avant d'entrer dans le code, quelques mots sur la librairie.
 
 Le premier abord est bien meilleur que pour proj4j : http://search.maven.org/#browse%7C-469414455[artefact dans le repository central de Maven] et http://labs.micromata.de/display/jak/Home[un peu de doc]. 

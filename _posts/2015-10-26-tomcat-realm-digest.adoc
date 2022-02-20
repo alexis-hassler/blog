@@ -1,0 +1,129 @@
+---
+layout: post
+title: Authentification Digest et chiffrement des mots de passe, avec Tomcat Realm
+author: Alexis Hassler
+tags:
+- Digest
+- Tomcat
+- Realm
+courses:
+- tomcat
+---
+
+image::/images/tomcat/tomcat-logo.svg[, 200, role="right"]
+Le mois dernier, j'avais écrit un billet sur l'link:/2015/10/06/spring-boot-digest.html[authentification Digest et le chiffrement des mots de passe, avec Spring Security]. 
+Aujourd'hui je me pose la même question, mais avec une configuration de Realm sous Tomcat 8. 
+
+Comment peux-t-on associer une authentification Digest avec le hachage des mots de passe ? Nous verrons d'ailleurs que la réponse n'est pas la même pour tous les realms de Tomcat.
+// <!--more-->
+
+== Tomcat Realm
+
+Sous link:http://tomcat.apache.org/[Tomcat], on configure des link:https://tomcat.apache.org/tomcat-8.0-doc/realm-howto.html[Realms] qui accèdent à des sources de données pour valider le nom d'utilisateur et le mot de passe, ainsi que pour attribuer un ou plusieurs rôles à l'utilisateur authentifié. 
+Par exemple, dans la configuration par défaut, on a le UserDatabaseRealm qui utilise les données stockées dans le fichier conf/tomcat-users.xml.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+<tomcat-users>
+  <user username="myuser" 
+        password="ceaf8439...$1$61057e0429b934189c46ea23c9f23..." 
+        roles="myrole" />
+</tomcat-users>
+----
+
+En ajoutant l'attribut digest à la configuration du Realm, on peut lui dire que le mot de passe est haché.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+<realm classname="org.apache.catalina.realm.UserDatabaseRealm" 
+       resourceName="UserDatabase" digest="sha-512" />
+----
+
+Tomcat fournit même le script bin/digest.sh pour hacher nos mots de passe.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+$CATALINA_HOME/bin/digest.sh -a sha-512 mypwd
+----
+
+== CredentialHandler vs digest
+
+Dans cet exemple, j'ai utilisé l'ancien format de configuration. 
+Celui-ci est valable jusqu'à Tomcat 7, mais est déprécié dans Tomcat 8 et devrait être retiré de Tomcat 9. 
+Pour préparer l'avenir, je préfère le nouveau format, avec un CredentialHandler. 
+L'appel du script digest.sh et le format de stockage du user n'ont pas changé.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+<realm classname="org.apache.catalina.realm.UserDatabaseRealm" 
+       resourceName="UserDatabase" >
+  <credentialhandler
+         className="org.apache.catalina.realm.MessageDigestCredentialHandler"
+         algorithm="sha-512" />
+</realm>
+----
+
+== Authentification HTTP Digest
+
+Cette façon de stocker le mot de passe fonctionne bien si mon application est en authentification Basic ou par formulaire, mais ne marche pas en Digest. 
+Pour la rendre compatible en Digest, il faut que passer en algorithme MD5 et hacher la concaténation du username, du realm name de l'application et du mot de passe (username:realm:password).
+
+Pour l'application manager, on commence par exécuter ce script :
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+bin/digest.sh -a md5 -s 0 admin:Tomcat\ Manager\ Application:admpwd
+----
+
+Puis on enregistre le résultat dans le fichier *tomcat-users.xml* :
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+<tomcat-users>
+  <user username="myuser" 
+        password="62c6ce725d29073d5a8affb1820c4a59" 
+        roles="manager-gui"/>
+</tomcat-users>
+----
+
+Enfin, on ajoute le *MD5* au realm :
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+<realm classname="org.apache.catalina.realm.UserDatabaseRealm" 
+       resourceName="UserDatabase" >
+  <credentialhandler 
+         className="org.apache.catalina.realm.MessageDigestCredentialHandler" 
+         algorithm="md5" />
+</realm>
+----
+
+== DatasourceRealm
+
+Évidemment, ça fonctionne avec d'autres realms, comme le link:https://tomcat.apache.org/tomcat-8.0-doc/config/realm.html#DataSource_Database_Realm_-_org.apache.catalina.realm.DataSourceRealm[DataSourceRealm] qui cherche les informations en base de données. 
+Je le configure de la même façon que pour stocker les mots de passe en clair, avec le CredentialHandler *MD5* en plus.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+<Realm className="org.apache.catalina.realm.DataSourceRealm"
+       dataSourceName="jdbc/sewa-global-ds"
+       userTable="SW_USERS" userNameCol="USERID" userCredCol="PASSWD"
+       userRoleTable="SW_ROLES" roleNameCol="ROLEID"/>
+  <CredentialHandler 
+         className="org.apache.catalina.realm.MessageDigestCredentialHandler" 
+         algorithm="md5" />
+</realm>
+----
+
+On doit ensuite enregistrer le hash dans la colonne PASSWD :
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+INSERT INTO SW_USERS (USERID, PASSWD) 
+    VALUES ('myuser', '62c6ce725d29073d5a8affb1820c4a59');
+----
+
+== JNDIRealm
+
+Malheureusement, ce qu'on vient de voir ne marche pas avec le link:https://tomcat.apache.org/tomcat-8.0-doc/config/realm.html#JNDI_Directory_Realm_-_org.apache.catalina.realm.JNDIRealm[JNDIRealm] qui valide les authentifications auprès d'un annuaire LDAP. 
+Mais ça, il faudrait que j'en parle dans un autre billet. 

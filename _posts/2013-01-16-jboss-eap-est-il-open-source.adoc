@@ -1,0 +1,59 @@
+---
+layout: post
+title: JBoss EAP est-il Open Source ?
+author: Alexis Hassler
+tags:
+- JBoss
+- JBossAS7
+- Open Source
+- build
+courses:
+- wildfly
+---
+
+JBoss EAP est un serveur d'applications dérivé de JBoss AS. 
+Plus précisément, c'est ce que RedHat fournit lorsque vous souscrivez à leur support technique. 
+Mais ça, vous le savez probablement, du moins j'en ai déjà parlé. 
+Je voulais revenir ici sur l'aspect Open Source de JBoss EAP, parce que le cas est étrange : 
+les binaires de JBoss EAP ne sont accessibles qu'aux clients de RedHat, sur leur link:https://access.redhat.com/[portail client].
+Si vous n'êtes pas client, vous pouvez télécharger une version d'évaluation, utilisable pendant 30 jours seulement. 
+Ça ressemble très peu à du logiciel Open Source et pourtant le code est sous licence LPGL. 
+Je ne vais pas revenir sur le montage qui permet à un logiciel LGPL de ne pas être redistribuable, c'est plus une affaire de juriste que de développeur. 
+Je ne vais pas non plus contester la légitimité de RedHat à gagner de l'argent grâce à JBoss. 
+Je vais plutôt me concentrer sur le code.
+// <!--more-->
+
+Dans un link:http://henk53.wordpress.com/2013/01/09/the-curious-case-of-jboss-as-7-1-2-and-7-1-3/[billet récent], Henk (je ne connais pas son nom complet) est revenu sur les différences entre JBoss AS et EAP et a rappelé l'impossibilité de faire un build de JBoss EAP 6. 
+Pourtant, on a presque tout ce qu'il faut :
+
+* le code source peut être téléchargé sur un link:ftp://ftp.redhat.com/redhat/jbeap/[FTP dédié],
+*  un repository Maven des artéfact utilisés dans EAP 6 est sur le link:https://access.redhat.com/[portail client de RedHat]&nbsp;et sur un
+link:http://maven.repository.redhat.com/techpreview/[site dédié].
+
+Rappelons que la disponibilité du code source n'est pas suffisante pour être Open Source, il faut avoir le droit de le modifier, ce qui est garanti par la licence LGPL, mais aussi la possibilité de le compiler. 
+La licence précise bien, mais avec d'autres termes, que *sans build, le code n'est rien*. 
+Le build de JBoss EAP utilise Maven, comme pour JBoss AS 7. 
+La différence, c'est que tous les artéfacts construits ou utilisés par le build sont suffixés par "-redhat-n" (variant de 1 à 4), et que ces artéfacts renommés ne sont présents que dans les repositories EAP, internes à RedHat. 
+Cet état de fait pose évidemment problème pour recompiler JBoss EAP, mais pose aussi problème à ceux qui veulent développer des applications qui doivent y être déployées. 
+Pour assurer une meilleure qualité, celles-ci doivent être construite, et testées, avec le même artéfacts que ceux de l'environnement de déploiement. 
+RedHat a bien compris ce problème et c'est pour cela qu'ils proposent aux développeurs de télécharger une repository Maven dédié à JBoss EAP 6. 
+Malheureusement, ce repository est incomplet : il manque tous les plugins Maven, inutiles au développeur d'applications mais nécessaires au build de JBoss EAP, et quelques artéfacts (Hibernate 3, PowerMock, SLF4J,...). 
+Donc *il est impossible de compiler JBoss EAP 6*.
+
+Par contre, avec un peu de patience, en tâtonnant, on peut construire quelque chose s'approchant de JBoss EAP 6 en remplaçant les artéfacts suffixés "-redhat" par des artéfacts présents dans des repositories publics. 
+Ainsi, j'ai réussi à faire un *build de quelque chose qui n'est pas JBoss EAP 6 mais qui y ressemble*, il me reste à tester le résultat... 
+Si de votre coté vous voulez aussi tester ce que ça donne, j'ai partagé le script sur link:https://github.com/hasalex/eap-build[GitHub]. 
+Vous pouvez essayer :
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  git clone git://github.com/hasalex/eap-build.git
+  cd eap-build
+  ./build.sh
+----
+
+Testez, forkez et racontez-moi...
+
+Si le sujet vous intéresse, un fil de discussion link:https://community.jboss.org/message/758122[Building EAP6 from source] est ouvert sur le
+forum de JBoss. 
+Venez donner votre avis.

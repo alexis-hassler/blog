@@ -1,0 +1,93 @@
+---
+layout: post
+title: Authentification WildFly avec OpenDJ
+author: Alexis Hassler
+tags:
+- JBossAS7
+- WildFly
+- JAAS
+- LDAP
+courses:
+- wildfly
+---
+
+Une fois de plus j'ai tatonné pour mettre en place une authentification LDAP dans JBoss AS / WildFly. 
+Je trouve que la configuration des security domains LDAP est peu intuitive, peut-être tout simplement parce que je ne suis pas très à
+l'aise avec LDAP.
+
+Dans ce billet, je récapitule la configuration de mon serveur link:https://wildfly.org/[WildFly] pour gérer l'authentification de ses applications dans un serveur link:https://www.openidentityplatform.org/opendj[OpenDJ].
+// <!--more-->
+
+Dans un premier temps, j'ai installé OpenDJ. 
+Pas grand chose à dire là-dessus, l'installation est très simple et bien documentée. 
+J'ai déclaré le root user sour le nom "cn=Sewatech" et j'ai créé un contenu très simple avec un utilisateur et un groupe, l'utilisateur étant membre du groupe.
+
+image::/images/wildfly/ldap.png[, 320, 267, role="center"]
+
+La version LDIF est disponible link:https://gist.github.com/hasalex/5842614[ici].
+
+Ensuite, j'ai installé WildFly.
+Là non-plus pas grand chose à dire ; d'ailleurs, il n'y a pas de changement sur la procédure d'installation par rapport
+JBoss AS 7. J'y ai déployé une application sécurisée avec un domaine de sécurité "swmsg-ldap", pour laquelle le rôle "swmsg" est requis.
+
+Enfin, j'ai déclaré un security-domain, dans le fichier *standalone.xml* :
+
+[source, subs="verbatim,quotes"]
+----
+<security-domain name="swmsg-ldap" cache-type="default">
+  <authentication>
+    <login-module code="LdapExtended" flag="required">
+      <module-option name="java.naming.provider.url" value="ldap://127.0.0.1:1389/"/>
+      <module-option name="bindDN" value="cn=Sewatech"/>
+      <module-option name="bindCredential" value="aa"/>
+      <module-option name="baseCtxDN" value="ou=people,dc=sewatech,dc=fr"/>
+      <module-option name="baseFilter" value="(uid={0})"/>
+      <module-option name="rolesCtxDN" value="ou=groups,dc=sewatech,dc=fr"/>
+      <module-option name="roleFilter" value="(uniqueMember={1})"/>
+      <module-option name="roleAttributeID" value="cn"/>
+    </login-module>
+  </authentication>
+</security-domain>
+----
+
+Je n'ai pas choisi le module Ldap parce que les utilisateurs enregistrés dans mon annuaire ne peuvent pas se connecter à l'annuaire. 
+Le module *LdapExtended* permet de déclarer un login/password dédié pour se connecter à l'annuaire LDAP. 
+Pour ce module, j'utilise les paramètres suivants :
+
+* java.naming.provider.url : URL du serveur LDAP
+* bindDN, bindCredential : login et mot de passe pour la connexion au serveur LDAP
+* baseCtxDN : répertoire de base des utilisateurs
+* baseFilter : filtre permettant de retrouver le login dans le DN de l'utilisateur
+* rolesCtxDN : répertoire de base des rôles
+* roleFilter : filtre permettant de retrouver les utilisateurs ayant un rôle
+* roleAttributeID : attribut du rôle servant à identifier le groupe pour le module JAAS
+
+Avec tout ça, l'accès à l'application est possible en s'authentifiant avec le login hasalex et le mot de passe aa.
+
+Le même résultat peut être obtenu avec l'outil *jboss-cli*, en passant le script suivant :
+
+[source, subs="verbatim,quotes"]
+----
+batch
+/subsystem=security/security-domain=swmsg-xxx:add(cache-type=default)
+/subsystem=security/security-domain=swmsg-xxx/authentication=classic:add()
+/subsystem=security/security-domain=swmsg-xxx/authentication=classic/       \
+    login-module=LdapExtended:add(                                          \
+        code=LdapExtended, flag=required,                                   \
+        module-options={                                                    \
+            "java.naming.provider.url"=>"ldap://127.0.0.1:1389/",           \
+            "bindDN"=>"cn=Sewatech",                                        \
+            "bindCredential"=>"aa",                                         \
+            "baseCtxDN"=>"ou=people,dc=sewatech,dc=fr",                     \
+            "baseFilter"=>"(uid={0})",                                      \
+            "rolesCtxDN"=>"ou=groups,dc=sewatech,dc=fr",                    \
+            "roleFilter"=>"(uniqueMember={1})","roleAttributeID"=>"cn"      \
+        }                                                                   \
+    )
+run-batch
+----
+
+Remarques :
+
+* La même configuration fonctionne aussi dans JBoss AS 7.1 ou 7.2.
+* La liste des attributs de configuration du module LdapExtended est disponible sur le link:https://community.jboss.org/wiki/LdapExtLoginModule[wiki de JBoss].

@@ -1,0 +1,62 @@
+---
+layout: post
+title: JUnit Rule pour CDI / Weld
+author: Alexis Hassler
+tags:
+- WeldSE
+- CDI
+- jUnit
+---
+
+Arquillian est l'outil poussé en avant par les équipes de JBoss pour le tests des composants JavaEE. 
+Je trouve que pour certains tests CDI, cet outil ressemble à de la grosse artillerie et qu'on peut se débrouiller avantageusement sans elle.
+
+Les techniques de _Rule_ de JUnit permettent de faire les initialisations nécessaires avec WeldSE, à condition peut-être d'avoir les bons link:https://www.jtips.info/WeldSE/Scopes[Scopes].
+//<!--more-->
+
+[source, subs="verbatim,quotes"]
+----
+public class WeldSeRule extends ExternalResource {
+
+    private Weld weld;
+    private WeldContainer container;
+
+    @Override
+    protected void before() throws Throwable {
+        weld = new Weld();
+        container = weld.initialize();
+    }
+    
+    @Override
+    protected void after() {
+        weld.shutdown();
+    }
+    
+    public <T> T getBean(Class<T> testedClass) {
+        return container.instance().select(testedClass).get();
+    }
+}
+----
+
+Une fois cette Rule créée, on doit la déclarer dans chaque classe de test et appeler la méthode getBean() dans une méthode @Before.
+
+[source, subs="verbatim,quotes"]
+----
+public class TotoServiceTest2 {
+
+    @Rule
+    public WeldSeRule weld = new WeldSeRule();
+
+    TotoService service;
+      
+    @Before
+    public void init() {
+        service = weld.getBean(TotoService.class);
+    }
+    ...
+}
+----
+
+Il ne reste plus qu'à attendre que la technique des _Rule_ soit portée au niveau classe, pour faire un peu moins d'initialisation.
+
+J'ai publié une synthèse des techniques de link:https://www.jtips.info/WeldSE/Test[tests CDI sur JTips].

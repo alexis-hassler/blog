@@ -1,0 +1,63 @@
+---
+layout: post
+title: Accéder à la console de JBoss AS 7 via Apache Web Server
+author: Alexis Hassler
+tags:
+- JBossAS7
+courses:
+- wildfly
+---
+
+Dernièrement, j'ai eu besoin d'exposer la console d'administration de JBoss AS 7.1 sur un serveur Web Apache. 
+Le choix de la technique à utiliser a été rapide : puisque l'interface de management ne propose pas d'accès AJP, il faut utiliser Apache en reverse proxy HTTP.
+
+Dans un premier temps, j'ai exposé le contexte http://localhost:9990/console via mod_proxy. 
+Je me suis rapidement rendu compte que c'était insuffisant car l'application fait des requêtes AJAX sur le contexte management. 
+La configuration suivante de mod_proxy semblait raisonnable :
+
+[source, subs="verbatim,quotes"]
+----
+ProxyPass /console http://localhost:9990/console
+ProxyPassReverse /console http://localhost:9990/console
+
+ProxyPass /management http://localhost:9990/management
+ProxyPassReverse /management http://localhost:9990/management
+----
+
+Ça fonctionnait sans problème sous Firefox, mais sous Chrome, j'avais une erreur 403. 
+N'étant pas certain que tous les administrateurs de mes clients utilisent Firefox, je me suis mis en quête d'une meilleure solution.
+// <!--more-->
+
+J'ai posé la link:https://community.jboss.org/message/779435[question sur le forum JBoss], et on m'a orienté vers une link:https://community.jboss.org/wiki/ApacheHttpdJBossAS7AdminConsoleProxy[page du wiki] expliquant la bonne configuration. 
+Il me manquait une directive ProxyPreserveHost. 
+La bonne configuration est donc :
+
+[source, subs="verbatim,quotes"]
+----
+ProxyPass /console http://localhost:9990/console
+ProxyPassReverse /console http://localhost:9990/console
+
+ProxyPass /management http://localhost:9990/management
+ProxyPassReverse /management http://localhost:9990/management
+
+ProxyPreserveHost On
+----
+
+Par la suite, j'ai essayé d'accéder à la console par SSL. 
+Ça concerne quand même l'administration de mon serveur, j'ai envie d'un peu d'intimité. 
+Et là, retour à la case départ : ProxyPreserveHost ne fonctionne pas. 
+Par contre, avec l'option non recommandée de suppression du header Origin, ça fonctionne. 
+
+[source, subs="verbatim,quotes"]
+----
+ProxyPass /console http://localhost:9990/console
+ProxyPassReverse /console http://localhost:9990/console
+
+ProxyPass /management http://localhost:9990/management
+ProxyPassReverse /management http://localhost:9990/management
+
+RequestHeader unset Origin
+----
+
+Le wiki parlait aussi d'une directive ProxyPassReverseCookieDomain que je n'ai pas utilisée. 
+Je verrai à l'usage si elle était vraiment nécessaire. 

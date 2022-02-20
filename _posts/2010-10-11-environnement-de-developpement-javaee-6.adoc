@@ -1,0 +1,79 @@
+---
+layout: post
+title: Environnement de développement Java EE 6
+author: Alexis Hassler
+tags:
+- ubuntu
+- VirtualBox
+- glassfish
+- netbeans
+---
+
+J'ai voulu m'installer un environnement de développement Java EE 6 virtuel. 
+Une fois n'est pas coutume, j'ai utilisé beaucoup de produits Open Source d'Oracle dans cet environnement. 
+J'en profite tant qu'on peut encore associer Oracle à Open Source, et j'espère qu'on pourra encore longtemps le faire. 
+Mais ceci n'est pas le sujet de ce billet. 
+Je voulais plutôt présenter le processus d'installation.
+
+Voici donc de quoi est constitué mon environnement :
+
+* link:https://www.virtualbox.org/[VirtualBox] 3.2.8, sur Ubuntu 10.04 ou sur MacOS Snow Leopard 
+* link:https://ubuntu-fr.org/[Ubuntu] 10.10
+* link:https://openjdk.java.net/[OpenJDK] 6 update 20
+* link:https://netbeans.apache.org/[Netbeans] 6.9
+* link:https://glassfish.org/[Glassfish] 3.0.1
+//<!--more-->
+
+== Ubuntu 10.10 sur VirtualBox
+
+J'ai rencontré le premier écueil bien plus tôt que je ne l'imaginais. 
+Dès l'installation du système invité. 
+Et c'est bien la première fois que j'ai des soucis avec le couple VirtualBox / Ubuntu. 
+Le problème principal vient des drivers graphiques permettant de redimensionner  l'écran de l'invité et de le passer en plein écran. 
+Malgré l'installation des guest add-ons (menu Périphérique / Installer les additions invité…), l'écran reste taillé en 800x600. 
+
+La solution m'a été apportée par link:https://ludopoitou.com/[Ludovic Poitou]. 
+Le problème vient du fait que ma version de VirtualBox est antérieure à celle de Ubuntu. 
+Pour avoir des bons guest add-ons, il faut utiliser ceux des dépôts d'Ubuntu comme expliqué link:http://www.sysprobs.com/maverick-meerkat-ubuntu-1010-virtualbox-328-ubuntu-1010-guest-additions-fix[ici]. 
+
+L'autre solution aurait été d'attendre quelques heures… En effet, VirtualBox 3.2.10, qui est sortie quelques heures après mon installation, annonce le support d'Ubuntu 10.10. 
+Il est probable que je n'aurais pas eu les mêmes problèmes.
+
+== Netbeans et Glassfish
+
+Une fois mon système installé, il me reste à y installer les logiciels pour développer mon application Java EE 6. 
+Deux options s'offrent à moi : télécharger ou les dépôts. 
+Là aussi, pour rompre avec mes habitudes, j'ai décidé d'utiliser la version de Netbeans proposée par Ubuntu. 
+Ce n'est pas la dernière, mais elle récente.
+
+[source, subs="verbatim,quotes"]
+----
+sudo apt-get install -y netbeans
+----
+
+Premier constat, la version installée est très épurée ; elle n'a aucun plug-in de développement Java EE. 
+Je dois donc les ajouter manuellement : menu _Tools_ / _Plugins_, puis dans l'onglet _Available Plugins_, je sélectionne _Java Persistence_, _Java Web Application_, _EJB and EAR_ et _JSF_.
+
+Suite à l'installation de ces plugins, la possibilité d'ajouter des Servers est apparue. 
+Je choisis donc un Glassfish Server 3 et je demande à Netbeans de le télécharger pour moi.
+
+Finalement, l'installation par apt-get a demandé plusieurs étapes manuelles. 
+Ce n'était donc pas la meilleure façon de faire.
+
+Il aurait certainement été plus pratique de télécharger la dernière version (6.9.1) de Netbeans, de choisir la distribution Java ou All qui viennent avec Glassfish 3.0.1, le tout directement connecté.
+
+[source, subs="verbatim,quotes"]
+----
+wget http://download.netbeans.org/netbeans/6.9.1/final/bundles/netbeans-6.9.1-ml-linux.sh
+chmod +x netbeans-6.9.1-ml-linux.sh
+./netbeans-6.9.1-ml-linux.sh
+----
+La suite se fait dans les écrans d'installation. 
+Je ne connais pas de moyen d'automatiser la suite.
+
+== Conclusion
+
+Une fois le système installé, il faut se sortir de synaptic ou apt-get. 
+L'installation de l'environnement se fait de la même façon que sous Windows ou sous MacOS : en téléchargeant puis en déroulant les écrans d'installation.
+
+Il ne me reste plus qu'à ouvrir le livre d'link:http://www.antoniogoncalves.org[Antonio Goncalves], complété de quelques exemples d'link:http://www.adam-bien.com/[Adam Bien] et à coder...

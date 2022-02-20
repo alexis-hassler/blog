@@ -1,0 +1,88 @@
+---
+layout: post
+title: Injection de logger avec Spring
+author: Alexis Hassler
+tags:
+- injection
+- SLF4J
+- logging
+- Spring
+courses:
+- spring
+---
+
+Dans mon link:/2011/06/21/injection-de-logger-avec-cdi.html[billet précédent], j'ai mis en place de l'injection contextuelle de logger avec CDI. 
+La solution est particulièrement simple à partir du moment où on pense à utiliser l'InjectionPoint. 
+Comme sur la plupart de projets actuels, il y a (pour l'instant) beaucoup plus de link:http://www.springsource.org/[Spring Framework] que de link:http://download.oracle.com/javaee/6/tutorial/doc/giwhl.html[CDI], j'ai voulu reproduire l'exemple avec de l'injection par Spring.
+
+Malheureusement, Spring n'a pas d'équivalent à InjectionPoint. 
+Par acquis de conscience, j'ai posé la question sur le link:http://www.developpez.net/forums/d1098967/java/general-java/spring/connaitre-point-dinjection/[forum developpez.net] et sur le link:http://forum.springsource.org/showthread.php?111071-How-to-get-the-injection-point[forum SpringSource].
+C'est sur ce dernier que j'ai eu la piste la plus concrète : créer une annotation spécifique et utiliser un link:http://static.springsource.org/spring/docs/3.0.x/javadoc-api/index.html?org/springframework/beans/factory/config/BeanPostProcessor.html[BeanPostProcessor].
+Une chose est sûr, la solution existe probablement, mais de façon moins élégante qu'en CDI.
+//<!--more-->
+
+Pour choisir le bon PostProcessor, je me suis inspiré des classes de Spring link:https://fisheye.springsource.org/browse/spring-framework/trunk/org.springframework.beans/src/main/java/org/springframework/beans/factory/annotation/RequiredAnnotationBeanPostProcessor.java?hb=true[RequiredAnnotationBeanPostProcessor] et link:https://fisheye.springsource.org/browse/spring-framework/trunk/org.springframework.beans/src/main/java/org/springframework/beans/factory/annotation/AutowiredAnnotationBeanPostProcessor.java?hb=true[AutowiredAnnotationBeanPostProcessor].
+A partir de ces exemples, j'ai choisi de créer une classe LoggingAnnotationBeanPostProcessor qui implémente link:http://static.springsource.org/spring/docs/3.0.x/javadoc-api/index.html?org/springframework/beans/factory/support/MergedBeanDefinitionPostProcessor.html[MergedBeanDefinitionPostProcessor].
+Cette classe doit être un bean Spring. 
+Dans la méthode postProcessBeforeInitialization, je détecte si le bean qui s'apprête à être initialisé a un champ avec l'annotation @Logging et je lui injecte un logger contextuel.
+
+[source, subs="verbatim,quotes"]
+----
+@Component
+public class LoggingAnnotationBeanPostProcessor
+             implements MergedBeanDefinitionPostProcessor {
+    public void postProcessMergedBeanDefinition(
+                             RootBeanDefinition rootBeanDefinition,
+                             Class beanType,
+                             String beanName) {
+    }
+
+    public Object postProcessBeforeInitialization(Object bean,
+                                                  String beanName)
+             throws BeansException {
+        Field[] fields = bean.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            if (field.getAnnotation(Logging.class) != null) {
+                injectLogger(bean, field);
+            }
+        }
+        return bean;
+    }
+
+    private void injectLogger(Object bean, Field field) {
+        ReflectionUtils.makeAccessible(field);
+        ReflectionUtils.setField(field, bean,
+                  LoggerFactory.getLogger(field.getDeclaringClass()));
+    }
+
+    public Object postProcessAfterInitialization(Object bean,
+                                                 String beanName)
+             throws BeansException {
+        return bean;
+    }
+}
+----
+
+Ainsi, il me suffit d'annoter mon champ logger avec @Logging pour que l'injection se fasse.
+
+[source, subs="verbatim,quotes"]
+----
+@Named
+public class LoggerInjected {
+
+    @Logging
+    static Logger logger;
+
+    public void doSomething() {
+        logger.info("I'm doing something");
+    }
+}
+----
+
+L'avantage de cette solution sur celle de CDI, c'est qu'elle supporte les champs static. 
+Pour les champs final, il n'y a aucune amélioration. 
+Le gros inconvénient, c'est que la solution utilise très peu les mécanismes de Spring. 
+En réalité, elle n'utilise pas l'injection de Spring, tout juste son cycle de vie. 
+De ce fait, le code montré ici est probablement insuffisant et devra être étoffé pour traiter les cas particulier.
+
+Le code source de l'exemple est publié sur link:https://github.com/hasalex/sw-inject/tree/master/spring-logging[GitHub].

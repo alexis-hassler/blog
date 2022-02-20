@@ -1,0 +1,31 @@
+---
+layout: post
+title: 'Devoxx France 2014 : BOFs et à-cotés'
+author: Alexis Hassler
+tags:
+- BOF
+- Bière
+- Devoxx
+---
+
+Ces derniers jours, j'ai publié des billets sur mes journées à Devoxx France 2014 : link:/2014/04/devoxx-france-2014-universites-et.html[universités / ateliers], link:/2014/04/devoxx-france-2014-keynotes.html[keynotes] et link:/2014/04/devoxx-france-2014-conferences.html[conférences]. 
+Mais à Devoxx France, il n'y a pas que les sessions, il y a aussi des choses à coté.
+
+image::/images/devoxx/couleur-biere.jpg[, 320, 132, role="center"]
+// <!--more-->
+
+Le jeudi soir, c'est la soirée vins et fromages. 
+Je passerai vite sur ce sujet, parce que je n'ai pas vu beaucoup de fromage, et sans pain ça perd de son charme. 
+Tout ça parce que j'ai participé aux BOFs. 
+J'ai été obligé (par link:https://twitter.com/Antoine_SD[Antoine Sabot-Durand]) d'assister à la BOF Java EE, mais j'ai passé un bon moment. 
+Les discussions étaient intéressantes, dans une ambiance détendue. 
+J'ai fini par le BoF des JUGs qui comme chaque année ne sert à rien, mais permet de discuter avec des gens que j'aime beaucoup.
+
+image::/images/devoxx/2014_bof-javaee.jpeg[, 320, 240, role="center"]
+
+Devoxx France, c'est aussi l'occasion de retrouver des copains. 
+Mais 3 jours c'est trop court : le mercredi soir est consacré au "speakers diner" et le jeudi soir est consacré aux BOFs. 
+Et comme c'est mon troisième Devoxx France, avec plein de rencontres à chaque fois, ça laisse peu de temps pour boire des bières avec les autres participants. 
+
+Je vois deux solutions : d'une part passer à quatre ou cinq jours et d'autre part n'ouvrir les inscriptions qu'à ceux qui étaient là les années précédentes. 
+C'est pas une bonne idée, ça ?

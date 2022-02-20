@@ -1,0 +1,74 @@
+---
+layout: post
+title: Tester des beans en scope Conversation avec Arquillian
+author: Alexis Hassler
+tags:
+- JSF
+- WeldSE
+- Arquillian
+- CDI
+- JavaEE
+- Test
+---
+
+Si link:http://arquillian.org/[Arquillian] est un outil fantastique pour tester des composants JavaEE 6, il n'en a pas moins quelques faiblesses ou défauts de jeunesse.
+Dans cette article, je veux vous présenter les difficultés que j'ai rencontrées pour tester des beans CDI, utilisés dans un contexte JSF, en portée Conversation.
+//<!--more-->
+
+Le bean en question est est défini comme ceci :
+
+[source, subs="verbatim,quotes"]
+----
+@Named("controller") @ConversationScoped
+public class ItemBean implements Serializable {
+  ...
+}
+----
+
+Pour tester des composants CDI, on peut utiliser Weld&nbsp;SE ou Weld&nbsp;EE. 
+En l'occurrence, dès qu'on doit utiliser des portées liées à l'API Servlet, il faut utiliser Weld&nbsp;EE. 
+Ici, le problème est un peu plus ardu car la portée Conversation n'est pas liée à Servlet, mais à JSF. 
+D'après la spécification JavaEE 6, cette portée n'est utilisable que pour des requêtes JSF.
+
+Or lorsqu'Arquillian teste un composant CDI, il le fait par l'intermédiaire de requête HTTP simple. 
+Weld&nbsp;EE propose d'activer cette portée avec l'option `enableConversationScope` dans la configuration arquillian.xml.
+
+[source, subs="verbatim,quotes"]
+----
+<container default="true" qualifier="weld-ee">
+    <configuration>
+        <property name="enableConversationScope">true</property>
+    </configuration>
+</container>
+----
+
+Cette option est une excellent idée, mais c'est insuffisant. 
+L'intérêt d'Arquillian n'est pas de tester des composants Weld ou CDI, mais de faire des tests Java&nbsp;EE. 
+Et dans une architecture JavaEE, il est probable qu'on injecte d'autres composants Java&nbsp;EE, comme des EJB par exemple, dans ces composants CDI. 
+Dans ce cas, il n'est plus question de tester dans Weld&nbsp;EE, il nous faut un conteneur Java&nbsp;EE, comme Glassfish ou JBoss.
+
+Il serait peut-être possible d'ajouter une telle option pour Glassfish ou JBoss, puisque ces deux serveurs utilisent Weld comme conteneur CDI. 
+En tout cas, en avril 2012, cette option n'existe pas. 
+Il existe tout de même une possibilité de contourner ce défaut en utilisant l'API de Weld dans nos classes de test. 
+Ça nuit à l'élégance de nos tests, qui sont censés être indépendants du serveur, et surtout, ça ne fonctionnera pas avec TomEE ou Resin. 
+Voyons tout de même le contournement pour Glassfish et JBoss.
+
+L'idée est d'activer un ConversationContext, fourni par Weld, en ajoutant ceci à notre classe de test :
+
+[source, subs="verbatim,quotes"]
+----
+@Inject BoundConversationContext conversationContext;
+
+@Before
+public void init() {
+    conversationContext.associate(
+        new MutableBoundRequest(new HashMap<string, object>(), 
+                                new HashMap<string, object>()));
+    conversationContext.activate();
+}
+----
+
+Cette solution fonctionne avec les serveurs qui embarquent Weld 1.1 ; 
+elle est inspirée de l'article de JTips sur les link:http://www.jtips.info/index.php?title=WeldSE/Scopes[portées avec WeldSE] et d'link:http://anonsvn.jboss.org/repos/seam/examples/trunk/javaee-booking/src/test/java/org/jboss/seam/examples/booking/booking/BookingAgentTest.java[exemples de Seam].
+
+Si vous voulez essayer ce contournement, en discuter ou tout simplement découvrir Arquillian, je vous donne rendez-vous à Devoxx France, pour l'atelier link:http://devoxx.fr/display/FR12/Les+3+A+pour+Java+EE+6[Les 3 A pour Java EE 6].

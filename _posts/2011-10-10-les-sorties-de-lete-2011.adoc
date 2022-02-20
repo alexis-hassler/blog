@@ -1,0 +1,12 @@
+---
+layout: post
+title: Les sorties de l'été 2011
+author: Alexis Hassler
+---
+
+J'ai écrit récemment deux articles, sur le site de mon entreprise, concernant les deux sorties marquantes de cet été 2011. 
+Le premier concerne link:https://www.sewatech.fr/article-java-7.html[JavaSE 7] et le second parle de link:https://www.sewatech.fr/article-jboss-7.html[JBoss AS 7]. 
+J'ai un peu tardé à sortir celui-ci parce que j'ai voulu donner la priorité à la préparation d'une session à SoftShake sur le sujet ; les slides que j'ai utilisés pour la présentation sont d'ailleurs embarqués en fin d'article.
+
+Le site de l'entreprise n'autorise pas les commentaires, je vous invite à les écrire ici. 
+Bonne lecture et merci pour vos retours.

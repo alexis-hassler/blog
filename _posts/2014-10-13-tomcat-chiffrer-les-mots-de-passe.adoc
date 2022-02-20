@@ -1,0 +1,94 @@
+---
+layout: post
+title: Comment chiffrer les mots de passe de Tomcat
+author: Alexis Hassler
+tags:
+- Tomcat
+- Password
+- DataSource
+- Realm
+---
+
+image:://4.bp.blogspot.com/-XV6b3qit4FQ/VDbbvcj11-I/AAAAAAAAFCg/-SbDC3AJGVA/s1600/SafeWalletLogo.png[, 180, 180, role="left"]
+
+Dans la configuration de Tomcat, on a 2 catégories de mots de passe : dans les *Realms* et dans les *DataSources*. Les realms sont utilisés pour l'authentification des utilisateurs, ils stockent généralement leurs mots de passe à l'extérieur comme par exemple dans le fichier tomcat-users.xml. 
+Les DataSources sont configurées dans le fichier de configuration principal, server.xml, ou dans chaque application dans META-INF/context.xml.
+
+Par défaut, tous ces mots de passe sont stockés en clair. 
+Nous allons voir dans quelle mesure il est possible de les chiffrer.
+
+//<!--more-->
+
+Commençons par les *Realms*. 
+On prendra le realm par défaut comme exemple, mais tout ce qu'on verra pourra s'appliquer à d'autres realms, comme le DataSourceRealm. 
+D'ailleurs, je n'ai pas eu à chercher très loin puisque la technique est décrite dans la link:http://tomcat.apache.org/tomcat-8.0-doc/realm-howto.html#Digested_Passwords[doc de Tomcat].
+
+L'idée, c'est donc de _digérer_ le mot de passe, ainsi il sera chiffré de façon non réversible. 
+Les algorithmes utilisables sont md5, sha1, sha-256, sha-384 et sha-512. 
+On stockera le mot de passe en version chiffrée, pour le générer on peut utiliser le script bin/digest.sh.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+$ bin/digest.sh -a sha1 s3cr3t
+s3cr3t:25ab86bed149ca6ca9c1c0d5db7c9a91388ddeab
+----
+
+On enregistre le mot de passe chiffré dans conf/tomcat-users.xml :
+
+[source.width-80, xml, subs="verbatim,quotes"]
+----
+<user username="alexis" 
+      password="25ab86bed149ca6ca9c1c0d5db7c9a91388ddeab" 
+      roles="..." />
+----
+
+Dans la configuration (conf/server.xml), on précisera l'algorithme de chiffrement :
+
+[source.width-80, xml, subs="verbatim,quotes"]
+----
+<realm classname="org.apache.catalina.realm.UserDatabaseRealm"
+       resourceName="UserDatabase"
+       digest="sha-512" />
+----
+
+Voilà pour le realm. 
+Ça manque un peu de sel, mais c'est mieux que rien.
+
+image::/images/tomcat/tomcat-logo.svg[, 200, 133, role="center"]
+
+Passons maintenant à la *DataSource*. 
+La question est plus sensible puisque nous devrons chiffrer le mot de passe de façon reversible, pour pouvoir le passer en clair à la base de données. 
+Or stocker un mot de passe avec chiffrement réversible, avec la classe qui déchiffre au même endroit, peut sembler inutile. 
+C'est d'ailleurs désigné comme tel dans un link:http://wiki.apache.org/tomcat/FAQ/Password[FAQ de Tomcat] et c'est la raison pour laquelle Tomcat n'implémente aucune solution de chiffrement.
+
+Mon avis est légèrement différent. 
+Même si le gain en sécuté est faible, son coût est faible et ça peut éviter qu'une personne mémorise un mot de passe aperçu. 
+C'est encore plus utile si on utilise la DataSource par défaut, puisque dans ce cas, le mot de passe est aussi visible via JMX, dans jconsole ou par jmxproxy. Par exemple, sur mon serveur, j'ai une DataSource nommée jdbc/sewa-global-ds. 
+Je peux récupérer son mot de passe avec la requête `\http://myserver:8080/manager/jmxproxy?get=Catalina:type=DataSource,class=javax.sql.DataSource,name=%22jdbc/sewa-global-ds%22&amp;att=password`. 
+Evidemment, ça veut dire qu'il avant tout faut sécuriser le manager : authentification + SSL.
+
+Avec les Tomcat modernes, on peut facilement éviter ça. 
+Il suffit d'utiliser la DataSource de link:http://tomcat.apache.org/tomcat-8.0-doc/jdbc-pool.html[Tomcat JDBC], en ajoutant à notre configurationde DataSource l'attribut `factory=org.apache.tomcat.jdbc.pool.DataSourceFactory`. 
+Ainsi, lorsqu'on interroge l'attribut password, on obtient _"Password not available as DataSource/JMX operation."_. 
+Ça limite le risque de diffusion.
+
+Pour avoir des mots de passe chiffrés, on peut implémenter notre propre factory, qui hérite de DataSourceFactory et qui déchiffre le mot de passe au démarrage. 
+J'ai développé une telle classe dont vous pouvez voir le code source sur link:https://github.com/Sewatech/swutils/tree/master/tc-utils[github]. 
+Vous pouvez aussi récupérer le fichier jar sur Maven Central : link:http://search.maven.org/remotecontent?filepath=fr/sewatech/utils/tc-utils/0.2.0/tc-utils-0.2.0.jar[fr.sewatech.utils:tc-utils]. 
+Vous placez le fichier jar dans le répertoire lib de Tomcat, et vous configurez la datasource comme celle de Tomcat JDBC, avec deux différences :
+
+* `factory="fr.sewatech.tcutils.jdbc.EncryptedDataSourceFactory"`
+* `password="XiGY7vFU1Nc="`
+
+Pour obtenir le mot de passe chiffré, il faut exécuter la commande suivante :
+
+[source, bash, subs="verbatim,quotes"]
+----
+java -cp lib/*:bin/tomcat-juli.jar fr.sewatech.tcutils.jdbc.EncryptedDataSourceFactory \
+      encode s3cr3t
+----
+
+C'est la fin du mot de passe en clair dans Tomcat. 
+Et si le fait que me classe soit en clair sur GitHub et que tout le monde puisse voir que le chiffrement est du blowfish + base64, et que la clé est "Sewatech FTW ...", alors faites votre propre factory.
+
+image::/images/misc/blowfish.png[, 200, 157, role="center"]

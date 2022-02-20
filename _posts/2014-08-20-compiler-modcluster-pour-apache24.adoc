@@ -1,0 +1,134 @@
+---
+layout: post
+title: 'Compiler mod_cluster pour Apache 2.4 : pourquoi et comment ?'
+author: Alexis Hassler
+tags:
+- mod_cluster
+- apache
+- build
+---
+
+Le module Apache link:http://mod-cluster.jboss.org/[mod_cluster] est un *load balancer* pour *WildFly* (ou JBoss AS). 
+La grande différence avec les classiques mod_proxy ou mod_jk est son coté dynamique. 
+Il détecte les instances de WildFly par multicast. 
+Et si le multicast n'est pas accepté, ce sont les instances WildFly qui viennent s'enregistrer auprès du module. 
+Bref, mod_cluster permet de gérer un environnement dynamique, avec une link:http://www.jtips.info/index.php?title=Apache/mod_cluster[configuration légère].
+
+Le problème, c'est qu'au moment de rédiger ce billet, la page de téléchargement de mod_cluster ne propose que des binaires pour *Apache 2.2*, et dans une *version obsolète* (1.2.6 alors qu'il existe une 1.3.0 et une 1.2.9). 
+La seule solution, c'est donc de compiler soi-même, la version qu'on souhaite (1.3 pour WildFly, 1.2 pour JBoss AS 7), dans l'environnement que je souhaite (Apache 2.4 sur Linux).
+//<!--more-->
+
+Evidemment, un module Apache ce n'est pas du Java, mais du C. 
+Il n'y a donc pas de Maven... 
+Ceci dit, la procédure est très simple à partir du moment où on respecte quelques pré-requis.
+
+== Pré-requis
+
+Tout d'abord, il faut quelques packages de dev : autoconf, libtool et git. 
+Il faut aussi Apache avec son package de dev prefork, pour apxs.
+
+[source.width-80, bash]
+----
+apt-get update
+apt-get install -y autoconf libtool git apache2
+apt-get remove apache2-threaded-dev
+apt-get install -y apache2-prefork-dev
+----
+
+[.small]
+Ces packages sont valables sur les 2 systèmes que j'ai testés : Debian Jessie et Ubuntu 14.04.
+
+== Compilation
+
+Tout est prêt, on doit alors récupérer le code source.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+git clone https://github.com/modcluster/mod_cluster.git
+git checkout 1.3.0.Final
+cd mod_cluster
+----
+
+On peut lancer alors le build. Ou plutôt les builds puisqu'il y a plusieurs modules et un build par module : mod_advertise, mod_manager, mod_proxy_cluster et mod_cluster_slotmem.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+cd native/advertise
+./buildconf
+./configure --with-apxs=/usr/bin/apxs
+make
+----
+
+[source.width-80, subs="verbatim,quotes"]
+----
+cd ../mod_manager
+./buildconf
+./configure --with-apxs=/usr/bin/apxs
+make
+----
+
+[source.width-80, subs="verbatim,quotes"]
+----
+cd ../mod_proxy_cluster
+./buildconf
+./configure --with-apxs=/usr/bin/apxs
+make
+----
+
+[source.width-80, subs="verbatim,quotes"]
+----
+cd ../mod_cluster_slotmem
+./buildconf
+./configure --with-apxs=/usr/bin/apxs
+make
+----
+
+Attention, les noms des répertoires et des modules peuvent varier d'une version mineure à l'autre. 
+Les noms utilisés ici sont valables pour la version 1.3.0. Pour la version 1.2.9, il faut remplacer mod_cluster_slotmem par mod_slotmem.
+
+== Installation
+
+A l'issue de la compilation, on a un fichier .so pour chaque module qu'il faut copier dans le répertoire des modules d'Apache.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+cp native/advertise/*.so /usr/lib/apache2/modules/
+cp native/mod_manager/*.so /usr/lib/apache2/modules/
+cp native/mod_proxy_cluster/*.so /usr/lib/apache2/modules/
+cp native/mod_cluster_slotmem/*.so /usr/lib/apache2/modules/
+----
+
+Enfin, ces modules doivent être chargés, par exemple avec un fichier <span style="background-color: #f9f9f9; line-height: 1.1em;">/etc/apache2/mods-available/proxy_cluster.load qui contient les lignes suivantes :</span>
+
+[source.width-80, subs="verbatim,quotes"]
+----
+LoadModule advertise_module /usr/lib/apache2/modules/mod_advertise.so
+LoadModule manager_module /usr/lib/apache2/modules/mod_manager.so
+LoadModule proxy_cluster_module /usr/lib/apache2/modules/mod_proxy_cluster.so
+LoadModule slotmem_module /usr/lib/apache2/modules/mod_cluster_slotmem.so
+----
+
+Pour finir, la configuration de mod_cluster étant la même que pour Apache 2.2, on peut suivre la link:http://docs.jboss.org/mod_cluster/1.2.0/html/[documentation]. 
+Ci-dessous, j'ai mis un exemple simple de configuration (avec mod_cluster et WildFly sur la même machine).
+
+[source.width-80, subs="verbatim,quotes"]
+----
+Listen 127.0.0.1:6666
+<virtualhost 127.0.0.1:6666>
+  <location>
+    Require ip 127.0.0.1
+  </location>
+  KeepAliveTimeout 60
+  MaxKeepAliveRequests 0
+  ManagerBalancerName mycluster
+  ServerAdvertise On
+  EnableMCPMReceive
+</VirtualHost>
+MemManagerFile /var/log/apache2/
+<location cluster-manager>
+  SetHandler mod_cluster-manager
+  Require all granted
+</location>
+----
+
+Vous pouvez maintenant utiliser les dernières versions de mod_cluster, avec les dernières versions de Apache.

@@ -1,0 +1,143 @@
+---
+layout: post
+title: Installation de Silverpeas
+author: Alexis Hassler
+tags:
+- Silverpeas
+---
+
+Pour aujourd'hui, je me lance dans une installation de link:https://www.silverpeas.com/[Silverpeas] v5, la première version libre. 
+Je pars sur une installation standard, c'est à dire avec JBoss 4.0, le serveur d'application préconisé. 
+Celui-ci est un peu vieillot, mais si ça fonctionne, ce sera un bon début. 
+J'essaierai plus tard sur un JBoss plus récent et/ou un Jonas.
+
+J'ai déroulé la procédure d'installation du début à la fin, sur une machine virtuelle vierge, sous Linux. 
+J'ai utilisé une version de Silverpeas qui n'est pas finalisée, ce qui peut se ressentir à certaines étapes.
+//<!--more-->
+
+== Vérification des prérequis
+
+Mon installation va être faite sur une machine virtuelle Debian 5, avec VirtualBox. 
+Ma configuration standard embarque un JDK 6 (openjdk). 
+Par contre, elle n'a pas Maven, et la version de Maven proposée dans les dépôts est une 2.0. 
+Or l'installation de Silverpeas requiert une version 2.2. 
+Je vais donc le télécharger depuis mon miroir préféré.
+
+[source, subs="verbatim,quotes"]
+----
+cd ~/tmp/
+wget ftp://mir1.ovh.net/ftp.apache.org/dist/maven/binaries/apache-maven-2.2.1-bin.tar.gz
+wget http://www.eu.apache.org/dist/maven/binaries/apache-maven-2.2.1-bin.tar.gz.asc
+wget http://www.eu.apache.org/dist/maven/KEYS
+gpg --import KEYS
+if gpg --verify apache-maven-2.2.1-bin.tar.gz.asc
+then
+  cd /opt
+  tar -xf ~/tmp/apache-maven-2.2.1-bin.tar.gz
+fi
+----
+
+Dernier pré-requis : la base de données. 
+Il faut que j'installe postgresql. 
+Là je ne vais pas peaufiner, la version des dépôts fera l'affaire ; c'est d'ailleurs ce qui est suggéré dans la doc.
+
+[source, subs="verbatim,quotes"]
+----
+apt-get install -y postgresql
+----
+
+Je dois ensuite préparer la base.
+
+[source, subs="verbatim,quotes"]
+----
+su postgres 
+psql -d template1 -c "ALTER USER postgres WITH PASSWORD 'postgres'"
+createdb -E UTF-8 SilverpeasV5
+exit
+----
+
+Avant de quitter la session postgres, je peux vérifier que ma base a bien été créée avec la commande "psql -l". 
+
+== Préparation de l'installation
+
+Je me rends donc sur la page d'installation de Silverpeas, je relève les adresses de téléchargement, et je mets tout ça dans mon script.
+
+[source, subs="verbatim,quotes"]
+----
+#!/bin/sh
+mkdir ~/tmp/silverpeas
+cd ~/tmp/silverpeas
+wget http://repository.silverpeas.org/files/jboss403.tar.gz
+wget http://repository.silverpeas.org/files/silverpeas-1.0-RC1.tar.gz
+
+mkdir /opt/silverpeas
+cd /opt/silverpeas
+tar -xf ~/tmp/silverpeas/jboss403.tar.gz
+export JBOSS_HOME=/opt/silverpeas/jboss403/
+mkdir /opt/silverpeas/sp
+cd /opt/silverpeas/sp
+tar -xf ~/tmp/silverpeas/silverpeas-1.0-RC1.tar.gz
+----
+
+Ensuite, la doc nous demande d'éditer setup/settings/JBossSettings.xml. 
+Dans ce fichier, il faut juste paramétrer le port sur lequel va écouter JBoss et la mémoire heap. 
+Comme je travaille sur une machine virtuelle toute neuve, je n'ai pas de conflit de port, je garde donc les valeurs par défaut. 
+Vient au tour de setup/settings/SilverpeasSettings.xml. 
+Là, je ne vois pas du tout ce que je dois faire, à part changer le mot de passe de la base, mais comme j'ai mis celui par défaut, je laisse tout tel quel.
+
+On peut maintenant renseigner les variables d'environnement :
+
+[source, subs="verbatim,quotes"]
+----
+export JBOSS_HOME=/opt/silverpeas/jboss403/
+export SILVERPEAS_HOME=/opt/silverpeas/sp
+export JAVA_HOME=export JAVA_HOME=`update-java-alternatives -l | awk '{print $3}'`
+export M2_HOME=/opt/apache-maven-2.2.1
+export M2=$M2_HOME/bin
+export PATH=$PATH:$M2
+----
+
+== Installation
+
+C'est parti pour la procédure d'installation à proprement parler. 
+Il faut s'armer de patience ; maven, sur un serveur vierge, ce n'est pas idéal puisqu'il télécharge la moité d'internet (1500 fichiers, ici).
+
+[source, subs="verbatim,quotes"]
+----
+cd $SILVERPEAS_HOME/bin
+mvn clean install
+./appBuilder.sh
+./SilverpeasSettings.sh
+./dbBuilder.sh
+----
+
+== C'est parti
+
+Ça y est, tout est prêt, on peut démarrer :
+
+[source, subs="verbatim,quotes"]
+----
+$SILVERPEAS_HOME/bin/silverpeas_start_jboss.sh 
+----
+
+Et là, patatra, ça ne marche pas. 
+Bon, je rappelle que j'ai fait mes essais sur une version qui n'est pas finale. 
+Un coup d'œil aux log et une petite recherche dans la configuration me mènent au fichier $JBOSS_HOME/server/default/deploy/jbossweb_tomcat55.sar/server.xml dans lequel sont déclarés de contextes. 
+L'idée est plutôt saugrenue, c'est plutôt un mode de déploiement qui était prévu pour un Tomcat autonome, et qui est obsolète ! Enfin, si ça marche.
+Je corrige donc les chemins qui ressemblent à du Windows (hum hum).
+
+[source, subs="verbatim,quotes"]
+----
+  <context docbase="/opt/silverpeas/sp/data/weblib" path="/weblib" />
+  <context docbase="/opt/silverpeas/sp/data/website" path="/website"/>
+----
+
+Pour la partie help, j'ai préféré désactiver le contexte car je n'ai pas trouvé les répertoires.
+
+Moyennant ces modifications, ça fonctionne, j'accède à l'écran d'accueil à l'adresse http://myserver:8000/ et me connecter avec le login et mot de passe *SilverAdmin* / *SilverAdmin*.
+
+== Conclusion
+
+A part quelques imprécision dans la procédure d'installation, cette version SP1 semble déjà stable et tout à fait utilisable. 
+Gageons la la version SP2 saura corriger cela. 
+A quand la version finale ?

@@ -1,0 +1,72 @@
+---
+layout: post
+title: Comment installer OpenVPN sur Google Cloud
+author: Alexis Hassler
+tags:
+- Google Compute Engine
+- OpenVPN
+- Google Cloud
+---
+
+Korben a fait un super article qui explique link:http://korben.info/installer-openvpn.html[comment s'installer un petit VPN maison quand on n'est pas un gros barbu]. 
+Il détaille l'installation d'OpenVPN sur un serveur Ubuntu hébergé sur link:https://www.ovh.com/fr/vps/[VPS chez OVH]. 
+Sa procédure est simple et facile à suivre, grâce à l'utilisation d'link:https://openvpn.net/index.php/access-server/download-openvpn-as-sw.html[Openvpn Access Server].
+
+N'étant pas barbu non plus, j'ai bien aimé sa façon de faire. 
+Cet article propose une adaptation pour une installation chez un autre hébergeur : link:https://cloud.google.com/[Google Compute Engine]. 
+La procédure de Korben ne fonctionne pas en l'état à cause d'un environnement réseau différent. 
+Je vais donc détailler les adaptations nécessaires.
+// <!--more-->
+
+== Créer la machine virtuelle
+
+Avant de créer l'instance, je crée une configuration réseau spécifique pour OpenVPN.
+
+image::/images/google/dev-console-001.png[, 640, 475, role="center"]
+
+Puis j'autorise l'accès aux ports dont j'aurai besoin par la suite : tcp:943 pour l'admin et la connexion initiale, tcp:443 et udp:1194 pour les connexions VPN. 
+N'oublions pas d'autoriser tcp:22 pour les connexions SSH.
+
+image::/images/google/dev-console-002.png[, 640, 332, role="center"]
+
+Je peux ensuite créer mon instance. 
+J'ai choisi une toute petite configuration, avec Ubuntu 14.10, localisée en Europe de l'Ouest.
+
+image::/images/google/dev-console-003.png[, 640, 569, role="center"]
+
+Lors de la création, je rattache mon instance à la configuration réseau, et j'affecte une adresse IP fixe.
+
+image::/images/google/dev-console-004.png[, 400, 145, role="center"]
+
+Bien sûr, j'aurais pu faire tout ça en ligne de commande avec le SDK de Google Cloud.
+
+== Installer et configurer OpenVPN AS
+
+Ma machine est prête, je peux m'y connecter et suivre la procédure de Korben...
+
+[source.width-80, subs="verbatim,quotes"]
+----
+sudo apt-get install openvpn
+wget http://swupdate.openvpn.org/as/openvpn-as-2.0.11-Ubuntu14.amd_64.deb
+sudo dpkg -i openvpn-as-2.0.11-Ubuntu14.amd_64.deb
+----
+
+\... je suis toutes les étapes de configuration du serveur.
+
+== Configurer OpenVPN AS pour Google Cloud
+
+Avec la configuration standard, le client n'arrivera pas à se connecter parce que ma machine a une adresse IP interne et une adresse IP externe. 
+Or OpenVPN AS ne connait que l'adresse interne et fournira donc une configuration erronée au client. 
+Il faut donc lui indiquer la bonne adresse, dans la section "Server Network Settings".
+
+image::/images/google/dev-console-005.png[, 400, 232, role="center"]
+
+=== Connecter le client OpenVPN
+
+Voilà, je peux reprendre la procédure de Korben pour importer le profil d'accès dans mon client.
+
+== Conclusion
+
+La procédure est à peine plus compliquée, par contre le coût risque d'être plus important que chez OVH. 
+La plus petite instance coûte quelques euros par mois et ça peut vite grimper pour des machines plus puissantes ; 
+faite votre propre estimation à partir des link:https://cloud.google.com/compute/[tarifs].

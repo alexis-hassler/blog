@@ -1,0 +1,65 @@
+---
+layout: post
+title: Injection de logger avec CDI
+author: Alexis Hassler
+tags:
+- injection
+- CDI
+- SLF4J
+- logging
+---
+
+Cette semaine, le projet link:http://projectlombok.org/[Lombok] a annoncé sa version 0.10 dans laquelle une nouvelle annotation @Log est annoncée. 
+N'étant pas fan de ce projet, à cause de son&nbsp;coté trop magique, j'ai regardé ce qu'il fallait mettre en place pour faire quelque chose de similaire avec link:http://download.oracle.com/javaee/6/tutorial/doc/giwhl.html[CDI]. 
+Plus précisément, j'ai voulu mettre en place le mécanisme d'injection pour obtenir un logger avec le moins de code possible.
+
+L'idée n'est pas récente, puisque link:http://docs.jboss.org/seam/2.2.0.GA/reference/en-US/html/concepts.html#d0e4244[Seam 1 / 2] proposait déjà un mécanisme de ce type :
+
+[source, subs="verbatim,quotes"]
+----
+@Logger
+private Log log;
+----
+
+L'intérêt de CDI est de pouvoir choisir facilement l'utilitaire de Log et de ne dépendre d'aucune API non standard.
+//<!--more-->
+
+Je démarre donc avec une classe à qui j'injecte un Logger de link:http://www.slf4j.org/[SLF4J]. 
+
+[source, subs="verbatim,quotes"]
+----
+public class LoggerInjected {
+
+    @Inject
+    Logger logger;
+
+    public void doSomething() {
+        logger.info("I'm doing something");
+    }
+
+}
+----
+
+Ensuite, il faut produire le bean logger. 
+En utilisant la portée par défaut (@Dependent), j'aura une instance différente pour chaque point d'injection . 
+En utilisant en plus un objet InjectionPoint, je peux avoir des informations sur l'endroit où mon logger est injecté et le créer de façon contextuelle.
+
+[source, subs="verbatim,quotes"]
+----
+public class LoggerProducer {
+
+    @Produces
+    public Logger getLogger(InjectionPoint injectionPoint) {
+        return LoggerFactory.getLogger(
+                              injectionPoint.getBean().getBeanClass());
+    }
+   
+}
+----
+
+Dans ces conditions, je trouve que l'annotation de lombok perd de sa valeur ajoutée. 
+Vous aurez noté que je n'ai ajouté aucune extension à CDI pour faire cette injection et qu'on conserve toute liberté pour le framework de logging.
+
+Adam Bien a fait un version un peu plus évoluée de ce pattern d'injection dans son (très bon) livre link:http://www.adam-bien.com/roller/abien/entry/real_world_java_ee_night[Real World Java EE Night Hacks].
+
+Le code source de l'exemple est publié sur link:https://github.com/hasalex/sw-inject/tree/master/cdi-logging[GitHub].

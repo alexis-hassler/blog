@@ -1,0 +1,81 @@
+---
+layout: post
+title: Gérer les droits d'accès des administrateurs WildFly avec un annuaire LDAP
+author: Alexis Hassler
+tags:
+- WildFly
+- LDAP
+courses:
+- wildfly
+---
+
+image::/images/wildfly/wildfly-logo.png[role="right"]
+Dans mon link:/2016/02/wildfly-managment-authentification-ldap.html[billet précédent], j'ai montré comment stocker les données d'authentification des administrateurs WildFly dans un annuaire LDAP. 
+La solution n'était pas complète car on ne gérais pas les autorisations. 
+
+Pour ça, il faut activer le mode *RBAC* et affecter les rôles d'administration aux utilisateurs enregistrés. 
+Pour le billet, on se contentera de deux rôles : celui d'*Administrator* qui a un accès en écriture à toutes les informations et celui de *Monitor* qui n'a accès qu'en lecture et qui ne peut pas voir les informations sensibles. 
+On commence par les rôles et on activera le RBAC quand tout sera en place. 
+
+// <!--more-->
+Les *rôles* sont prédéfinis dans WildFly et on peut les affecter aux *utilisateurs* : 
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+cd /core-service=management/access=authorization
+
+./role-mapping=Administrator:add
+./role-mapping=Administrator/include=hasalex                                      \
+                    :add(name=hasalex, type=USER, realm=LdapRealm)
+
+./role-mapping=Monitor:add
+./role-mapping=Monitor/include=momo                                               \
+                    :add(name=momo, type=USER, realm=LdapRealm)
+----
+
+On pourra utiliser le login _hasalex_ pour la console d'administration ou link:/2016/02/09/wildfly-managment-autorisations-ldap.html[jboss-cli], et on utilisera _momo_ pour le monitoring. 
+Par contre, l'affectation des rôles se fait utilisateur par utilisateur ce qui est fastidieux si leur nombre augmente. 
+Ce serait beacoup plus pratique d'exploiter les groupes LDAP. 
+On va donc ignorer les role-mapping de type USER et faire comme si on n'avait jamais passé ces quatre commandes. 
+
+Du coté de l'annuaire LDAP, on va rechercher les *groupes* dont l'utilisateur est membre : 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+cd /core-service=management/security-realm=LdapRealm
+batch
+./authorization=ldap:add(connection="LdapConnection")
+./authorization=ldap/group-search=group-to-principal                              \
+                    :add(group-name=SIMPLE, group-name-attribute=cn,              \
+                         base-dn="ou=groups,dc=sewatech,dc=fr", recursive=true,   \
+                         search-by=DISTINGUISHED_NAME,                            \
+                         principal-attribute=uniqueMember)
+run-batch
+----
+
+Par rapport à nos link:https://gist.github.com/hasalex/a5ffd764485540c4fdff[données], l'utilisateur _hasalex_ fait partie du groupe _as-admin_ et _momo_ fait partie de _as-mon_. 
+Ça ne représente pas encore des rôles reconnus par WildFly, il faut associer ces groupes aux rôles prédéfinis : 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+cd /core-service=management/access=authorization
+
+./role-mapping=Administrator:add
+./role-mapping=Administrator/include=app-admin                                   \
+                    :add(type=GROUP, realm=LdapRealm)
+
+./role-mapping=Monitor:add
+./role-mapping=Monitor/include=app-mon                                           \
+                    :add(type=GROUP, realm=LdapRealm)
+----
+
+Maintenant qu'on a configuré la recherche des utilisateurs et l'association des groupes aux rôles WildFly, on peut passer en mode RBAC. 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+/core-service=management/access=authorization                                    \
+                    :write-attribute(name=provider,value=rbac)
+----
+
+Ça y est, chacun est dans son rôle et nos informations sont bien gardées. 
+Si on a conservé l'authentification locale automatique, ce mode de connexion donne le rôle SuperUser qui a encore un peu plus de droits qu'Administrator. 

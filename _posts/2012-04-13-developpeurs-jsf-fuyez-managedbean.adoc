@@ -1,0 +1,62 @@
+---
+layout: post
+title: Développeurs JSF, fuyez @ManagedBean
+author: Alexis Hassler
+tags:
+- JSF
+- CDI
+---
+
+Quand on fait du JSF, on peut déclarer nos beans avec l'annotation JSF @javax.faces.bean.ManagedBean ou avec l'annotation @javax.inject.Named. 
+Dans ce dernier cas, le cycle de vie du bean est géré par CDI qui met les instances à disposition de JSF.
+On retrouve aussi les deux possibilités avec les annotations liées aux portées, qu'on peut prendre dans le package javax.enterprise.context pour CDI ou dans javax.faces.bean pour JSF.
+
+J'ai été confronté récemment à un problème de compatibilité entre CDI et un managed bean JSF. Le bean existait dans une version pure JSF, mais pour faire évoluer l'application, j'ai intégré du CDI. Dans un premier temps, j'ai simplement injecté des dépendances avec l'annotation @Inject.
+
+
+[source, subs="verbatim,quotes"]
+----
+@ManagedBean
+@RequestScoped
+public class FirstBean {
+    @Inject private Logger logger;   
+    @Inject private SomeEJB someEJB;
+    ...
+}
+----
+//<!--more-->
+
+Dans notre exemple, on injecte un EJB, par la méthode CDI, et un bean CDI produit par ailleurs. 
+Ceci fonctionne sans problème. 
+Pour aller plus loin, j'ai voulu exploiter la technique d'injection contextuelle que j'avais déjà utilisée dans un billet précédent pour link:/2011/06/21/injection-de-logger-avec-cdi.html[injecter des loggers]. 
+Avec cette technique, le producteur connait l'endroit dans lequel le bean sera injecté grâce à un point d'injection :
+
+[source, subs="verbatim,quotes"]
+----
+@Produces
+public Logger getLogger(InjectionPoint injectionPoint) {
+    return Logger.getLogger(
+               injectionPoint.getBean().getBeanClass().getName());
+}
+----
+
+Et là, patatra, la variable injectionPoint est null, et ce à cause du bean JSF. 
+Pour que ça fonctionne, j'ai dû migrer ce bean en CDI :
+
+[source, subs="verbatim,quotes"]
+----
+@Named("firstBean")
+@RequestScoped
+public class FirstBean  {
+    @Inject private Logger logger;   
+    @Inject private SomeEJB someEJB;
+    ...
+}
+----
+
+L'injection fonctionne maintenant et le bean peut toujours être utilisé dans JSF. 
+La gestion du bean par CDI procure un fonctionne plus sain.
+
+Ce choix entre annotations JSF et CDI est vraiment délicat. 
+@ManagedBean a l'avantage de fonctionner dans des environnements sans CDI, comme Tomcat ou Jetty, mais c'est probablement son seul intérêt. 
+Je pense qu'il faut systématiquement utiliser @Named et oublier les autres possibilités.

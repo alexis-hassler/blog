@@ -1,0 +1,10 @@
+---
+layout: post
+title: Charlie Hebdo
+author: Alexis Hassler
+---
+
+Juste une pensée pour les victimes de Charlie Hebdo. 
+Tristesse.
+
+image::/images/misc/dieux-nexiste-pas.jpg[[, 310, 320, role="center"]

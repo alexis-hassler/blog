@@ -1,0 +1,77 @@
+---
+layout: post
+title: JRebel avec OpenJDK et Grizzly
+author: Alexis Hassler
+tags:
+- Grizzly
+- JRebel
+- OpenJDK
+---
+
+Grâce au link:https://www.parisjug.org/[ParisJUG],j'ai pu obtenir une licence link:https://www.jrebel.com/[JRebel]. 
+JRebel est censé faire gagner du temps aux développeurs en leur évitant de redémarrer leur application ou serveur d'applications après chaque changement. 
+Selon le serveur d'applications, le redéploiement à chaud peut répondre partiellement à ce besoin, mais JRebel semble aller plus loin, en rechargeant les classes au niveau de la JVM.
+
+Dans un projet récent, j'ai eu à travailler avec Grizzly, OpenJDK et Jersey pour développer des services RESTful, et j'ai compris l'intérêt que pouvait avoir ce type d'outil car, en phase d'évaluation de la plateforme, je fais beaucoup de petites modifications dont je veux voir immédiatement l'effet. 
+Si redémarrer Grizzly est très rapide, cela demande des clics à des endroits différents dans l'IDE, Eclipse en l'occurrence. 
+J'ai donc décider d'inclure JRebel dans cet environnement.
+// <!--more-->
+
+== Installation
+
+Mon environnement de développement est déjà installé, avec :
+
+* Ubuntu 9.10,
+* OpenJDK 6,
+* Eclipse 3.5,
+* Grizzly 1.9.8,
+* Jersey 1.1.5.
+
+La link:https://manuals.jrebel.com/jrebel/[documentation de JRebel] est très détaillée sur la procédure d'installation. 
+Pour résumer, dans mon environnement, j'ai suivi la marche suivante :
+
+* link:https://www.jrebel.com/products/jrebel/download[Téléchargement de JRebel], j'ai pris la version 3.0 RC1*Installation de JRebel : `java -jar jrebel-setup.jar`*Installation de la licence
+* Ajout du plug-in Eclipse
+* Configuration du workspace d'Eclipse 
+* Génération du fichier rebel.xml dans le répertoire src du projet 
+* Modification de la configuration de lancement, par cocher "Enable JRebel agent"
+
+== Premier essai
+
+Après cette manipulation, j'ai lancé Grizzly depuis une classe Main.
+
+[source, subs="verbatim,quotes"]
+----
+public class GrizzlyStarter {
+  public static void main(String args[]) {
+    System.out.println("Starting grizzly...");
+    try {
+      final String baseUri = "http://localhost:8888/";
+      final Map<string, string> initParams = new HashMap();
+      initParams.put("com.sun.jersey.config.property.packages",
+                     "fr.sewatech.formation.jaxrs");
+      SelectorThread threadSelector = GrizzlyWebContainerFactory.create(
+                         baseUri, initParams);
+      System.in.read();
+      threadSelector.stopEndpoint();
+      System.out.println("Grizzly stopped.");
+      System.exit(0);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
+}
+----
+
+Une fois Grizzly lancé, je peux faire toutes les modifications que je souhaite dans mon application, celles-ci sont prises en compte à chaud. 
+Plus besoin de redémarrer ! La seule classe pour laquelle il n'y a pas de rechargement à chaud, est la classe de lancement.
+
+== Premières impressions
+
+Ce premier essai est prometteur. 
+Je pense qu'il y a effectivement du temps à gagner avec un tel outil et à $150 la licence corporate, c'est très vite rentable. 
+Évidemment, ce n'est qu'une première impression qui devra être confirmée par un usage plus intensif. 
+En tout cas, à partir de maintenant je l'utiliserai à chaque fois que je pourrai.
+
+Et ce serait cool, qu'on puisse aussi proposer des licences au link:https://lyonjug.org/[LyonJUG]...

@@ -1,0 +1,93 @@
+---
+layout: post
+title: DAO ou pas DAO ?
+author: Alexis Hassler
+tags:
+- dao
+- JavaEE
+---
+
+Le débat fait fureur dans les JUGs et autres endroits à la mode : est-ce que le pattern DAO est utile ou est-ce de la pollutions ? 
+Le débat s'inscrit dans une tendance de simplification des architectures, à base de JavaEE 6, de Spring, de Play ! et de tous ces frameworks qui nous font dire que "non, ma petite dame, ce n'était pas mieux avant".
+
+Pour comprendre les arguments des deux parties, revenons quelques années en arrière.
+// <!--more-->
+
+== Architecture en couches
+
+Cela fait maintenant de longue années que tout architecte sérieux sait qu'il faut concevoir un logiciel en couches autonomes et communicantes. 
+Je ne vais pas entrer dans les détails des architectures, avec toutes les alternatives, mais je vais résumer la situation en disant qu'au début du siècle, un compromis se dégageait pour 3 couches : présentation, service et accès aux données. 
+Les plus tatillons ajouterons des couches transversales, des sous-couches et autres compléments peut-être indispensables, mais hors de mon propos.
+
+Dans cette architecture, la présentation est en charge de toute l'interaction avec l'utilisateur, soit l'affichage et la saisie. 
+Le service implémente le cœur du métier, c'est lui qui contient les règles de gestion, de transformation et de validation. 
+Enfin, l'accès aux données, ou DAO pour Data Access Object, met en œuvre les interactions avec le moteur de persistance, pour de la lecture et de l'écriture de données. 
+Cette architecture en couches est justifiée par le link:http://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html[principe de responsabilité unique]  et de façon plus concrète par le besoin d'isoler les parties les plus instables de l'architecture, qui sont la présentation et la persistance, du cœur de l'application. 
+
+La présentation est considérée comme instable car on voulait pouvoir migrer facilement d'une architecture client/serveur vers du Web. 
+La justification est toujours valable, et d'autant plus que les technologies de présentation sont très variées : AJAX, RIA/RDA, Web mobile, application mobile,… 
+De ce coté, l'indépendance de la couche présentation reste d'actualité. 
+
+Du coté de la persistance, la question se pose en d'autres termes, la situation ayant sensiblement évolué. 
+
+== Comment DAO a sauvé le projet
+
+Eh oui, le pattern DAO a sauvé un projet pour lequel j'étais intervenu lorsque je travaillais pour OOsphère. 
+Je vais prendre ma posture d'ancien combattant et vous raconter comment ça s'est passé. 
+Certains ont peut-être déjà entendu l'histoire, je leur prierais de ne pas me faire remarquer que je radote. 
+On ne doit jamais faire remarquer à un ancien combattant qu'il radote.
+
+L'histoire commence en 2001, ou peut-être fin 2000, il faudrait que je demande à Olivier, il se rappelle probablement mieux que moi. 
+Le client a choisi un consultant pour l'architecture et un SSII (link:http://www.oosphere.com/[OOsphère]) pour la réalisation. 
+En terme d'architecture, le client a choisi Websphere, Visual StoneAge for Java (c'est le surnom donné par l'équipe de développement) et des EJB de partout, session et entity, et en version 1 ! Que du bonheur. 
+Pour la façon d'utiliser tout cela, toute liberté nous était donnée. 
+Nous avons choisi de cacher nos EJB entity derrière des DAO ; nous parlions de boites noires. 
+
+
+Quelques temps plus tard, le consultant est parti vers d'autres missions, et nous avons dû nous trimbaler ses choix.
+
+Plusieurs mois après le départ du consultant, nous avons réussi à convaincre, avec l'appui de l'équipe d'exploitation, le client de remettre en question les choix du premier consultant. 
+La première décision était de développer les nouvelles fonctionnalités sans EJB entity ; puis il a fallu jeter tous les entities que nous avions déjà développés… Comme ils étaient cachés derrière les DAO, le travail a facilement pu être étalé sur plusieurs mois. 
+Sans cela, le projet aurait dû être mis en stand by le temps de la migration, ce qui lui aurait probablement été fatal.
+
+Voilà pourquoi je pense que DAO a sauvé ce projet.
+
+== Et maintenant ?
+
+Bon, tout cela est bien joli, mais les EJB 1, ça date un peu. 
+Est-ce qu'on arriverait à la même chose dans une architecture plus moderne ? 
+Pour cela, je me place dans le cadre d'une application de gestion très classique : présentation Web ou desktop, stockage en base de données relationnelle. 
+Depuis quelques années déjà, la façon la plus productive de gérer la persistance de ce type d'application est le mapping objet / relationnel avec un framework comme Hibernate ou JPA et des transactions gérées dans la couche de services par Spring ou EJB 3.x.
+
+Aujourd'hui, le choix entre Hibernate, ses concurrents ou JPA ne se pose plus réellement. 
+JPA est devenu le standard universel et Hibernate en est une implémentation. 
+Ce constat permet de dire que la couche de persistance ne présente plus les mêmes risques d'instabilité qu'autrefois. 
+Par conséquent, la principale raison d'être du pattern DAO a disparu ; reste-t-il d'autre raisons de conserver des DAO ?
+
+Probablement. 
+D'abord la stabilité dont je fais état ne s'applique pas à tout le monde. 
+Pour preuve, link:https://hub.alfresco.com/t5/alfresco-content-services-hub/alfresco-community-3-4-a/ba-p/290937#toc-hId--505115209[l'annonce récente d'Alfresco] qui migre de Hibernate vers iBatis pour pouvoir optimiser plus facilement les performance de ses requêtes. 
+Et mon hypothèse élude l'émergence du NoSQL.
+
+== Et avec NoSQL ?
+
+La base de données relationnelle est le mode de stockage des données persistantes le plus utilisé et le sera pour pas de temps encore. 
+Cependant, il faut se rendre à l'évidence : d'autres modes de stockages sont plus adaptés pour certaines applications. 
+Si les cas d'utilisation du NoSQL de Google ou Facebook n'est pas forcément significatif par rapport aux applications de gestion, ceux de Amazon s'en rapprochent plus. 
+Il n'est pas impossible de voir ces technologies progresser dans les entreprises. 
+Cette progression introduit donc une nouvelle instabilité potentielle.
+
+La logique de stockage des bases NoSQL est assez éloignée du modèle relationnel. 
+Il parait donc difficile d'envisager qu'une couche d'abstraction puisse rendre notre code de persistance portable entre ces différents modes. 
+Google a bien essayé avec DataNucleus de supporter JDO et JPA sur Google App Engine. 
+Ce support n'est pas vraiment convainquant : les spécificités dans l'usage de ces frameworks rendent le code incompatible avec un SGBDR classique.
+
+Il nous reste à attendre ce que peuvent apporter des outils comme link:https://github.com/Impetus/Kundera[Kundera], qui veut proposer du JPA pour Cassandra, ou Hibernate OGM, qu'link:https://emmanuelbernard.com/[Emmanuel Bernard] nous a présenté à Devoxx 2010. 
+Le seul problème de ces outils, c'est qu'ils sont en cours de développement et qu'aucun livrable n'est utilisable aujourd'hui.
+
+== Conclusion
+
+Après quelques doutes, liés à mon vécu, je suis plutôt convaincu par l'opportunité d'abandonner les DAO, dans le cadre de développement full JavaEE 6 ou Spring / JPA. 
+Je trouve qu'Adam Bien explique particulièrement bien le bénéfice qu'on peut tirer de cet abandon. 
+Par contre, cette posture de principe ne doit en aucun cas nous affranchir d'une réflexion en amont de chaque projet. 
+C'est tout simplement le rôle de l'architecte qui doit baser sa réflexion sur les objectifs et risques du projet et pas uniquement sur quelques lectures à la mode.

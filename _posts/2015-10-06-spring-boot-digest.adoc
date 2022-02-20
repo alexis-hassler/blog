@@ -1,0 +1,177 @@
+---
+layout: post
+title: Authentification Digest et chiffrement des mots de passe, avec Spring Security
+author: Alexis Hassler
+tags:
+- Digest
+- Spring Security
+- Spring Boot
+- Spring
+courses:
+- spring
+---
+
+image::/images/misc/i-dont-always-authenticate-requests-but-when-i-do-i-use-digest.jpg["I don't always authenticate requests but when I do I use digest", 190, 240, role="right"]
+
+Récemment, j'ai voulu utiliser du link:https://tools.ietf.org/html/rfc2617[*Digest*] pour l'authentification à un service REST. 
+J'ai préféré cette technique à Basic parce qu'elle est plus sécurisée. 
+Et pour avoir un bon niveau de sécurité, j'ai aussi voulu chiffrer les mots de passe en base de données. 
+Là je me suis trouvé face à un problème : 
+comment comparer un mot de passe _digéré_ et _salé_ dans en header de ma requête HTTP avec un mot de passe _digéré_ et _salé_ dans la base de données ? Et si c'est possible, comment le mettre en place avec link:http://projects.spring.io/spring-security/[*Spring Security*] et link:http://projects.spring.io/spring-boot/[*Spring Boot*] ?
+
+Je vais donc reprendre ma configuration Spring Security au départ, avec une authentification Basic, puis passer à l'authentification Digest et voir comment la rendre compatible avec le chiffrement des mots de passe. 
+
+// <!--more-->
+== Authentification Basic
+
+La configuration de Spring Security pour l'authentification Basic est extrêmement simple. On crée une classe de configuration qui hérite de link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/config/annotation/web/configuration/WebSecurityConfigurerAdapter.html[WebSecurityConfigurerAdapter], dans laquelle on redéfinit les méthodes `configure (AuthenticationManagerBuilder builder)` et `configure(HttpSecurity http)` :
+
+[source.width-80, subs="verbatim,quotes"]
+----
+@Configuration
+public class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder builder) throws Exception {
+        builder.userDetailsService(userDetailsService());
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.httpBasic()
+                .and()
+            .authorizeRequests()
+                .anyRequest().authenticated();
+    }
+
+}
+----
+
+Pour tester cette configuration, j'ai créé un service REST tout simple, qui répond OK si la requête fournit les bonnes informations d'authentification.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+@RestController
+public class PingController {
+
+    @RequestMapping(value = "/ping")
+    Answer ping() {
+        return new Answer();
+    }
+
+    @JacksonXmlRootElement(localName = "answer")
+    public static class Answer {
+        @JacksonXmlText @JsonProperty("answer")
+        public String value = "OK";
+    }
+
+}
+----
+
+On peut utiliser n'importe quel client HTTP pour tester : link:https://www.blogger.com/curl.haxx.se[curl], link:https://www.getpostman.com/[Postman], un link:http://www.getfirefox.net/[navigateur],... 
+Pour ma part, j'ai choisi link:http://httpie.org/[httpie].
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+http --auth-type=basic --auth=user:pwd http://localhost:8080/ping
+----
+
+Dans cet exemple, les mots de passe sont stockés en clair. 
+Il est plus prudent de les stocker après hachage. 
+Du coté de Spring Security, il suffit d'ajouter un link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/crypto/password/PasswordEncoder.html[PasswordEncoder].
+
+== Authentification Digest
+
+L'authentification Digest est un peu plus complexe que Basic car elle se fait en deux étapes. 
+A la première requête, le serveur envoie une réponse 401 et un header WWW-Authenticate avec le nonce. 
+Le client renvoie une deuxième requête avec le mot de passe haché et salé en utilisant le nonce fourni par le serveur.
+
+image::https://2.bp.blogspot.com/-u7coEa0P9OY/VhNx2nFvbjI/AAAAAAAAGNc/peFpEwwisvA/s1600/spring-digest.png[role="center"]
+
+Avec Spring Security, pour passer le même exemple en Digest, il faut remplacer httpBasic() par deux éléments : 
+un AuthenticationEntryPoint et un Filter.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        ...
+
+        http.addFilter(filter)
+            .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
+                .and()
+            .authorizeRequests()
+                .anyRequest().authenticated();
+    }
+----
+
+Le link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.html[DigestAuthenticationEntryPoint] de Spring Security génère le nonce et construit la réponse 401. 
+Le link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/www/DigestAuthenticationFilter.html[DigestAuthenticationFilter] intercepte la seconde requête et compare le contenu du header Digest au mot de passe stocké.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+    DigestAuthenticationEntryPoint authenticationEntryPoint 
+            = new DigestAuthenticationEntryPoint();
+    authenticationEntryPoint.setKey("sewatech");
+    authenticationEntryPoint.setRealmName("example");
+
+    DigestAuthenticationFilter filter = new DigestAuthenticationFilter();
+    filter.setAuthenticationEntryPoint(authenticationEntryPoint);
+    filter.setUserDetailsService(userDetailsService());
+----
+
+Pour tester :
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+http --auth-type=digest --auth=user:pwd http://localhost:8080/ping
+----
+
+Contrairement au Basic, si j'ajoute un PasswordEncoder, l'authentification ne fonctionne plus.
+
+== Chiffrement des mots de passe
+
+Regardons plus en détail pourquoi ça ne fonctionne plus si je hache mes mots de passe...
+
+En digest, les informations d'authentification sont hachées en MD5, salées avec le nonce, avant d'être passées au serveur. 
+En utilisant un PasswordEncoder, j'ai aussi haché et salé les mots de passe stockées. 
+Comme ces opérations sont irréversibles et qu'elles n'ont aucune propriété de transitivité, je ne peux plus comparer les informations transmises avec les informations stockées.
+
+La première solution serait de ne pas hacher du tout les mots de passe. 
+Mais c'est prendre des risques en cas de vol de données. 
+Même les chiffrer de façon réversible serait une protection un peu légère. 
+Je préfère abandonner Digest pour Basic + SSL, si ça me permet de protégée les mots de passe.
+
+Pour trouver une meilleure solution, il faut s'attarder sur la formule de hachage en Digest. 
+Il existe plusieurs niveaux de complexité, avec des options (quality of protection, client nonce) qui ne changent pas fondamentalement le principe. 
+Pour l'exemple, on va partir sur la version la plus simple, dans laquelle le hachage du header se fait sur la formule suivant :
+
+[source.width-80, subs="verbatim,quotes"]
+----
+    H(A1)=MD5(username:realm:password)
+    H(A2)=MD5(method:digestURI)
+    response=MD5(H(A1):nonce:H(A2)) 
+----
+
+D'après cette formule, si on stocke coté serveur la valeur de H(A1), c'est à dire `MD5(username:realm:password)`, on peut recalculer la valeur attendue pour `response`.
+
+Évidemment, Spring Security a prévu une option pour ça. 
+Il suffit donc de l'activer et de stocker les mots de passes en version hachée. 
+Par contre, il n'y a pas besoin de PasswordEncoder.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+    DigestAuthenticationFilter filter = new DigestAuthenticationFilter();
+    ...
+    filter.setPasswordAlreadyEncoded(true);
+----
+
+J'invite les plus curieux à lire les détails dans la link:https://tools.ietf.org/html/rfc2617[RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication], ils verront que j'ai pris quelques raccourcis avec ma formule.
+
+== Conclusion
+
+Il est donc possible d'utiliser une authentification Digest avec un stockage haché des mots de passe. 
+Par contre, le mode de hachage est limité, et bien moins sûr qu'en bcrypt.
+
+Le code source de l'exemple est publié sur mon compte link:https://github.com/hasalex/spring-security-example[GitHub]. 
+N'hésitez pas à jouer avec, et à me proposer des améliorations.

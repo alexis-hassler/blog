@@ -1,0 +1,109 @@
+---
+layout: post
+title: Déployer une application JavaEE via l'API Cloudbees
+author: Alexis Hassler
+tags:
+- JavaEE
+- CloudBees
+---
+
+Dans un link:/2011/05/17/decouverte-de-cloudbees.html[billet précédent], j'avais fait un premier essai de link:https://www.cloudbees.com/[Cloudbees], en utilisant son interface graphique. 
+Un des avantages offerts par les solutions Cloud est de pouvoir manipuler toute l'infrastructure par du code. 
+Dans le cas de Cloudbees, le SDK permet de manipuler son compte et son contenu par des scripts Shell, via le SDK, mais aussi par une API HTTP / XML. 
+Pour faciliter le travail, une API Java a été développée au dessus de cette dernière.
+
+J'ai donc voulu tester le déploiement d'une application Java EE 6, empaquetée dans une archive war sur Cloudbees.
+//<!--more-->
+
+Tout d'abord, j'ai ajouté l'artéfact de l'API java de Cloudbees dans mon pom.xml.
+
+[source, subs="verbatim,quotes"]
+----
+<dependency>
+    <groupId>com.cloudbees</groupId>
+    <artifactId>cloudbees-api-client</artifactId>
+    <version>1.1.2</version>
+</dependency>
+----
+
+Ensuite, j'ai instancié le BeesClient en lui passant l'URL de l'API, la clé et le code secret fournis par Cloudbees. 
+Pour ce faire, j'ai stocké ces informations dans un fichier properties, afin de ne pas avoir à le réécrire à chaque fois et de ne pas avoir non plus à le stocker dans le code. 
+Ma classe BeesClientBuilder se crée ce client en lui passant les informations du fichiers properties.
+
+[source, subs="verbatim,quotes"]
+----
+public class BeesClientBuilder {
+  public static BeesClient build() {
+    try {
+      Properties properties = new Properties();
+      properties.load(new FileReader(System.getProperty("user.home") 
+                                + "/.cloudbees/cloudbees-api.properties"));
+            
+      BeesClient client = new BeesClient(properties.getProperty("url"),
+                                         properties.getProperty("key"),
+                                         properties.getProperty("secret"),
+                                         "xml", "1.0");
+      client.setVerbose(false);
+      return client;
+    } catch (IOException ex) {
+      throw new RuntimeException("Fichier properties non trouvé", ex);
+    }
+  }
+}
+----
+
+Je peux maintenant utiliser ce client dans ma classe principale. 
+Je peux en particulier appeler la méthode applicationDeployWar, en lui passant en particulier l'id de l'application et le nom du fichier war.
+
+[source, subs="verbatim,quotes"]
+----
+BeesClient client = BeesClientBuilder.build();
+String appId = "sewatech/test";
+ApplicationDeployArchiveResponse deployResponse0 
+    = client.applicationDeployWar(appId, null, "Test war", 
+                                  "test.war", null, null);
+----
+
+Le déploiement se fait, créant au passage l'application, mais celle-ci ne fonctionne pas car elle a été déployée comme un war simple et non un war JavaEE. 
+Après un petit tour sur le forum, j'ai ma réponse (rapide, merci link:http://blog.loof.fr/[Nicolas]). 
+Je dois ajouter des paramètres et donc utiliser la méthode applicationDeployArchive.
+
+[source, subs="verbatim,quotes"]
+----
+Map<string, string=""> parameters = new HashMap<string, string="">();
+parameters.put("containerType", "jboss");
+ApplicationDeployArchiveResponse deployResponse 
+    = client.applicationDeployArchive(appId, null, "Test war", 
+                                      "test.war", null, "war", 
+                                      true, parameters, null);
+----
+
+Ainsi, mon application est directement créée et déployée sur une instance Java EE 6 de Cloudbees. 
+Simple et efficace.
+
+Au passage, quelques autres commandes disponibles dans l'API.
+Pour obtenir les informations sur une application :
+
+[source, subs="verbatim,quotes"]
+----
+ApplicationInfo info = client.applicationInfo(appId);
+----
+
+Pour supprimer une application :
+
+[source, subs="verbatim,quotes"]
+----
+client.applicationDelete(appId);
+----
+
+Pour renommer une application :
+[source, subs="verbatim,quotes"]
+----
+Map<string, string> meta = new HashMap<string, string>();
+        meta.put("title", "Test d'API");
+        client.applicationSetMeta(appId, meta);
+----
+
+En *conclusion*, l'API de Cloudbees est simple à mettre en oeuvre, avec une classe à connaître et des méthodes aux noms expressifs. 
+En revanche, la documentation est loin d'être exhaustive (une mise à jour suite à ma question sur le forum) et, surtout, l'API est très loin d'être fluide. 
+Le code que j'ai écrit est moche et très peu lisible : c'est quoi le 2° _null_ ? En tout cas, ça fonctionne bien et c'est l'essentiel, pour le moment.

@@ -1,0 +1,54 @@
+---
+layout: post
+title: Comment ouvrir les ports JMX remote à chaud
+author: Alexis Hassler
+tags:
+- JMX
+---
+
+Pour permettre un accès distant au MBeans d'une JVM Oracle ou OpenJDK, il faut la démarrer avec la propriété `com.sun.management.jmxremote.port`, plus quelques autres propriétés détaillées sur link:http://www.jtips.info/index.php?title=JMX/Remote[JTips].
+
+[source.width-80, bash]
+----
+java -Dcom.sun.management.jmxremote.port=1099 fr.sewatech.myapp.MyMain
+----
+
+En rédigeant l'articlelink:http://www.jtips.info/index.php?title=JMX/Remote[ JTips sur JMX Remote], j'ai découvert qu'on pouvait activer cet accès distant à chaud grâce à l'link:https://blogs.oracle.com/CoreJavaTechTips/entry/the_attach_api[API Attach]. 
+Voyons comment procéder. 
+//<!--more-->
+
+L'API Attach est intégrée dans le JDK d'Oracle ou de OpenJDK ; c'est le package `com.sun.tools.attach` dans le fichier bin/tools.jar. Cette API permet de se connecter à une JVM locale et d'y démarrer des agents. Pour se connecter, il faut connaître l'ID du process de laJVM :
+
+[source.width-80, java, subs="verbatim,quotes"]
+----
+String pid = "4478";
+VirtualMachine vm = VirtualMachine.attach(pid);
+----
+
+On peut aussi en récupérer la description via l'API :
+
+[source.width-80, java, subs="verbatim,quotes"]
+----
+VirtualMachineDescriptor catalina = VirtualMachine.list().stream()
+        .filter(desc -> desc.displayName().contains("catalina"))
+        .findFirst().get();
+VirtualMachine vm = VirtualMachine.attach(catalina);
+----
+
+Une fois attaché, on peut démarrer un agent en indiquant le chemin pour accéder à son fichier jar, ainsi que ses paramètres. 
+Depuis le JDK 8, on peut aussi plus simplement démarrer l'agent de management local ou distant. 
+C'est cette dernière possibilité qui nous intéresse :
+
+[source.width-80, java, subs="verbatim,quotes"]
+----
+Properties props = new Properties();
+props.setProperty("com.sun.management.jmxremote.port", "1099");
+vm.startManagementAgent(props);
+----
+
+L'exemple ci-dessus est la version courte. 
+Il est probablement nécessaire d'ajouter les propriétés permettant de gérer l'authentification et le SSL. 
+On peut maintenant connecter nos outils de management, comme JConsole ou VisualVM, en utilisant l'adresse <server-hostname>:1099.
+
+Une fois que l'agent est démarré, on ne peut plus l'arrêter, à ma connaissance du moins, et on ne peut pas le reconfigurer. 
+L'opération `startManagementAgent` est donc irréversible. 

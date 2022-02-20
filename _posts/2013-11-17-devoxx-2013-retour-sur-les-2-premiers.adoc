@@ -1,0 +1,62 @@
+---
+layout: post
+title: 'Devoxx 2013 : retour sur les 2 premiers jours'
+author: Alexis Hassler
+tags:
+- Devoxx
+---
+
+Encore une fois, j'ai passé une excellente semaine à Anvers, pour link:http://devoxx.be/[Devoxx] 2013. 
+J'aimerais partager un peu de ce que j'ai vécu pendant cette semaine. 
+Un peu seulement, parce que tous les participants savent bien que ce qui se passe à Devoxx reste à Devoxx, du moins pour les à-coté de la conférence.
+
+Dans ce billet, je vais parler de ce que j'ai fait pendant les deux premiers jours, consacrés aux universités, ateliers pratiques et tools in action, et je ferai un autre poste pour les link:/2013/12/08/devoxx-2013-retour-sur-la-deuxieme.html[trois derniers jours].
+
+Pendant ce deux jours, on a des universités et ateliers pratiques, programmés sur des créneaux de 3 heures ; 
+en soirées il y a des sessions de trente minutes appelées "Tools in Action" (ou TiA). 
+Depuis l'an dernier, j'essaie de consacrer cette première partie de Devoxx à des activités pratiques, à faire du code. 
+Je trouve que ça évite une certaine saturation en fin de semaine.
+//<!--more-->
+
+J'ai donc commencé par un atelier sur Raspberry Pi et Leap Motion. 
+Cet atelier faisait partie d'un HackFest de deux jours sur le sujet et servait de point de départ. 
+Ça fait que pour un atelier, c'était très théorique et on n'a presque pas touché au Raspberry Pi. 
+De ce point de vue, c'était une petite déception, j'aurais aimé coder un peu, pour voir si ça m'intéressait suffisamment pour continuer l'après-midi. 
+D'un autre coté, c'est un sujet sur lequel je ne connaissais rien et j'ai vraiment appris des choses : 
+ça m'a donné envie d'essayer plus tard (1° point dans le todo-list post-Devoxx).
+
+image::/images/devoxx/2013-leap-motion.jpg[, 320, 181, role="center"]
+
+OK, Raspberry Pi m'a intéressé, mais pas suffisamment pour continuer le HackFest l'après-midi. 
+J'ai donc opté pour une session université sur link:http://devoxx.be/dv13-arun-gupta.html?presId=3740[Java EE 7], par link:https://twitter.com/agoncal[Antonio Goncalves] et link:https://twitter.com/arungupta[Arun Gupta]. 
+C'est un sujet que je connais un peu puisque j'ai été relecteur du livre d'Antonio, mais les autres sujets ne m'inspiraient pas. 
+La session est pas mal, ça ne vaut pas l'ancien couple que formait Antonio avec link:https://twitter.com/alexismp[Alexis Moussine-Pouchkine], mais pas mal quand même.
+
+En fin d'après-midi, j'ai assisté à deux TiA. 
+Le premier sur link:http://devoxx.be/dv13-dan-allen.html?presId=3557[AsciiDoc], par link:https://twitter.com/mojavelinux[Dan Allen]. 
+Le sujet (écrire de la documentation) ne me passionne pas plus que ça, mais sachant que Dan est un très bon speaker, je voulais voir ce qu'il pouvait transmettre sur le sujet. Et je n'ai pas été déçu ! 
+La forme, une imitation de commentateur sportif, était excellente et a bien fait passé un sujet aride. 
+Hmmm, ça ferait un bon talk pour Mix-IT. 
+Si vous connaissez Dan, dites lui que c'est une conférence très sympa.
+
+Le deuxième TiA était sur link:http://devoxx.be/dv13-guillaume-scheibel.html?presId=3140[Hibernate OGM]. 
+Je l'avais déjà vu à Softshake peu de temps avant, et le contenu m'avais intéressé. 
+J'y suis allé aussi pour soutenir link:https://twitter.com/g_scheibel[Guillaume Scheibel], un speaker français qui monte.
+
+Au final, je n'ai pas fait de code pendant cette première journée. 
+Il fallait que je me rattrape le deuxième jour. 
+Avec le link:http://hackergarten.net/[HackerGarten], je n'ai pas pris de risque : pas de bla-bla, que du code. 
+Le principe du HackerGarten est de mettre ensemble des développeurs de bonne volonté (moi) avec des committers de projets open-source. 
+J'y suis allé avec une inquiétude : il n'y a eu presque aucune publicité sur cet événement. 
+Ça s'est ressenti sur la participation : peu de projets proposés (link:http://asciidoctor.org/%E2%80%8E[AsciiDoctor], link:http://arquillian.org/[Arquillian], link:http://mifos.org/[Mifos], link:https://github.com/arun-gupta/javaee7-samples[JavaEE 7 samples]) et assez peu de développeurs (une petite dizaine). 
+J'ai choisi de faire des tests Arquillian sur _JavaEE 7 samples_ ; pas vraiment un projet open source qui fait rêver, mais ça m'a permis de faire la connaissance d'Arun Gupta et d'apprendre des choses qui pourront être utiles. 
+Pour ce coté apprentissage, le lieu est incomparable : en cas de problème sur Arquillian, je pouvais demander à link:https://twitter.com/aslakknutsen[Aslak Knutsen], le lead developer sur le projet, et pour les problèmes CDI, link:https://twitter.com/lightguardjp[Jason Porter], committer sur link:http://deltaspike.apache.org/[DeltaSpike], m'a bien aidé.
+
+image::/images/devoxx/2013-julien-ponge.jpg[, 200, 149, role="right"]
+En soirée, j'ai fait un TiA et demi. Oui, à Devoxx, il y a tellement de contenu et tellement de personnes avec qui discuter qu'il n'y a pas de raison de perdre son temps avec des mauvaises sessions. 
+Le demi-TiA était celui sur link:http://devoxx.be/dv13-eric-d-schabell.html?presId=3274[OpenShift]. 
+Le TiA entier était sur link:http://devoxx.be/dv13-julien-ponge.html?presId=3475[Golo]. 
+Comme la veille, c'est une session que j'avais déjà vue, au link:http://lyonjug.org/[Lyon JUG], mais c'est toujours un plaisir de voir link:https://twitter.com/jponge[Julien Ponge] sur scène.
+
+Au final, j'aurais aimé faire plus de code pendant ces deux jours, mais les sujets des ateliers ne collaient pas vraiment avec mes goûts. 
+Heureusement qu'il y avait le HackerGarten qui a été un très bon moment.

@@ -1,0 +1,23 @@
+---
+layout: post
+title: Carte des JUGs en France
+author: Alexis Hassler
+tags:
+- jug
+---
+:!figure-caption:
+
+Depuis quelques temps, j'ai ajouté une référence aux Java User Groups de France et d'alentours en annexe de mes supports de formation. 
+Sur les dernières versions, j'ai trouvé plus sympa de faire ça graphiquement. 
+En plus, avec le nombre de JUGs en France, c'est plus pratique à faire tenir sur une page.
+
+.JUGs en France
+image::/images/misc/jugs-france.png["Carte des Java User Groups de France", 600, 624, role="center"]
+
+Je me suis basé sur la link:https://jugs.dev.java.net/profiles/[carte officielle] et sur la link:http://jmdoudoux.developpez.com/cours/developpons/java/chap-communaute.php#communaute-5[liste des JUGs] de Jean-Michel Doudoux. 
+N'hésitez pas à me remonter vos remarques : mauvaise position, mauvais logo, JUG manquant,...
+
+Sur ce dernier point, des rumeurs de création de nouveaux JUGs courent : Brest, Montpellier, Clermont-Ferrand,... 
+Si vous avez du nouveau, je suis aussi preneur.
+
+[Edit 06/08/2011] J'ai transféré la carte sur mon link:https://www.jtips.info/JavaUserGroups[wiki], c'est plus facile à mettre à jour.

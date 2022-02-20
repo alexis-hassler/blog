@@ -1,0 +1,42 @@
+---
+layout: post
+title: VirtualBox 64bits sous MacOS X
+author: Alexis Hassler
+tags:
+- VirtualBox
+---
+
+Je suis totalement débutant avec MacOS, je découvre donc les détails de son fonctionnement au fur et à mesure... 
+Je pensais avoir compris que la version 10.6 (Snow Leopard) fonctionnait en 64 bits. 
+C'est donc avec beaucoup de confiance que j'ai commencé à installer un  Window 7 64 bits dans une machine virtuelle VirtualBox. 
+Et là j'ai eu  une grosse désillusion : ma machine virtuelle ne supporterait pas les 64  bits... 
+//<!--more-->
+
+J'ai tout de même vérifié que ma JVM était bien en 64 bits.
+
+[source, subs="verbatim,quotes"]
+----
+alexis@mac:~$ java -version
+java version "1.6.0_20"
+Java(TM) SE Runtime Environment (build 1.6.0_20-b02-279-10M3065)
+Java HotSpot(TM) 64-Bit Server VM (build 16.3-b01-279, mixed mode)
+----
+
+En fouillant sur le Web, je constate que plein de gens se sont confrontés à des problèmes similaires et que tout (ou presque) est expliqué sur le link:http://www.apple.com/macosx/technology/[site de Apple] : avec Snow Leopard, on n'est pas encore totalement en 64 bits, mais dans un mode de compatibilité. 
+Les applications peuvent fonctionner en 32 ou 64 bits, mais le kernel est toujours en 32 bits. 
+La raison de ce choix semble être un soucis de compatibilité des drivers existants.
+
+En fouillant un peu plus, je constate que rien n'est perdu pour mon objectif initial qui était, je le rappelle, d'installer Windows 7 64 bits en machine virtuelle VirtualBox. 
+La solution est de démarrer le Mac en 64 bits. 
+Pour ça, on peut choisir la technique qui consiste à appuyer sur 6 et sur 4 au démarrage ou de modifier le fichier /Library/Preferences/SystemConfiguration/com.apple.Boot.plist. 
+Comme on m'avais présenté MacOS comme le système "qui fonctionne, il n'y a pas de bidouille à faire...", je ne me satisfais pas de ces solutions et m'oriente vers l'application link:http://www.ahatfullofsky.comuv.com/English/Programs/SMS/SMS.html[Kernel Startup Mode Selector].
+
+Cette application vérifie si la machine est compatible avec le mode 64 bits et effectue les modifications nécessaires. 
+Pour ma part, les premiers pas étaient mitigés car, si toutes les caractéristiques semblaient correctes, ma machine ne fait pas partie des machines officiellement supportées.
+
+image::/images/misc/MacOS-KernelStartupModeSelector.png[, role="center"]
+
+Je tente quand même la manipulation et redémarre la machine. 
+Le temps de démarrage est bien plus long, ce qui me stresse un instant, mais tout démarre correctement. 
+Le nouvel essai avec VirtualBox est concluant : je peux installer une machine virtuelle 64{nbsp}bits. 
+Je conserve l'application de sélection du mode de démarrage pour pouvoir revenir facilement en 32 bits, si nécessaire.

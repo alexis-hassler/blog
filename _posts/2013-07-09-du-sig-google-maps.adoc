@@ -1,0 +1,118 @@
+---
+layout: post
+title: Du SIG à Google Maps
+date: '2013-07-09T22:59:00.000+02:00'
+author: Alexis Hassler
+tags:
+- EPSG:3946
+- Google Maps
+- Lambert 93
+---
+
+Dans un projet sur lequel je travaille actuellement, chez link:https://rtone.fr/[Rtone], 
+nous devons récupérer des coordonnées d'un Système d'Information Géographique pour afficher les points sur Google Maps.
+
+Le problème, c'est que le SIG et Google Maps n'utilisent pas le même système de coordonnées. 
+Dans mon cas, je dois récupérer des points en coordonnées Lambert 93 et je dois les envoyer à l'API de Maps en coordonnées géographiques, 
+c'est-à-dire longitude et latitude. 
+Je dois donc transformer les coordonnées, vérifier leur exactitude et soumettre au client la nouvelle carte des points
+// <!--more-->
+
+== Transformation des coordonnées
+
+image::/images/misc/Departements_LambertCC9Zones.svg[, 200, 186, role="right"]
+Le SIG utilise le système de coordonnées Lambert 93. 
+Ce système est loin d'être exotique puisque c'est le système de référence en France depuis 2006. 
+Ça ne devrait donc pas être trop difficile de trouver une librairie qui sache faire les conversions. 
+Au passage, lorsqu'on voit les link:http://fr.wikipedia.org/wiki/Projection_conique_conforme_de_Lambert[formules], 
+on s'oriente forcément vers une librairie qui fasse le boulot pour nous.
+
+A partir de là, pas facile de demander à Google de me trouver ce dont j'ai besoin, 
+parce que mon vocabulaire dans le domaine est trop limité et qu'il y a un nombre considérable de systèmes de coordonnées dans le monde. 
+Twitter est alors le meilleur endroit pour demander de l'aide. 
+La première réponse vient de link:http://twitter.com/fnicollet[Fabien Nicollet] :
+
+[quote, Fabien Nicollet (@fnicollet)]
+____
+link:https://twitter.com/k33g_org[@k33g_org] link:https://twitter.com/AlexisHassler[@AlexisHassler] salut, le standard c'est proj4J http://t.co/sy7Kd8aabh, si tu veux juste faire des transfo de coordonnées
+____
+
+J'ai eu d'autres réponse intéressantes de link:http://twitter.com/vheurteaux[V. Heurteaux] et de link:http://twitter.com/Xtof_Franco[Christophe Franco], que je garde en réserve si la première solution ne convient pas.
+
+Donc cap sur link:http://trac.osgeo.org/proj4j/[Proj4J]. 
+C'est le portage (partiel) en Java de la vraie référence du domaine, link:http://trac.osgeo.org/proj/[PROJ.4]. 
+Ça c'est pour la partie rassurante, parce qu'il y a plusieurs points plus inquiétants :
+
+=== _Pas d'artefact dans les repositories Maven classiques, pas de binaire à télécharger_
+
+Le commentaire de la page de téléchargement est encore plus inquiétant :
+
+[quote]
+____
+Status: Currently this library is still being created, and is not yet ready for download
+____
+
+=== _TODO_
+
+Le code source est truffé de TODO.
+
+[source, subs="verbatim,quotes"]
+----
+//TODO: adjust src Prime Meridian if specified
+...
+//TODO: adjust target Prime Meridian if specified
+...
+----
+
+=== _Documentation_
+
+Les liens de documentation vont vers PROJ.4, rien pour la version Java. 
+Heureusement qu'il y a des tests unitaires dont on peut s'inspirer.
+
+=== _Depuis 2009_
+
+Et pourtant le projet n'est pas tout jeune. 
+Il a été initié en 2009 et est déjà la reprise de portages précédents. 
+Avec tout ça et mon absence de connaissance dans le domaine, en particulier coté vocabulaire, le démarrage est fastidieux.
+
+Avant de passer au code, quelques précisions sur le système de coordonnées utilisé. 
+J'ai parlé de Lambert 93 ; ce système découpe la France en 9 bandes horizontales. 
+Il faut donc savoir dans quelle bande on travaille et connaitre le nom du système correspondant. 
+Pour mon cas, c'est RGF93 / CC46, connu dans la codification internationale sous le code EPSG:3946.
+
+Trêve de blabla, passons au *code* :
+
+On commence par instancier les systèmes de coordonnées, EPSG:3946 pour la source et géographique pour la cible.
+
+[source, subs="verbatim,quotes"]
+----
+CRSFactory factory = new CRSFactory();
+CoordinateReferenceSystem lambert = factory.createFromName(crs);
+CoordinateReferenceSystem map = lambert.createGeographic();
+----
+
+Puis on instancie et on utilise le transformateur : 
+
+[source, subs="verbatim,quotes"]
+----
+CoordinateTransform coordinateTransform = new BasicCoordinateTransform(lambert, map);
+ProjCoordinate sourcCoordinate = new ProjCoordinate(x, y);
+ProjCoordinate targetCoordinate = new ProjCoordinate();
+coordinateTransform.transform(sourcCoordinate, targetCoordinate);
+----
+
+C'est tout : huit lignes de code seulement. 
+Le plus dur était de trouver la librairie et de comprendre comment l'utiliser. 
+A ce sujet, un grand merci à ceux qui m'ont orienté vers les solutions pertinantes !
+
+== Vérification des coordonnées
+
+Pour vérifier les coordonnées obtenues et construire un jeu de données de test, le client nous a orienté vers un link:http://www.telegonos.fr/convertir-sans-carte[outil en ligne]. 
+Les résultats concordent à six chiffres après la virgule.
+
+== Génération de la carte
+
+Pour la dernière étape de validation, on veut présenter les points sur Google Maps. 
+Plutôt que d'utiliser l'API, ça nous semblait plus pratique de générer un fichier KML contenant les points qui doivent être affichés sur la carte. 
+En l'occurrence, on a généré un fichier compressé, KMZ. Pour ça aussi, il y a une librairie, link:https://github.com/micromata/javaapiforkml[JAK], ou Java API for KML. 
+Mais ça c'est pour le link:/2013/07/11/generer-kml.html[prochain billet]...

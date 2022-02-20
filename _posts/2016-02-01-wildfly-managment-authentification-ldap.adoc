@@ -1,0 +1,79 @@
+---
+layout: post
+title: Utiliser un annuaire LDAP pour l'authentification des administrateurs WildFly
+author: Alexis Hassler
+tags:
+- WildFly
+- LDAP
+courses:
+- wildfly
+---
+
+image::/images/wildfly/wildfly-logo.png[role="right"]
+En 2013, j'avais écrit un billet sur l'link:/2013/06/23/authentification-wildfly-avec-opendj.html[authentification *WildFly* avec OpenDJ]. 
+Ça concernait exclusivement l'authentification et les autorisations pour les applications déployées, avec la mise en place d'un security-domain, dans le subsystem security. 
+Dans cet article, je vais mettre en place l'*authentification LDAP* pour les outils de gestion (console d'administration, link:https://www.jtips.info/index.php?title=WildFly/cli[jboss-cli],...).
+
+Comme la dernière fois, j'utilise OpenDJ en version 3.0, et j'ai repris le LDIF en changeant les groupes, pour leur donner des noms plus orientés administration (admin et monitor). 
+Ceci dit, on verra que dans un premier temps, ces groupes sont inutiles...
+
+// <!--more-->
+Par défaut, la sécurité d'accès au management utilise le ManagementRealm qui stocke les identités de ses utilisateurs dans le fichier standalone/configuration/mgmt-users.properties. 
+Ça fait l'affaire pour quelques utilisateurs et quelques instances de WildFly, mais ce n'est pas très organisé pour une montée en volume. 
+L'annuaire LDAP offre l'avantage d'une centralisation des données.
+
+Je passe à nouveau l'installation d'*OpenDJ*, car je n'ai pas grand chose d'intéressant à raconter sur le sujet. 
+J'importe les données d'utilisateurs au format LDIF, avec les groupes d'admin, que j'ai exportées sur link:https://gist.github.com/hasalex/a5ffd764485540c4fdff[gist]. 
+
+Je suis parti d'un *WildFly 10.0.0.Final*, dans sa configuration par défaut. 
+J'ai configuré la connexion à l'annuaire, le LdapRealm et j'ai basculé l'interface de management vers ce nouveau realm. 
+Comme l'XML, c'est compliqué, je fais tout ça en ligne de commande avec *jboss-cli*. 
+
+Pour la *connexion à l'annuaire* : 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+/core-service=management/ldap-connection=LdapConnection:add(                       \
+                    url="ldap://localhost:1389")      
+----
+
+Pour la *création du realm* : 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+/core-service=management/security-realm=LdapRealm:add()
+/core-service=management/security-realm=LdapRealm/authentication=ldap:add(         \
+                    base-dn="ou=people,dc=sewatech,dc=fr",                         \
+                    username-attribute="uid",                                      \
+                    connection="LdapConnection")
+----
+
+Pour l'*utilisation du nouveau realm* par l'interface de management : 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+/core-service=management/management-interface=http-interface:write-attribute(      \
+                    name=security-realm,                                           \
+                    value=LdapRealm)
+----
+
+Dorénavant, je peux me connecter aux outils d'administration (console d'administration, jboss-cli) avec le login hasalex. 
+C'est aussi valable pour les API (http, java) et pour JMX. Attention, avec le LdapRealm, il faut aussi s'authentifier pour les connexions locales car je n'ai pas repris l'*authentification locale* automatique. 
+J'aurais pu le faire avec cette commande : 
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+/core-service=management/security-realm=LdapRealm/authentication=local:add(        \
+                    default-user="$local",                                         \
+                    skip-group-loading=true)
+----
+
+On notera que le mode d'authentification a changé. 
+Avec le fichier properties, on était en DIGEST, avec LDAP on est passé en BASIC, qui est moins sécurisé et qui vous poussera probablement à passer en SSL. 
+
+Enfin, comme pour l'authentification par fichier properties, tous les utilisateurs présents dans la branche LDAP sont autorisés à se connecter et ont tous les droits sur notre WildFly. 
+Pour restreindre les autorisations, il faudra passer en *RBAC*, et c'est le sujet du prochain billet. 
+
+*Edit:* 
+Sur les conseils d'Emmanuel Lecharny, j'ai retiré les attributs `search-dn` et `search-credential` de la connexion, le binding se fait alors avec les informations de l'utilisateur ; 
+ainsi on ne stocke plus de mot de passe LDAP dans la configuration. 

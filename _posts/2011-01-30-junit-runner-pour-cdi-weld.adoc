@@ -1,0 +1,72 @@
+---
+layout: post
+title: JUnit Runner pour CDI / Weld
+author: Alexis Hassler
+tags:
+- WeldSE
+- CDI
+- jUnit
+---
+
+Dans mon link:http://blog.alexis-hassler.com/2011/01/junit-runner-pour-cdi-weld.html[billet précédent], j'ai proposé d'utiliser un _Rule_ pour tester des composants CDI. 
+Cette technique n'est pas totalement satisfaisante, d'une part parce que l'initialisation se fait pour chaque test et d'autre part parce que son utilisation demande un peu de code. 
+J'ai donc décidé de changer de tactique et développer un _Runner_.
+
+Pour ce _Runner_, j'ai fait une classe qui hérite du runner par défaut et j'ai redéfini la méthode run() pour démarrer et arrêter Weld. 
+J'ai redéfini aussi la méthode createTest() afin qu'elle retourne une instance gérée par Weld de la classe de test. 
+Ceci permet d'injecter les objets à tester et donc de réduire sensiblement la quantité de code.
+//<!--more-->
+
+[source, subs="verbatim,quotes"]
+----
+public class WeldRunner extends BlockJUnit4ClassRunner {
+
+    private Weld weld;
+    private WeldContainer container;
+
+    public WeldRunner(Class klass) throws InitializationError {
+        super(klass);
+    }
+
+    @Override
+    public void run(RunNotifier notifier) {
+        initializeWeld();
+        super.run(notifier);
+        shutdownWeld();
+    }
+    
+    @Override
+    protected Object createTest() throws Exception {
+        return container
+                   .instance()
+                   .select(getTestClass().getJavaClass())
+                   .get();
+    }
+
+    private void initializeWeld() {
+        weld = new Weld();
+        container = weld.initialize();
+    }
+
+    private void shutdownWeld() {
+        weld.shutdown();
+    }
+}
+----
+
+Il ne reste plus qu'à l'utiliser et à injecter le beans à tester.
+
+[source, subs="verbatim,quotes"]
+----
+@RunWith(WeldRunner.class)
+public class TotoServiceTest3 {
+
+    @Inject
+    TotoService service;
+
+    ...
+}
+----
+
+Je trouve cette technique plus sympa que la _Rule_, il reste à la tester plus sérieusement. 
+J'ai ajouté ce _Runner_ à ma synthèse des link:https://www.jtips.info/WeldSE/Test[techniques de tests CDI], sur JTips.

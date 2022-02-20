@@ -1,0 +1,31 @@
+---
+layout: post
+title: 'WildFly 8, administration guide : le livre'
+author: Alexis Hassler
+tags:
+- WildFly
+- Livre
+courses:
+- wildfly
+---
+
+image:://1.bp.blogspot.com/-3_CD5XEXK6o/U9fe6jI8ZQI/AAAAAAAAE0M/TKY7TbcoqMc/s1600/wildfly-short.png[role="right"]
+
+Quand *Francesco Marchioni* m'a envoyé son dernier livre sur WildFly 8 pour que je lui donne mon avis, j'ai accepté sans enthousiasme. 
+Certes j'aime beaucoup son link:http://mastertheboss.com/[blog], mais ce livre est adapté aux débutants. 
+J'utilise JBoss AS 7 depuis le début et j'ai commencé à utiliser WildFly 8 il y a plusieurs mois, avant sa version final.
+J'avais peur de m'ennuyer pendant cette lecture. Et bien pas du tout, la lecture est plaisante et j'ai appris plein de choses.
+//<!--more-->
+
+D'ailleurs je trouve ça très fort. 
+Francesco explique tout ce qui est nécessaire au débutant et reste utile à ceux qui connaissent déjà WildFly, tout ça en 250 pages. 
+Le livre nous guide dans la découverte des sujets essentiels, et pour la plupart des chapitres nous emmène un peu loin dans les subtilités. 
+Je trouve que c'est un très bon complément à la documentation officielle. 
+Commencez avec le livre et passez à la doc pour certains sujets précis.
+
+Quelques points négatifs quand même. 
+J'ai trouvé certains sujets un peu trop long, avec des explications trop détaillées sur la façon d'utiliser la console Web. 
+J'aurais préféré plus de CLI. 
+Aussi, j'aurais bien aimé un chapitre sur les APIs : JMX, Java et surtout HTTP / JSON.
+
+En conclusion, c'est un super livre pour tous ceux qui s'intéressent de près ou de loin à link:http://wildfly.org/"[WildFly].

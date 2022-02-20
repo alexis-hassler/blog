@@ -1,0 +1,50 @@
+---
+layout: post
+title: 'Devoxx France 2014 : Universités et Ateliers'
+author: Alexis Hassler
+tags:
+- JavaEE
+- Devoxx
+---
+
+link:http://www.devoxx.fr/[Devoxx France] 2014 vient de se terminer. 
+Je suis conforté dans mon opinion que c'est un événement incontournable en France, pour le contenu et pour les rencontres. 
+J'ai prévu d'exprimer mon point de vue sur l'événement, thème par thème, en parlant des keynotes puis des conférences.
+
+Dans ce premier billet, je vais parler des *Universités* et *Ateliers* qui ont lieu le premier jour. 
+Cette année, c'était un peu particulier pour moi puisque j'ai passé beaucoup de temps comme animateur. 
+//<!--more-->
+
+image::/images/devoxx/speaker.png[, 200, 200, role="center"]
+
+Le matin, j'ai présenté l'université "Je fais ce que je veux avec Java EE", pendant trois heures, avec link:https://twitter.com/antoine_sd[Antoine Sabot-Durand]. 
+On avait proposé cette session avec l'ambition de donner un nouvel éclairage sur Java EE en insistant sur les libertés qu'on pouvait s'offrir en développant en Java EE. 
+Antoine s'est concentré sur CDI, et plus particulièrement les portable extensions. 
+Antoine connait particulièrement bien CDI puisqu'il en dirige la specification pour les versions 1.2 et 2.0. 
+Pour ma part, j'ai présenté les connecteurs JCA, ou comment faire du neuf avec du vieux. 
+C'est vrai que JCA est ancien et a été peu modernisé, mais il permet de faire des Message Driven Beans à l'écoute d'autre chose que des destinations JMS. 
+J'ai montré des exemples avec du telnet et du MQTT. 
+Java EE n'est certainement pas un sujet hype, mais intéresse toujours du monde, puisque même avec une approche décalée, sans être des rock stars du milieu, on a pu attirer une bonne centaine de personnes et qu'elles sont restées jusqu'à la fin. 
+Au vu de la concurrence et des sujets attirants proposés au même horaire, ça a été une grande satisfaction pour nous.
+
+image::/images/devoxx/2014_s4.jpg[, 320, 213, role="center"]
+
+L'après-midi, j'ai animé à l'atelier "Java EE 7", avec link:https://twitter.com/delabassee[David Delabassée] et Antoine Sabot-Durand, pendant trois heures aussi. 
+L'objectif de l'atelier était de permettre aux participants de mettre en pratique les nouveautés de la dernière version, comme les WebSocket ou l'API Batch. 
+Le succès a été encore plus net que le matin pour Java EE puisque nous étions dans une des plus grandes salles d'atelier et qu'elle était complète. 
+
+Après ces six heures d'animation, je n'ai assisté à aucun Tools-in-Action, parce que j'étais trop fatigué, incapable de me concentrer. 
+Je les regarderai en vidéo. 
+Six heures d'animation, c'est vraiment épuisant, mais je suis heureux de l'avoir fait. 
+C'était la première fois que je faisais une présentation en binôme et j'ai vraiment apprécié la collaboration avec Antoine. 
+Le fait que c'est un très bon orateur (à mon humble avis) m'a ôté de la pression. 
+Peut-être qu'une présentation est une de ces activités qui sont mieux avec un partenaire que tout seul...
+
+NOTE: En attendant la vidéo, nous avons publié nos link:http://fr.slideshare.net/antoinesd/fais-ce-que-tu-veux-avec-java-ee[slides] et le code source de nos exemples link:https://github.com/antoinesd/cdi-demo[CDI] et link:https://github.com/hasalex/mqtt-ra[JCA].
+
+++++
+<div style="text-align: center;">
+    <iframe allowfullscreen="" frameborder="0" height="420" width="500" marginheight="0" marginwidth="0" scrolling="no" src="http://www.slideshare.net/slideshow/embed_code/33673712" style="border-width: 1px 1px 0; border: 1px solid #CCC; margin-bottom: 5px; max-width: 100%;"> 
+    </iframe>
+</div>
+++++

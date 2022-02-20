@@ -1,0 +1,169 @@
+---
+layout: post
+title: Devoxx Schedule dans Google Calendar
+author: Alexis Hassler
+tags:
+- Rest
+- GoogleCalendar
+- Devoxx
+- Jersey
+---
+
+Les organisateurs de la link:http://www.devoxx.com[conférence Devoxx 2010] ont mis à disposition le planning par une interface REST. 
+Plusieurs clients ont été développés, en particulier pour des mobiles. 
+A titre personnel, je n'ai ni iPhone ni Android, le plus pratique était donc d'avoir le planning complet dans Google Calendar. 
+J'ai donc décidé de développer un petit programme, en ligne de commande qui lit le planning via l'API REST et qui génère un link:https://www.google.com/calendar[agenda Google].
+//<!--more-->
+
+== Client REST
+
+Pour développer le client REST, j'ai choisi d'utiliser Jersey avec Jackson.
+
+[source, subs="verbatim,quotes"]
+----
+<dependency>
+  <groupid>com.sun.jersey</groupid>
+  <artifactid>jersey-client</artifactid>
+  <version>1.4</version>
+</dependency>
+<dependency>
+  <groupid>org.codehaus.jackson</groupid>
+  <artifactid>jackson-jaxrs</artifactid>
+  <version>1.6.1</version>
+</dependency>
+----
+
+La première étape est de développer les classes de données, en s'inspirant du contenu JSON fourni par Devoxx. 
+Par exemple, à partir de la requête "GET \http://cfp.devoxx.com/rest/v1/events/1/schedule", j'ai développé une classe ScheduleItem qui ressemble à ça :
+
+[source, subs="verbatim,quotes"]
+----
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class ScheduleItem {
+  public Integer id
+  public Boolean partnerSlot;
+  @JsonDeserialize(using = DateAdapter.class)
+  public Date toTime;
+  @JsonDeserialize(using = DateAdapter.class)
+  public Date fromTime;
+  public String code;
+  public String type;
+  public String kind;
+  public String room;
+  
+  public URI presentationUri;
+  public Presentation presentation;
+  public Speaker[] speakers;
+  public String title;
+}
+----
+
+L'annotation @JsonDeserialize sert à récupérer les dates qui ne sont pas dans un format naturellement compris par Jackson et @JsonIgnoreProperties apporte une souplesse lorsque la réponse JSON ne correspond pas précisément à la structure de la classe.
+
+Le deuxième étape est de développer la méthode qui permet d'envoyer les requêtes GET et de récupérer des objets Java :
+
+[source, subs="verbatim,quotes"]
+----
+public <t> T get(String uri, Class<t> clazz) {
+  ClientConfig cc = new DefaultClientConfig();
+  cc.getClasses().add(JacksonJsonProvider.class);
+  Client client = Client.create(cc);
+
+  WebResource resource = client.resource(uri);
+  resource.accept(MediaType.APPLICATION_JSON_TYPE);
+  return resource.get(clazz);
+}
+----
+
+L'essentiel de la lecture est dans ces quelques lignes de code. 
+Le reste est de l'assemblage : charger les différentes entités, reconstituer les associations, gérer un cache pour améliorer les performances.
+
+== Client GCal
+
+Les choses se présentent moins simplement du coté des API Google. 
+En gros, j'ai le choix entre la link:http://code.google.com/intl/fr/apis/calendar/[Google Calendar API] et le link:http://code.google.com/p/google-api-java-client/[Google API Client]. 
+Les deux librairies utilisent le protocole de communication Atom, la seconde pouvant aussi utiliser REST / JSON. 
+
+Dans un premier temps, je me suis lancé avec Google API Client qui est disponible dans les repositories publiques de Maven et qui semble plus souple. 
+Après quelques essais, j'ai eu l'impression qu'il me fallait beaucoup de code pour atteindre mon objectif.
+
+Je me suis donc rabattu sur Google Calendar API. 
+Pour l'intégration dans mon module Maven, Google n'apporte rien (pour l'instant ?) ; j'ai du fouiller un peu et je suis tombé sur le projet link:https://github.com/dcarter/Google-Data-APIs-Mavenized[Google-Data-APIs-Mavenized]. 
+J'ai ajouté les dépendances telles qu'indiquées dans le wiki du projet :
+
+[source, subs="verbatim,quotes"]
+----
+<dependencies>
+  <dependency>
+    <groupid>com.github.dcarter.gdata-java-client</groupid>
+    <artifactid>gdata-calendar-2.0</artifactid>
+    <version>1.41.1-SNAPSHOT</version>
+  </dependency>
+  <dependency>
+    <groupid>com.github.dcarter.gdata-java-client</groupid>
+    <artifactid>gdata-calendar-2.0</artifactid>
+    <version>1.41.1-SNAPSHOT</version>
+  </dependency>
+</dependencies>
+<repositories>
+  <repository>
+    <releases>
+      <enabled>false</enabled>
+      <checksumpolicy>fail</checksumpolicy>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+      <checksumpolicy>fail</checksumpolicy>
+    </snapshots>
+    <id>sonatype-nexus-snapshots</id>
+    <name>Sonatype Nexus Snapshots</name>
+    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+  </repository>
+</repositories>
+----
+
+L'essentiel du travail passe par un objet CalendarService : authentification, création de l'agenda et des événements. 
+Le modèle de données est basé sur des Feed (CalendarFeed, CalendarEntryFeed), qui rassemblent des Entry (CalendarEntry, CalendarEventEntry). 
+La partie la plus périlleuse concerne les URL. 
+Pour chaque calendrier et chaque élément de calendrier, plusieurs URL sont disponibles, en fonction de l'usage ; et ces URL sont très mal documentées.
+
+[source, subs="verbatim,quotes"]
+----
+CalendarEventEntry eventEntry = new CalendarEventEntry(); ...
+String urlAsText = calendarEntry.getLink(ILink.Rel.ALTERNATE, "application/atom+xml").getHref();
+CalendarEventEntry insertedEntry = calService.insert(new URL(urlAsText), eventEntry);
+----
+
+Pour l'amélioration des performances, on peut créer les événements en mode batch, avec un URL dédiée !
+
+[source, subs="verbatim,quotes"]
+----
+for (...) {
+  CalendarEventEntry eventEntry = eventEntry = new CalendarEventEntry();
+  ...
+  BatchUtils.setBatchId(eventEntry, batchId);
+  BatchUtils.setBatchOperationType(eventEntry, BatchOperationType.INSERT);
+  batchRequest.getEntries().add(eventEntry);
+}
+String urlAsText = calendarEntry.getLink(ILink.Rel.ALTERNATE, "application/atom+xml").getHref() + "/batch";
+CalendarEventFeed batchResponse = calService.batch(new URL(urlAsText), batchRequest);
+----
+
+La documentation conseille des lots de 50 à 100 événements. 
+Pour ma part, j'envoie des lots de 175 événements (c'est le programme de Devoxx !), ce qui prend plus d'une minute à traiter.
+
+== Conclusion
+
+Grâce à ce programme, j'ai créé un agenda public avec le programme de Devoxx 2010. 
+Libre à vous de l'utiliser, ou de recréer votre propre agenda, en adaptant les informations que vous y mettez. 
+Mon code source est disponible sur link:https://github.com/hasalex/Devoxx2GCal[GitHub].
+
+Il ne me reste plus qu'à préparer mon programme pour les 5 jours de Devoxx. 
+Et rendez-vous là-bas...
+
+[.center]
+--
+++++
+<iframe src="https://www.google.com/calendar/embed?showTitle=0&amp;showTabs=0&amp;showCalendars=0&amp;showTz=0&amp;mode=DAY&amp;height=600&amp;wkst=2&amp;bgcolor=%23FFFFFF&amp;src=da542njvm5olm12dmhqdqd5v5c%40group.calendar.google.com&amp;color=%231B887A&amp;ctz=Europe%2FBrussels&dates=20101115%2F20101119" style=" border-width:0 " width="600" height="600" frameborder="0" scrolling="no"></iframe>
+++++
+--

@@ -1,15 +1,12 @@
 ---
 layout: post
 title: Intégration continue avec Travis CI et Docker Hub
-date: 2015-03-19
 author: Alexis Hassler
 tags:
 - Travis-CI
 - Docker
 - GitHub
 - Bintray
-modified_time: 2015-12-04
-thumbnail: "//3.bp.blogspot.com/-_N1Rbxidbz8/VQVtgXNRqFI/AAAAAAAAFvg/eKADo-TzhSw/s72-c/logos-ci-lite.png"
 ---
 
 Habituellement, je développe en java et j'utilise un Jenkins pour l'intégration continue. 
@@ -19,9 +16,7 @@ le projet en question est une mini console d'administration pour WildFly.
 Pour être dans l'ère du temps, j'ai préparé une image Docker qui fait tourner un serveur Apache httpd sur lequel est déployée la console. Et pour faciliter l'utilisation et la distribution de cette image, elle est sur le http://hub.docker.com/[Hub Docker]. 
 Voyons la chaîne d'intégration continue in ze cloud et gratuite qui met à jour mon image à chaque fois que mon code est mis à jour sur GitHub.
 
-[.center]
-image:://3.bp.blogspot.com/-_N1Rbxidbz8/VQVtgXNRqFI/AAAAAAAAFvg/eKADo-TzhSw/s1600/logos-ci-lite.png["Logos CI",320,100]
-
+image::/images/docker/logos-ci-lite.png["Logos CI", 320, 100, role="center"]
 // <!--more-->
 
 == GitHub
@@ -103,8 +98,7 @@ after_success:
 
 GitHub + Travis CI + Bintray + Docker Hub, voici ma chaîne d'intégration continue gratuite.
 
-[.center]
-image::https://3.bp.blogspot.com/-0nQFyv194Mc/VQVsYa2DHkI/AAAAAAAAFvQ/XNHynua34zA/s1600/logos-ci.png["Logos CI",400,95]
+image::/images/docker/logos-ci.png["Logos CI", 400, 95, role="center"]
 
 Avec elle, à chaque fois que je fais une mise à jour de mon repository GitHub, ça déclenche le build TravisCI, qui déclenche la construction d'une nouvelle version de l'image Docker. 
 Parfait pour ce petit projet.

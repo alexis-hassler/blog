@@ -1,0 +1,196 @@
+---
+layout: post
+title: Silverpeas sur JBoss 5
+author: Alexis Hassler
+tags:
+- JBoss
+- Silverpeas
+---
+
+Dans mon billet précédent, j'avais installé Silverpeas v5 dans JBoss 4, sur une machine Debian 5. 
+Je vais maintenant m'attaquer à l'installation de Silverpeas v5 dans JBoss 5, sur la même machine. 
+Ce n'est toujours pas mon but ultime, mais comme je connais bien ce serveur d'applications, je continue ainsi à me faire la main. 
+Tout d'abord, je dois noter que je n'ai aucune garantie de réussite et que je devrai probablement faire des modifications à la configuration de Silverpeas pour l'adapter aux contraintes de cette version de JBoss.
+
+Comme il n'y a pas de procédure prévue pour installer Silverpeas sur JBoss 5, je vais partir de mon installation sur JBoss 4, je vais récupérer les éléments (datasource, JMS, ear) et les modifier pour les adapter à JBoss 5.
+//<!--more-->
+
+== Préparation de l'installation
+
+J'ai déjà fait l'essentiel de la préparation lorsque j'ai fait mon déploiement sous JBoss 4. 
+En effet, j'ai déjà ma base de données ainsi que le répertoire principal de Silverpeas (`/opt/sp/silverpeas`). 
+Il me reste surtout à installer JBoss 5.
+
+[source, subs="verbatim,quotes"]
+----
+cd ~/tmp/silverpeas 
+wget http://sourceforge.net/projects/jboss/files/JBoss/JBoss-5.1.0.GA/jboss-5.1.0.GA.zip/download
+cd /opt/silverpeas
+tar -xf ~/tmp/silverpeas/jboss-5.1.0.GA.zip
+----
+
+Dans ma nouvelle installation, je n'ai plus besoin des variables d'environnement de Maven, je conserve celle de Silverpeas et je mets à jour celle de JBoss
+
+[source, subs="verbatim,quotes"]
+----
+export JBOSS_HOME=/opt/sp/jboss-5.1.0.GA/
+export SILVERPEAS_HOME=/opt/sp/silverpeas
+export JAVA_HOME=export JAVA_HOME=`update-java-alternatives -l | awk '{print $3}'`
+----
+
+Je finis enfin par préparer mon installation supprimant les configurations dont je n'ai pas besoin et en créant un répertoire silverpeas dans le répertoire de déploiement ; ceci me permet de mettre tous les fichiers de silverpeas au même endroit.
+
+[source, subs="verbatim,quotes"]
+----
+rm -r $JBOSS_HOME/server/all
+rm -r $JBOSS_HOME/server/minimal
+rm -r $JBOSS_HOME/server/web
+rm -r $JBOSS_HOME/server/standard
+mkdir $JBOSS_HOME/server/default/deploy/silverpeas
+----
+
+== Configuration des ressources
+
+Je commence par le plus facile : la datasource peut être conservée telle quelle, le format n'a pas changé. 
+Je peux donc copier le fichier silverpeas-ds.xml dans le nouveau répertoire deploy/silverpeas. 
+
+Pour les ressources JMS, les choses sont un peu plus complexes puisque le format de configuration a changé, JBoss 4.0 utilisait JBossMQ alors que JBoss 5 utilise JBossMessaging. 
+Le nouveau fichier silverpeas-destinations-service.xml, que je mettrai dans le répertoire deploy/silverpeas, a le contenu suivant :
+
+[source, subs="verbatim,quotes"]
+----
+<?xml version="1.0" encoding="UTF-8"?> 
+<server> 
+  <mbean code="org.jboss.jms.server.destination.QueueService"
+         name="jboss.messaging.destination:service=Queue,name=notificationsQueue"
+         xmbean-dd="xmdesc/Queue-xmbean.xml">
+    <depends optional-attribute-name="ServerPeer">
+        jboss.messaging:service=ServerPeer
+    </depends>
+    <depends>jboss.messaging:service=PostOffice</depends>
+  </mbean> 
+  <mbean code="org.jboss.jms.server.destination.QueueService"
+         name="jboss.messaging.destination:service=Queue,name=statisticsQueue"
+         xmbean-dd="xmdesc/Queue-xmbean.xml">
+    <depends optional-attribute-name="ServerPeer">
+       jboss.messaging:service=ServerPeer
+    </depends>
+    <depends>jboss.messaging:service=PostOffice</depends>
+  </mbean> 
+</server>
+----
+
+Il me reste enfin à convertir le contenu de server.xml, que j'avais si peu apprécié dans l'installation standard. 
+Pour refaire la même manipulation désagréable, et comme j'ai un système d'exploitation qui me propose une telle fonctionnalité, je vais utiliser des liens symboliques.
+
+[source, subs="verbatim,quotes"]
+----
+ln -s $SILVERPEAS_HOME/data/website $JBOSS_HOME/server/default/deploy/silverpeas/website.war
+ln -s $SILVERPEAS_HOME/data/weblib $JBOSS_HOME/server/default/deploy/silverpeas/weblib.war
+----
+
+Je pense que mon environnement est prêt, je vais pouvoir déployer mon application. 
+Ah non, je vais tout de même vérifier le script de démarrage. 
+Est-il adapté à JBoss 5 ?
+
+[source, subs="verbatim,quotes"]
+----
+#!/bin/sh
+# Script Silverpeas pour JBoss 4
+cd $JBOSS_HOME/bin
+JBOSS_CLASSPATH=$SILVERPEAS_HOME/properties
+export JBOSS_CLASSPATH
+sh run.sh &amp;
+----
+
+Cela semble pas mal, du moins pour une utilisation locale. 
+Mais comme je suis sur un serveur et je n'ai pas installé les couches graphiques, je devrai tester à distance. 
+Le problème, c'est que depuis la version 4.2 JBoss est en écoute uniquement sur localhost ; je vais donc ajouter un paramètre au lancement pour remédier à cela.
+
+[source, subs="verbatim,quotes"]
+----
+# ...
+# Correction pour JBoss 5
+sh run.sh -b 0.0.0.0 &amp;
+----
+
+== Déploiement de l'application
+
+Le déploiement paraît assez simple, puisqu'il suffit de copier le répertoire silverpeas.ear au bon endroit, ou d'y faire un lien symbolique, puis de démarrer le tout.
+
+[source, subs="verbatim,quotes"]
+----
+ln -s $SILVERPEAS_HOME/jar/silverpeas.ear $JBOSS_HOME/server/default/deploy/silverpeas/
+$SILVERPEAS_HOME/bin/silverpeas-start-jboss.sh
+----
+
+Comme je le craignais, le premier démarrage est un échec. 
+Il y a plusieurs problèmes dans le fichier web.xml car JBoss 5 est plus tatillon que JBoss 4. 
+Il faut donc :
+
+* corriger le schemaLocation : `xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"`, 
+* retirer les attributs `xmlns=""`, 
+* retirer les éléments `<description>` dans les `<servlet>`et dans `<init-param>`, 
+* mettre les éléments de `<servlet>` dans l'ordre suivant : `<display-name>`, `<servlet-name>`, `<servlet-class>`, 
+
+Après cette correction dans la forme, il faut faire une correction dans le fond. 
+JBoss 5 inspecte les fichiers XML qui sont dans WEB-INF, or, l'inspection des fichiers de contexte Spring échoue.Il faut donc déplacer les fichiers spring-*.xml dans un sous-répertoire de WEB-INF, par exemple WEB-INF/config, et corriger le fichier web.xml. 
+Attention, il ne suffit pas de changer le contextConfigLocation, regardez un peu plus bas dans le fichier...
+
+[source, subs="verbatim,quotes"]
+----
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>
+      /WEB-INF/config/spring-hibernate.xml
+      /WEB-INF/config/spring-notification.xml 
+      /WEB-INF/config/spring-checker.xml 
+      /WEB-INF/config/spring-datasource.xml
+    </param-value>
+  </context-param>
+----
+
+[source, subs="verbatim,quotes"]
+----
+  <servlet>
+    <servlet-name>JcrInitializer</servlet-name>
+    <servlet-class>
+      com.silverpeas.jcrutil.servlets.RepositoryAccessServlet
+    </servlet-class>
+    <init-param>
+      <param-name>configuration</param-name>
+      <param-value>
+        /WEB-INF/config/spring-jcr.xml 
+        /WEB-INF/config/spring-jdbc-datasource.xml 
+        /WEB-INF/config/spring-pdcPeas.xml
+      </param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+----
+
+La suite est un peu plus délicate et demande quelques recherches. 
+Par exemple, lorsque l'exception ci-dessous apparaît, ça vient de la librairie icu4j, dont la version utilisée n'est pas compatible avec JBoss 5. 
+J'ai essayé avec une version récente (icu4j-4_2_1.jar) et l'erreur ne se produit plus au démarrage.
+
+[source, subs="verbatim,quotes"]
+----
+2010-02-12 15:06:35,049 INFO [org.jboss.ejb3.deployers.JBossASKernel] (HDScanner) Added bean(jboss.j2ee:ear=silverpeas.ear,jar=xom-1.0.jar,name=xom-1.0,service=EJB3) to KernelDeployment of: xom-1.0.jar
+2010-02-12 15:06:43,660 ERROR [org.jboss.kernel.plugins.dependency.AbstractKernelController] (HDScanner) Error installing to Real: name=vfsfile:/opt/sp/jboss510/server/default/deploy/silverpeas/silverpeas.ear/ state=PreReal mode=Manual requiredState=Real
+org.jboss.deployers.spi.DeploymentException: Error deploying silverpeas.ear: invalid constant type: 60
+at org.jboss.ejb3.deployers.Ejb3Deployer.deploy(Ejb3Deployer.java:196)
+at org.jboss.ejb3.deployers.Ejb3Deployer.deploy(Ejb3Deployer.java:99)
+----
+
+Enfin, après tous ces efforts, je tombe sur un link:https://issues.redhat.com/browse/JBAS-7210[bug référencé chez JBoss]. 
+La solution qui consiste tout simplement à supprimer xerces.jar de silverpeas.ear/lib fonctionne. 
+L'application se déploie et semble fonctionner parfaitement : je peux me connecter, j'ai la page d'accueil, je peux utiliser sans problème l'espace personnel.
+
+== Conclusion
+
+Je ne serais pas honnête si je disais que cette installation est une réussite complète. 
+La plupart de mes tests ont fonctionné, mais je n'ai pas réussi à utiliser la fonctionnalité de wiki : page blanche, pas de log. 
+Arghh ! Trop dur pour moi, je laisse la main à l'équipe de Silverpeas.
+
+A part le wiki, Silverpeas est opérationnel ; on peut profiter de 95% des fonctionnalités du portail sur une plateforme de déploiement moderne. 
+Il ne serait d'ailleurs pas étonnant que JBoss 5 devienne le serveur par défaut de Silverpeas dans les prochaines semaines, à moins que du coté de Grenoble, on préfère attendre la sortie de JBoss 6 qui devrait corriger le problème de Xerces.

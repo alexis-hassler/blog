@@ -1,0 +1,45 @@
+---
+layout: post
+title: Putain, 10 ans !
+author: Alexis Hassler
+tags:
+- Développeur
+- Freelance
+- Formation
+---
+
+La société Sewatech était immatriculée le 2 février 2005. 
+Ça fait donc *dix ans* que je suis *indépendant*. Et pour tout dire, je n'ai pas vu passer le temps.
+
+Depuis le début, j'essaie de mélanger les activités de formation, de développement et de conseil. 
+Pourquoi un tel mélange ? 
+Ben tout simplement parce que les trois activités me plaisent et que j'ai envie d'en abandonner aucune. 
+Il faut avouer que ça n'a pas toujours été facile de faire un mélange équilibré, le contraintes en terme de planning étant peu compatibles :
+
+- La formation est faite de petites séquences (généralement 3 ou 4 jours) planifiés longtemps à l'avance.
+- Le conseil est aussi fait de petites séquences, souvent planifiées à court terme.
+- Le développement est fait de tâches plus longues.
+
+Si les deux premiers se marient assez bien, c'est le troisième qui a souvent du mal à trouver sa place dans le planning.
+
+Dans ces 10 ans, je vois trois périodes : le démarrage, où il faut trouver des partenaires formation, l'indépendance où j'ai cherché à développer les formations en direct, et la période Rtone.
+
+Dans les premiers mois, j'ai cherché à me faire connaitre comme formateur, auprès des organismes de formation. 
+Il fallait trouver quels sujets pouvaient être correctement vendus, mais pour lesquels ils n'avaient pas encore (ou pas assez) de formateur(s). 
+C'était une petite remise en question, puisque mon effort ne portait plus forcément sur mes sujets de prédilection, mais je devais chercher plus loin. 
+C'est comme ça que j'ai commencé à donner des formations JBoss (c'était sur la version 4), qui est rapidement devenu mon _best seller_.
+
+Durant les quatre premiers exercices, mon activité passait pour 75 à 100% par de la sous-traitance, pour des organismes de formations ou des SSII, avec une dépendance de plus en plus grande à un ou deux gros organismes. 
+2009 a été un tournant car c'était une mauvaise année en terme de chiffre d'affaire, mais pour la première fois j'avais réussi à vendre plus de prestations en direct. 
+J'ai maintenu un ratio à 40 % de direct jusqu'en 2011.
+
+La fin de l'année 2011 a été un nouveau tournant, puisque Rtone m'a contacté pour que je travaille pour eux à mi-temps sur une longue durée. 
+Enfin, j'arrivais à concilier cette 3° activité ! 
+Ça n'a pas toujours été facile, et la part de formation a beaucoup chuté, sans compter le temps réservé aux conférences comme Devoxx, Devoxx FR ou Mix-IT, et à rendre visite à quelques JUGs. 
+Je me suis retrouvé à travailler plus pour gagner moins. 
+Ça reste assez difficile puisque la part de dev dépend des projets sur lesquels Rtone peut me faire bosser. 
+En plus de trois ans, je ne suis pas encore certain d'avoir trouvé le bon équilibre. 
+Malgré ces difficultés, c'est certainement la période la plus intéressante depuis que je suis indépendant.
+
+Evidemment, je ne sais pas jusqu'à quand va durer cette phase. 
+Je ne sais pas non plus comment va évoluer mon activité de formation dans les prochaines années.

@@ -1,0 +1,79 @@
+---
+layout: post
+title: Construire soi-même JBoss AS 7 (ou WildFly)
+author: Alexis Hassler
+tags:
+- JBossAS7
+- WildFly
+- build
+courses:
+- wildfly
+---
+
+Question préliminaire : pourquoi vouloir faire un build de JBoss ?
+
+La première raison, c'est pour le principe. 
+JBoss AS est open source et communautaire. Dans cet esprit, il est impératif de proposer un système de build simple et pratique. 
+Sur ce point, je dois dire que les progrès sont impressionnants entre JBoss AS 5 et JBoss AS 7.
+
+La deuxième raison dérive de la première. 
+Je veux pouvoir faire le buid pour m'autoriser à proposer des corrections de bugs. 
+OK, je ne l'ai fait qu'une fois, mais c'est un début.
+
+La troisième raison est plus pragmatique. 
+La version 7.1.2 de JBoss AS n'existe que sous la forme d'un tag dans le référentiel de source, il n'y a pas eu de release officielle. 
+Comme des bugs gênants ont été corrigés, c'est cette version-là que je veux utiliser.
+
+Voyons comment ça marche...
+<!--more-->
+
+Le code source de JBoss AS 7 est sur link:https://github.com/jbossas/jboss-as[Github] et le build est basé sur Maven. 
+La compilation nécessite un JDK 6 ou 7. 
+
+== Vous avez git et maven ?
+
+Donc, si vous avez git et maven, il suffit de faire les quelques lignes de commande suivantes :
+
+[source, subs="verbatim,quotes"]
+----
+git clone https://github.com/wildfly/wildfly.git
+cd wildfly
+git checkout 7.1.2.Final
+mvn install -DskipTests
+cp -R build/target/jboss-as-7.1.2.Final /opt/java/
+----
+
+Si vous avez un oeil entraîné, vous aurez immédiatement repéré l'option -DskipTests. 
+Eh oui, le build de la version 7.1.2 est cassé à cause d'un test en échec ! 
+Oublions ce test...
+
+== Vous n'avez pas Maven ? 
+
+Ce n'est pas grave, il est intégré au code source et le script de build saura l'utiliser.
+
+[source, subs="verbatim,quotes"]
+----
+git clone https://github.com/wildfly/wildfly.git
+cd wildfly
+git checkout 7.1.2.Final
+./build.sh -DskipTests
+cp -R build/target/jboss-as-7.1.2.Final /opt/java/
+----
+
+== Vous n'avez pas git ?
+
+Là aussi, tout est prévu, puisque Github met des archives zip et tar.gz en téléchargement.
+
+[source, subs="verbatim,quotes"]
+----
+wget https://github.com/wildfly/wildfly/tarball/7.1.2.Final
+tar -xvf 7.1.2.Final
+cd wildfly-wildfly-*
+./build.sh -DskipTests
+cp -R build/target/jboss-as-7.1.2.Final /opt/java/
+----
+
+Voilà.
+
+EDIT (07/08/2013) : le code source de JBoss AS 7 est passé du repository https://github.com/jbossas/jboss-as.git à https://github.com/wildfly/wildfly.git ; 
+sous la pression d'linkhttp://www.ehsavoie.com/[Emmanuel Hugonnet], j'ai modifié les URLs en conséquence.

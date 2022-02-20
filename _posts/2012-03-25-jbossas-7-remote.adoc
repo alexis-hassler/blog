@@ -1,0 +1,25 @@
+---
+layout: post
+title: Accéder aux composants remote de JBossAS 7
+date: '2012-03-25T00:16:00.004+01:00'
+author: Alexis Hassler
+tags:
+- JMS
+- JBossAS7
+- EJB
+---
+
+JBoss AS 7 a changé plein de choses ; il ne ressemble absolument pas aux versions précédentes. 
+Mais ça je l'ai déjà dit sur le link:http://www.sewatech.fr/article-jboss-7.html[site de mon entreprise]. 
+Malgré tout, à chaque étape j'en ai une nouvelle confirmation. 
+Ainsi j'ai un peu tâtonné pour établir des connexions distantes entre des clients Java et un serveur JBoss AS 7.1. 
+Mes client doivent appeler des EJBs et échanger des messages JMS. 
+
+Pour *JMS*, les choses sont assez simples ; il suffit de connaitre les bons paramètres JNDI et les bons noms sous lesquels les composants sont enregistrés dans JNDI. 
+La subtilité réside surtout dans la logique des noms _exportés_. 
+En effet, seuls les noms préfixés par java:jboss/exported/ sont accessibles à distance. 
+
+Pour les *EJBs*, c'est un peu plus complexe. 
+En effet, si le fonctionnement classique par JNDI fonctionne aussi, avec le même principe des noms _exportés_, il est déprécié au profit d'un fonctionnement par le client d'EJB JBoss, avec comme préfixe JNDI "ejb:".
+
+Tout ceci est détaillé dans link:http://www.jtips.info[JTips], d'une part pour l'link:http://jtips.info/index.php?title=JBoss7/RemoteJMS[accès distant à JMS], d'autre part pour l'link:http://jtips.info/index.php?title=JBoss7/RemoteEJB[accès distant à un EJB].

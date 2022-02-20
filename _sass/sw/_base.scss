@@ -84,11 +84,11 @@ li {
  * Links
  */
 a {
-  color: $brand-color;
+  color: $link-color;
   text-decoration: none;
 
   &:visited {
-    color: darken($brand-color, 15%);
+    color: darken($link-color, 15%);
   }
 
   &:hover {
@@ -233,10 +233,29 @@ pre {
     display: block;
   }
 }
+.center {
+  width: 100%;
+  text-align: center;
+}
+
+.white {
+  color: whitesmoke;
+}
 .red {
   color: #e60000;
 }
-
+.purple {
+  color: purple;
+}
+.background-blue {
+  background-color: #0691d0;
+}
+.line-400 {
+  line-height: 400%;
+}
+.big {
+  font-size: x-large;
+}
 
 // Tables
 table.tableblock {
@@ -251,15 +270,15 @@ table tr th, table tr td {
 }
 table.tableblock, th.tableblock, td.tableblock {
   border: 0 solid #dedede;
-      border-top-width: 0px;
-      border-right-width: 0px;
-      border-bottom-width: 0px;
-      border-left-width: 0px;
+  border-top-width: 0px;
+  border-right-width: 0px;
+  border-bottom-width: 0px;
+  border-left-width: 0px;
 }
 table.frame-all {
   border-width: 1px;
 }
-table.grid-all td.tableblock {
+table.grid-all th.tableblock, td.tableblock {
   border-width: 0 1px 1px 0;
 }
 table.grid-all * > tr > .tableblock:last-child, 
@@ -324,5 +343,14 @@ th.valign-top, td.valign-top {
 
   &:hover {
     text-decoration: none;
+  }
+}
+
+.underline {
+  text-decoration: underline;
+}
+.center {
+  table {
+    margin: 0 auto;
   }
 }

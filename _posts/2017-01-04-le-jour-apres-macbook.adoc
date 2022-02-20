@@ -1,0 +1,148 @@
+---
+layout: post
+title: Le jour d'après MacBook
+author: Alexis Hassler
+tags:
+- Linux
+- MacBook Pro
+- Laptop
+---
+:figure-caption!:
+
+image::/images/misc/le-jour-d-apres-tour-eiffel.jpg[, 200, 183, role="right"]
+
+Le mois dernier, j'avais annoncé ma décision de link:/2016/12/09/macbook-cest-fini.html[remplacer mon *Mac Book Pro* par un laptop *Linux*]. 
+L'article avait suscité pas mal de réactions, ce qui me fait penser que je ne suis pas le seul à vouloir faire ça. 
+Depuis, j'ai commandé et reçu un Dell Precision 5510.
+
+Après avoir installé, configuré et testé ma nouvelle machine, je voulais raconter mes premières semaines. 
+Si vous ne voulez pas lire la suite, je résume : ça s'est [.linethrough]#parfaitement# *bien passé*. 
+Mais en fait *pas tout à fait*.
+
+// <!--more-->
+== Pourquoi un Precision 5510 ?
+
+Je dois avouer que j'étais perdu face au large choix de laptops. 
+Il y a pas mal de marques qui ont des catalogues indigestes et difficiles à comparer.
+
+Ensuite, j'ai eu pas mal de bon retours de clients de Dell. 
+Et surtout, ils proposent quelques laptops en *Linux*.
+
+Donc *Dell*.
+
+image::/images/misc/dell-5510.jpg[, role="left"]
+La gamme à la mode est celle des XPS. 
+Fins, légers, puissants : ça colle bien pour remplacer un MBP. 
+Malheureusement, seul le XPS 13, avec un écran 13" est proposé avec Linux, le XPS 15 n'est qu'en Windows. 
+Pas grave, le Precision 5510 lui ressemble beaucoup à un prix similaire, et avec de bonnes possibilités de personnalisation.
+
+Donc *Precision 5510*.
+
+Coté personnalisation, j'ai choisi les caractéristiques suivantes : 
+écran 15.6" en 1920x1080, processeur i7-6820HQ, 32 Go de mémoire, SSD m.2 512 Go. 
+Pour un prix de *2800 €*. 
+OK, c'est cher.
+Presque autant qu'un Mac. 
+C'est quand même mon outil de travail pour les 3 à 5 années qui viennent, et j'espère qu'il tiendra la route sur la durée.
+
+== La commande
+
+Le site de Dell m'a bien énervé. Il a une ergonomie digne des années 2000.
+
+[quote]
+____
+image::/images/misc/dell-screenshot.jpg["Merci de saisir un digitcode. Si vous n'en avez pas, veuillez saisir 0000.", 640]
+____
+
+Et coté délai, on passe de celui d'expédition (3 à 4 jours) avant la commande, à celui de livraison (2 semaines) une fois la commande passée. 
+
+[quote, Alexis Hassler (@AlexisHassler)]
+____
+Et puis délai de livraison de 14 jours, pour une expédition sous 3 à 4 jours. Livré à dos de chèvre ? (link:https://twitter.com/DellEMCFrance[@DellEMCFrance])
+____
+
+Enfin, le suivi du colis du livreur était nul. 
+Comme je risquais d'être absent à la date de livraison, je m'étais abonné au suivi pour pouvoir modifier la date de livraison finale. 
+Problème, le suivi n'a que deux états :
+"Parti de Chine" et "Livré chez vous".
+
+Bon, tout ça n'est pas grave, j'ai mon nouveau jouet.
+
+== L'installation
+
+image::/images/misc/ubuntu-logo.png[Logo Ubuntu, role="right"]
+Le laptop est livré avec *Ubuntu 14.04*, avec des dépôts spécifiques à Dell, pour avoir les bons drivers. 
+Au premier démarrage, il finalise l'installation.
+
+Première erreur de ma part, j'ai sélectionné le français comme langue d'installation. 
+Ça ne marche tout simplement pas, on a le choix entre plusieurs dizaines de langues, mais il faut choisir l'*anglais*.
+
+Une fois l'obstacle de la langue franchi, l'installation se passe bien. 
+Au bout de quelques minutes j'ai un laptop qui fonctionne parfaitement.
+
+J'ai particulièrement testé les points suivants : Wi-Fi, Ethernet, Bluetooth, son (haut-parleurs, sortie Jack, micro), sortie vidéo HDMI, Webcam et mise en veille.
+
+image::/images/misc/jusqu-ici-tout-va-bien.jpg[, 320, 179, role="center"]
+
+== Les cris et les pleurs
+
+Tout est OK jusqu'au premier update.
+
+Un plantage en plein update, suivi de quelques tentatives pour le récupérer et le mener au bout... 
+Le système fonctionne, mais le Wi-Fi est HS. 
+
+image::/images/misc/cri.jpg[, 200, 133, role="center"]
+
+Visiblement, je ne suis pas le seul. 
+En parcourant les forums, d'autres on eu des problèmes de wifi, et la solution la plus simple semble être un upgrade vers Ubuntu 16.04.
+
+Bingo !, le Wi-Fi fonctionne à nouveau... +
+\... mais pas les haut-parleur, ni la sortie jack, ni la webcam, ni le micro intégré.
+
+image::/images/misc/tears.jpg[, 200, 133, role="center"]
+
+== Tout va bien...
+
+Après quelques heures de tentatives infructueuses, je décide de repartir de zéro et de faire une *réinitialisation usine*.
+
+C'était la bonne décision : réinstallation d'Ubuntu 14.04 puis mise à jour, tout va bien. 
+Mais comme ce n'est pas parce que tout va bien qu'il ne faut rien changer, je fais l'upgrade vers *Ubuntu 16.04*.
+
+Là aussi, tout va bien, mais je ne m'en rends pas compte tout de suite.
+
+== ... ou presque
+
+En Ubuntu 16.04, tout fonctionne sauf la Webcam et le micro intégré. 
+En réalité, il y a surtout un problème avec les applications par défaut.
+
+.Webcam digitale
+image::/images/misc/digital-webcam.jpg[, 200, 112, role="left"]
+
+Pour la Webcam, un bug dans l'application Camera, utilisée par défaut, est la cause du dysfonctionnement. 
+En installant une autre application, comme link:https://doc.ubuntu-fr.org/cheese"[*Cheese*], ça fonctionne.
+
+Et pour le micro, c'est à peut prêt la même chose, au lieu de l'application Sound, il faut utiliser link:https://doc.ubuntu-fr.org/pavucontrol[*PulseAudio Volume Control*].
+
+Donc, contrairement aux apparences, *tout fonctionne*. 
+
+== Collection d'adaptateurs
+
+image:/images/misc/adaptateurs.jpg[, 200, 141, role="right"]
+Comme sur tout laptop moderne, il faut renouveler sa collection d'adaptateurs.
+
+Pour le réseau, l'adaptateur *USB-C / RJ-45* est fourni et fonctionne bien.
+
+Pour la vidéo, il y a une prise HDMI. 
+J'ai commandé aussi un adaptateur *USB-C / VGA* et ai pu tester un *HDMI / VGA*. 
+Aucun problème, la sortie vidéo a marché au premier essai avec mon vidéo-projecteur.
+
+Il me reste à espérer que ça marche aussi bien chez les clients qui n'auront pas de HDMI.
+
+== Pourvu que ça dure
+
+Donc tout va bien, malgré quelques frayeurs. 
+Je n'ai pas eu besoin de faire de grosse bidouille ou de recompiler le noyau.
+
+Pour l'instant je suis satisfait de mon achat.
+
+image::/images/misc/pourvu-que-ca-dure.jpg["Pourvu que ça dure", 279, 320, role="center"]

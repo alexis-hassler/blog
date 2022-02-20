@@ -1,0 +1,29 @@
+---
+layout: post
+title: Bilan 2014 du blog
+author: Alexis Hassler
+tags:
+- Bilan
+- '2014'
+---
+
+Je viens de regarder les statistiques du blog, et je dois avouer que ça m'a un peu déprimé. 
+Surtout quand j'ai regardé la liste des pages les plus consultées.
+
+Comme toujours depuis le démarrage du blog, c'est ce tutoriel vidéo, avec link:/2010/10/10/tutoriel-jsf-spring-et-hibernate.html[JSF 1.2, Spring 2.5 et Hibernate 3.2] qui est en tête. 
+Et si je l'ai publiée fin 2010, la vidéo a été enregistrée en 2008 pour un magazine, ce qui explique que les versions utilisées soient aussi anciennes. 
+J'ai même dû couper les commentaires pour que les lecteurs arrêtent de demander du support. 
+*Est-ce que je dois comprendre que je n'ai rien publié de plus intéressant depuis ? 
+Quel est le profil des gens qui visitent ce blog, pour s'intéresser à de telles vieilleries ?*
+La seule chose qui me rassure, c'est que la fréquentation est en baisse depuis quelques mois.
+
+image::/images/misc/blog-analytics.png[, 640, 98, role="center"]
+
+Quand je regarde les 3 articles qui suivent, ça ne me rassure pas forcément. 
+Il y en a deux qui concernent Google Maps, link:/2013/07/09/du-sig-google-maps.html[Du SIG à Google Maps] et link:/2013/07/11/generer-kml.html[Générer un document KML pour Google Maps], et un sur mon link:/2014/04/19/pub-windev.html[mail de réponse à de la pub Windev]. 
+Ces articles sont plus récents, mais ne concernent pas du tout mon activité habituelle.
+
+Et ce n'est pas l'audience de link:http://www.jtips.info/[jtips] qui va me rassurer puisque sur ce wiki, c'est une page sur link:http://www.jtips.info/index.php?title=Spring/Annotations[Spring Framework 2.5], donc la rédaction a débuté fin 2007 qui est la plus populaire.
+
+*Dois-je conclure que peu de gens sont intéressés par mes sujets de prédilection, comme JBoss / WildFly ou Java EE. 
+Ou est-ce que les vieilleries sont mieux référencée par Google ?*

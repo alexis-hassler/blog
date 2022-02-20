@@ -1,0 +1,67 @@
+---
+layout: post
+title: SLF4J et JCL sous Jonas 5
+author: Alexis Hassler
+tags:
+- Jonas
+- SLF4J
+---
+
+Lors du déploiement d'une application JavaEE, la configuration des logs est un passage obligé. 
+La principale contrainte vient du fait qu'au déploiement, on subit le choix des développeurs : link:https://logging.apache.org/log4j/1.2/[Log4J], link:https://commons.apache.org/proper/commons-logging/[Apache commons-logging] (ou JCL), link:https://www.slf4j.org/[SLF4J] ou d'autres encore que je m'abstiendrai de citer ici.
+
+SLF4J associé à link:https://logback.qos.ch/[LogBack] est probablement ce qui se fait de mieux aujourd'hui. 
+Il propose d'ailleurs des mécanismes d'interopérabilité avec les autres APIs de Log. 
+Par exemple, dans la dernière application que j'ai déployée, tous les logs envoyés à JCL sont interceptés par SLF4J grâce à la librairie jcl-over-slf4j.jar. 
+A l'inverse, link:https://jonas.ow2.org/[Jonas 5.1] renvoie tous les logs de SLF4J vers JCL.
+//<!--more-->
+
+Là où ça se corse, c'est quand je déploie mon application dans Jonas : l'application renvoie les logs JCL dans SLF4J qui sont renvoyés dans JCL par Jonas, ainsi de suite jusqu'à la levée d'une StackOverflowError. 
+Le _stack trace_ ci dessous est tronqué car, sur ma machine, il fait presque 7000 lignes !
+
+[source.width-80.small, subs="verbatim,quotes"]
+----
+java.lang.StackOverflowError
+  at sun.reflect.Reflection.getCallerClass(Native Method)
+  at java.lang.ClassLoader.getCallerClassLoader(ClassLoader.java:1359)
+  at java.lang.Class.getMethod(Class.java:1602)
+  at org.apache.commons.logging.LogFactory.directGetContextClassLoader(LogFactory.java:825)
+  at org.apache.commons.logging.LogFactory$1.run(LogFactory.java:791)
+  at org.apache.commons.logging.LogFactory.getContextClassLoader(LogFactory.java:788)
+  at org.apache.commons.logging.LogFactory.getFactory(LogFactory.java:383)
+  at org.apache.commons.logging.LogFactory.getLog(LogFactory.java:664)
+  at org.slf4j.impl.JCLLoggerFactory.getLogger(JCLLoggerFactory.java:69)
+  at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:243)
+  at org.apache.commons.logging.impl.SLF4JLogFactory.getInstance(SLF4JLogFactory.java:155)
+  at org.apache.commons.logging.LogFactory.getLog(LogFactory.java:664)
+  at org.slf4j.impl.JCLLoggerFactory.getLogger(JCLLoggerFactory.java:69)
+  at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:243)
+  at org.apache.commons.logging.impl.SLF4JLogFactory.getInstance(SLF4JLogFactory.java:155)
+  at org.apache.commons.logging.LogFactory.getLog(LogFactory.java:664)
+  at org.slf4j.impl.JCLLoggerFactory.getLogger(JCLLoggerFactory.java:69)
+  at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:243)
+  ...
+----
+
+Il existe deux types de solutions à un tel problème : ne plus rediriger SLF4J vers JCL ou l'inverse. 
+Dans mon cas, le plus simple serait de supprimer jcl-over-slf4j.jar de mon application et JCL fonctionnerait normalement. 
+Ça signifie que je devrais aussi me passer de LogBack, idée qui me déplait fortement.
+
+Pour la solution inverse, je dois indiquer à Jonas que les classes de SLF4J fournies par Jonas doivent être utilisée uniquement pour Jonas lui-même et pas par les applications déployées. 
+Ceci se configure par un link:https://jonas.ow2.org/JONAS_5_1_1/doc/doc-en/html/j2eeprogrammerguide.html#id1309628[filtre de classloading], dans le fichier conf/classloader-default-filtering.xml :
+
+[source.width-80, xml, subs="verbatim,quotes"]
+----
+<class-loader-filtering xmlns="http://org.ow2.jonas.lib.loader.mapping">
+  <default-filters>
+    <filter-name>org.apache.commons.digester.*</filter-name>
+    <filter-name>org.slf4j.*</filter-name>
+  </default-filters>
+</class-loader-filtering>
+
+----
+
+Avec cette modification au niveau de la configuration de Jonas, je n'ai plus de soucis avec SLF4J. 
+Je pense même que dorénavant, je ferai systématiquement cette modification.
+
+PS : merci à Guillaume Sauthier pour son aide, sur la mailing-list jonas-fr.

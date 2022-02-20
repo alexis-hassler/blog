@@ -1,0 +1,208 @@
+---
+layout: post
+title: 'Persistance dans Google App Engine : JDO, JPA ou ... 
+?'
+author: Alexis Hassler
+tags:
+- GoogleAppEngine
+---
+
+Le moteur de persistance de Google App Engine va m'obliger à sortir des sentiers battus. 
+En effet, comme beaucoup de _jeunes_ développeur de ma génération, j'ai toujours stocké mes données dans des bases relationnelles. 
+Or Google nous fournit un stockage de nature NoSQL appelé link:http://labs.google.com/papers/bigtable.html[BigTable]. 
+Cette technique est propriétaire et a été développée par Google pour le moteur de recherche et Google Earth. 
+Au sein du projet link:http://hadoop.apache.org/[Apache Hadoop!], une équipe a repris les spécifications publiées par Google pour créer un moteur similaire appelé link:http://hadoop.apache.org/hbase/[Hbase!]. 
+Par conséquent, dans mon projet, il n'y aura pas de SQL, pas de JDBC, pas de Foreign Key,...
+
+Google nous fournit une API de bas niveau pour accéder à ce stockage, et, pour nous simplifier la tâche, il nous propose aussi les APIs classiques JDO et JPA. 
+Naturellement, je serais tenté d'utiliser JPA car je l'utilise régulièrement pour des projets en architecture plus traditionnelle. 
+Il semble par contre que JDO est mieux supporté. 
+Il apparait clairement que le choix n'est pas évident.
+//<!--more-->
+
+== JDO ou JPA ?
+
+Quelques explications préliminaires sur le moteur de persistance s'imposent. 
+Les API JDO et JPA sont toutes deux fournies par link:http://www.datanucleus.org/[DataNucleus]. 
+Ce framework s'appelait, il y quelques mois encore JPOX, et était spécialisé dans le mapping objet / relationnel avec JDO. 
+Progressivement, il est devenu plus polyvalent et est devenu un gestionnaire de persistance multi-environnement : JDO 1, JDO 2 ou JPA 1 (et bientôt JPA 2), bases de données relationnelles, objet (link:http://www.db4o.com/[db4o]), LDAP, Hbase,... 
+L'historique nous indique pourquoi JDO serait mieux supporté que JPA. 
+Certaines stacktraces nous montrent aussi que le support de JPA est réalisé par une surcouche à JDO : pas très encourageant pour JPA...
+
+Par contre, je ne suis vraiment pas motivé pour utiliser JDO. 
+JDO avait tenté de rivaliser avec Hibernate, il y a quelques années puis avait sombré dans l'oubli. 
+Pour tout avouer, je n'étais pas au courant de la sortie de la version 2. 
+Je pensais en toute bonne foi que JDO avais tout simplement été abandonné au profit de JPA. 
+Donc, non, je n'ai vraiment pas envie d'utiliser JDO.
+
+JPA est-il aussi mauvais que cela dans App Engine ? En parcourant le Web, on trouve effectivement des link:http://www.dotnetguru2.org/bmarchesson/index.php/2009/04/22/google_app_engine_et_jpa_un_support_limi[déçus de JPA], et on comprend rapidement que les contraintes imposées par Google sont fortes, au point d'interdire la conception d'entités utilisables en SGBD/R. 
+Je n'ai pas trouvé d'exemple montrant que JDO fait mieux. 
+Dont acte, je ferai des entités JPA spécialisées pour App Engine. 
+Je les mettrai dans une architecture à base de DAO, ce qui me permettra de basculer vers JDO ou l'API bas niveau si besoin.
+
+== JPA dans App Engine
+
+Tout d'abord, on ajoute le fichier de configuration standard `src/META-INF/persistence.xml`. 
+Je récupère simplement celui proposé dans la documentation de link:http://code.google.com/intl/fr/appengine/docs/java/datastore/usingjpa.html[JPA avec App Engine].
+
+[source, subs="verbatim,quotes"]
+----
+<persistence xmlns="http://java.sun.com/xml/ns/persistence">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence
+        http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd" 
+    version="1.0">
+  <persistence-unit name="transactions-optional">
+    <provider>
+      org.datanucleus.store.appengine.jpa.DatastorePersistenceProvider
+    <provider>
+    <properties>
+      <property name="datanucleus.NontransactionalRead" value="true"/>
+      <property name="datanucleus.NontransactionalWrite" value="true"/>
+      <property name="datanucleus.ConnectionURL" value="appengine"/>
+    </properties> 
+  </persistence-unit>
+</persistence>
+----
+
+On relève quelques options pour les transactions sur lesquelles je devrai revenir plus tard.
+
+== Entité simple
+
+Le premier point bloquant pour le développement d'entités portables est la *gestion des clés primaires*. 
+App Engine propose link:http://code.google.com/intl/fr/appengine/docs/java/datastore/creatinggettinganddeletingdata.html#Keys[quatre types de clé] :
+
+* `java.lang.Long` mais uniquement pour les entités qui ne participent à aucune relation ; assez peu utilisable dans la pratique 
+* `java.lang.String` avec des clés applicatives
+* `com.google.appengine.api.datastore.Key` 
+* Key encodé en String, pour éviter d'utiliser un type propriétaire dans les entités
+
+Donc pour faire des entités portables, j'ai le choix entre String applicatif et String encodé. 
+Ayant peu d'affinité avec les String, du moins en tant que clé primaire, je vais faire du spécifique Google avec des Key.
+
+[source, subs="verbatim,quotes"]
+----
+@Entity
+public final class Person {
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Key key;
+  private String name;
+  private String forname;
+  // Getters &amp; setters
+  // toString, equals, hashCode
+}
+----
+
+Je fais ensuite des classes de DAO. 
+Je vous demanderai d'être indulgents sur la qualité du code, ce ne sont que des essais.
+
+[source, subs="verbatim,quotes"]
+----
+public class PersonDAO {
+  private static final EntityManagerFactory FACTORY = Persistence.createEntityManagerFactory("transactions-optional");
+  public Key save(Person person) {
+    EntityManager manager = FACTORY.createEntityManager();
+    EntityTransaction tx = manager.getTransaction();
+    try {
+      tx.begin();
+      manager.persist(person);
+      tx.commit();
+      return person.getKey();
+    } finally {
+      manager.close();
+    }
+  }
+
+  public Person findByKey(Key key) {
+    EntityManager manager = FACTORY.createEntityManager();
+    try {
+      return manager.find(Person.class, key);
+    } finally {
+      manager.close();
+    }
+  }
+}
+----
+
+Les lecteurs les plus perspicaces auront relevé une ébauche de gestion de transaction dans la méthode `save`. 
+Si je ne valide pas de transaction, l'entité est tout de même insérée, mais la clé n'est pas renseignée dans l'objet Person.
+
+Pour vérifier l'insertion des données en exécution locale, il faut ouvrir l'interface d'administration locale, à l'adresse http://localhost:8888/_ah/admin. 
+On remarquera que les données locales sont stockées dans le fichier `war/WEB-INF/appengine-generated/local_db.bin`, on peut supprimer le fichier pour vider toutes les données locales, on pourra aussi essayer de se servir de ce fichier pour des donner de tests.
+
+image::/images/google/gae-localdatastore.png[, 400, 228, role="center"]
+
+Les tests après déploiement fonctionnent parfaitement. 
+L'interface de gestion nous permet de constater que les données sont correctement insérées.
+
+== Associations
+
+La plupart des types d'associations sont disponibles et documentées. 
+Je commence par tester les associations one-to-many unidirectionnelles, car on trouve moins de documentation sur le sujet que sur les associations bidirectionnelles. 
+En fait, les seules subtilités concernent les attributs cascade et fetch de l'annotation @OneToMany. 
+Il faut obligatoirement préciser le mode de cascade. 
+Par contre préciser le mode de fetch est inutile car le mode eager est interdit, la notion de jointure n'existant pas.
+
+[source, subs="verbatim,quotes"]
+----
+@Entity
+public final class Person implements Serializable {
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Key key;
+  private String name;
+  private String forname;
+
+  *@OneToMany(cascade=CascadeType.ALL)*
+  *private Set<Link> links;*
+  
+  // Getters & setters
+  // toString, equals, hashCode
+}
+----
+
+Les autres types de relations sont aussi gérés, à l'exception des relations many-to-many, pour lesquels, il faut utiliser des Set<Key> et charger les entités associées à la main. 
+Si j'utilise JPA jusqu'au bout, je ferai une page plus détaillée sur les relations JPA dans link:http://www.jtips.info/[JTips].
+
+== Requêtes JPQL
+
+Puisque tout fonctionne, on peut être un peu plus ambitieux et se lancer dans des requêtes JPQL. 
+Là non plus, il ne faut pas attendre de miracle, seul un support limité est annoncé.
+
+Mon premier essai est une recherche avec un critère simple, sur une entité.
+
+[source, subs="verbatim,quotes"]
+----
+  @SuppressWarnings("unchecked")
+  public List<person> findByName(String name) {
+    EntityManager manager = FACTORY.createEntityManager();
+    try {
+      Query query = manager.createQuery
+             ("select p from Person p where p.name like :name");
+      query.setParameter("name", name);
+      List resultList = query.getResultList();
+      resultList.size();
+      return resultList;
+    } finally {
+      manager.close();
+    }
+  }
+----
+
+On remarque le petit `resultList.size();` qui traine au milieu du code. 
+Il sert juste à gérer un petit problème d'instanciation tardive. 
+Là aussi, il faudrait que je trouve une solution plus élégante.
+
+Cela s'est sérieusement gâté lorsque j'ai voulu faire une recherche avec deux critères _like_. 
+En effet, App Engine ne supporte qu'un seul critère qui ne soit pas une égalité. 
+La requête `"select p from Person p where p.name like :name and p.forname like :forname"` ne peut pas passer, mais `"select p from Person p where p.name = :name and p.forname like :forname"` est correcte. 
+Je pense que cette limitation, liée au stockage et non à JPA, constituera une contrainte importante sur l'architecture.
+
+== Conclusion
+
+Pour l'instant, je n'ai pas rencontré de limitation bloquante avec JPA, et je n'ai pas vu de décalage important avec ce qui est présenté dans la documentation JDO. 
+Je n'ai donc aucune raison pour privilégier ce dernier. 
+Ce sera donc JPA, avec une petite option sur l'API bas niveau si nécessaire. 
+En tout cas, j'ai abandonné l'idée de faire une application portable sur une base de données relationnelle. 
+Je vais juste essayer d'isoler ce qui est spécifique à App Engine dans les DAO. 
+Et si je n'y arrive pas, les déploiements sur des serveurs autres que ceux de Google devront se faire avec Hbase. 
+Tiens, ce serait intéressant de le tester, quand j'aurai un peu de temps...

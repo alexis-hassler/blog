@@ -1,0 +1,78 @@
+---
+layout: post
+title: Premiers pas avec Git et GitHub
+author: Alexis Hassler
+tags:
+- Git
+---
+
+C'est l'été, l'activité baisse un peu, c'est donc l'occasion pour moi de démarrer un nouveau projet que j'avais en tête depuis quelques temps. 
+J'aurai l'occasion de présenter le projet quand il aura un peu avancé. 
+Comme je démarre d'une page blanche, j'ai la chance de pouvoir choisir complètement mon environnement de développement. 
+J'ai donc choisi d'utiliser IDEA, pour lequel j'ai une licence grâce au link:https://lyonjug.org/[LyonJUG], ainsi que Maven. 
+La vrai nouveauté pour moi, c'est l'utilisation de link:https://git-scm.com/[*Git*].
+//<!--more-->
+
+Comme beaucoup de développeurs, j'ai pris l'habitude d'utiliser le référentiel de code Subversion. 
+Étant souvent en déplacement, le modèle centralisé est relativement contraignant, puisque pour faire le moindre commit ou consulter l'historique, je dois accéder à mon serveur, et donc avoir une connexion internet correcte. 
+Dans l'link:https://lescastcodeurs.com/2010/05/26/les-cast-codeurs-podcast-episode-23-interview-dvcs-et-git-jai-vu-la-lumiere-avec-david-gageot-dalgodeal/[épisode 23 des castcodeurs], l'excellent link:https://blog.javabien.net/[David Gageot] m'a convaincu que Git est l'outil qu'il me faut.
+
+Pour démarrer, je dois initialiser mon repository local, à la racine de mon projet. 
+Pour cela, il faut passer les commandes suivante. 
+
+[source, subs="verbatim,quotes"]
+----
+git init
+git config --global user.name "Alexis Hassler"
+git config --global user.email alexis at sewatech.org
+----
+
+Comme je ne veux inclure ni les fichiers spécifiques à mon IDE et à mon OS, ni les fichiers générés ou compilés, je configure les exclusions.
+
+[source, subs="verbatim,quotes"]
+----
+touch .gitignore
+echo "*.iml" >> .gitignore
+echo ".idea/" >> .gitignore
+echo ".DS_Store" >> .gitignore
+echo "target/" >> .gitignore
+git add .gitignore
+----
+
+Tout est près pour puisse ajouter mon premier module au repository local.
+
+[source, subs="verbatim,quotes"]
+----
+git add LogWEx-core
+
+git commit -m "First commit"
+----
+
+Maintenant que mon repository local fonctionne, je peux y valider mes modifications. 
+Au bout d'un moment, il faut tout de même publier mon code source pour que d'autres puissent y accéder. 
+J'ai décidé de le publier sur link:http://github.com/[GitHub], sous licence libre LGPL.
+
+J'avais déjà un compte sur GitHub ; il me servait à remonter des anomalies sur d'autres projets, en particulier lors de la relecture de la link:https://github.com/bcourtine/maven-guide-fr[traduction française du Guide Maven] (dont je conseille la lecture ;-) ). 
+Il m'a donc suffit de créer un repository. 
+La création est très simple, il n'y a pas de questionnaire de motivation comme sur sourceforge. 
+La seule subtilité a été la création d'une clé SSH nécessaire pour l'upload du code source.
+
+Une fois mon repository vierge créé sur GitHub, je prépare mon repository local en y déclarant un remote. 
+
+[source, subs="verbatim,quotes"]
+----
+git remote add origin git@github.com:hasalex/logwex.git
+----
+
+Enfin, j'envoie mon repository local sur GitHub. 
+
+[source, subs="verbatim,quotes"]
+----
+git push origin master
+----
+
+Ça y est, j'ai publié mon premier repository sur GitHub. 
+Il ne me reste plus qu'à faire une documentation correcte, à faire des tests d'intégration sérieux et à ajouter des fonctionnalités...
+
+Pour finir, je vous donne quelques références sur le Web. 
+On trouve beaucoup d'informations, beaucoup de gens blogguent sur Git pour exprimer leur enthousiasme. 

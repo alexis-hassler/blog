@@ -1,0 +1,111 @@
+---
+layout: post
+title: Mots de passe chiffrés pour les datasources de JBoss
+author: Alexis Hassler
+tags:
+- JBoss
+---
+
+Dans JBoss, les datasources sont configurées dans des fichiers XML qui contiennent les paramètres de connexion et la configuration du pool. 
+
+Parmi les paramètres de connexion, on trouve le nom d'utilisateur et le mot de passe, en clair...
+
+[source, subs="verbatim,quotes"]
+----
+<local-tx-datasource>
+    <jndi-name>SewaDS</jndi-name>
+    <connection-url>jdbc:derby://localhost:1527/sewadb</connection-url>
+    <driver-class>org.apache.derby.jdbc.ClientDriver</driver-class>
+    <user-name>sewatech</user-name>
+    <password>sewapwd</password>
+<local-tx-datasource>
+----
+
+Évidemment, ce mot de passe en clair n'est pas la panacée et déclenchera une levée de bouclier au prochain audit de sécurité.
+
+Il existe plusieurs link:http://community.jboss.org/wiki/encryptingdatasourcepasswords[techniques pour chiffrer le mot de passe]. 
+Je vais parler ici de la technique du SecureIdentityLoginModule, qui, si elle n'est pas la plus sécurisée, est simple et rapide à mettre en place. 
+Si je veux en parler ici, c'est que malgré sa simplicité, je suis tombé récemment dans un vilain piège.
+//<!--more-->
+
+Les modules d'identité, ConfiguredIdentityLoginModule et SecureIdentityLoginModule, sont utilisés pour externaliser les informations d'authentification des datasources ou d'autres services JBoss. 
+Ce sont des modules JAAS un peu particuliers qui fournissent un couple login / password au lieu de le vérifier. 
+Comme les autres modules JAAS, ils se configurent dans le fichier conf/login-config.xml :
+
+[source, subs="verbatim,quotes"]
+----
+<application-policy name="SewaDSRealm">
+  <authentication>
+    <login-module 
+        code="org.jboss.resource.security.ConfiguredIdentityLoginModule">
+        flag="required">
+      <module-option name="principal">Sewatech</module-option>
+      <module-option name="userName">sewatech</module-option>
+      <module-option name="password">sewapwd</module-option>
+      <module-option name="managedConnectionFactoryName">
+          jboss.jca:service=LocalTxCM,name=SewaDS
+      </module-option>
+    </login-module>
+  </authentication>
+ </application-policy>
+----
+
+ou, pour la version chiffrée,
+
+[source, subs="verbatim,quotes"]
+----
+<application-policy name="EncryptedSewaDSRealm">
+  <authentication>
+    <login-module 
+        code="org.jboss.resource.security.SecureIdentityLoginModule">
+        flag="required">
+      <module-option name="principal">Sewatech</module-option>
+      <module-option name="userName">sewatech</module-option>
+      <module-option name="password">-27620c55b0b41646</module-option>
+      <module-option name="managedConnectionFactoryName">
+          jboss.jca:service=LocalTxCM,name=SewaDS
+      </module-option>
+    </login-module>
+  </authentication>
+</application-policy>
+----
+
+Le mot de passe chiffré a été obtenu avec la commande suivante :
+
+[source, subs="verbatim,quotes"]
+----
+java -cp client/jboss-logging-spi.jar:common/lib/jbosssx.jar 
+     org.jboss.resource.security.SecureIdentityLoginModule sewapwd
+----
+
+Dans JBoss AS 6, et dans JBoss EAP 5.1 patché, le fichier jbosssx.sar a été déplacé du répertoire common/lib/ vers lib/.
+
+Enfin, la nouvelle version de la datasource, utilisant ce module ressemble à :
+
+[source, subs="verbatim,quotes"]
+----
+<local-tx-datasource>
+  <jndi-name>SewaDS</jndi-name>
+  <connection-url>jdbc:derby://localhost:1527/sewadb</connection-url>
+  <driver-class>org.apache.derby.jdbc.ClientDriver</driver-class>
+  <security-domain>EncryptedSewaDSRealm</security-domain>
+<local-tx-datasource>
+----
+
+Et voilà. 
+Comment peut-on tomber dans un vilain piège avec une telle simplicité ? Le premier piège, c'est que dans toutes les applications, lorsqu'on déclare un SecurityDomain, on le préfixe par java:/jaas/ ; pas ici. 
+Le deuxième piège est beaucoup plus sournois.
+
+Mon mot de passe sewapwd est trop simple, il faut lui augmenter la variété de caractères ; $ew@pw2 sera beaucoup mieux. 
+Je change donc mon mot de passe en base, puis je le chiffre et je modifie la configuration du module. 
+Et là patatra, ma datasource n'arrive plus à s'authentifier auprès de la base de données. 
+C'est le caractère '$' qui est en cause. 
+Je ne connais pas exactement la raison, mais il faut l'échapper :
+
+[source, subs="verbatim,quotes"]
+----
+java -cp client/jboss-logging-spi.jar:common/lib/jbosssx.jar 
+     org.jboss.resource.security.SecureIdentityLoginModule \$ew@pw2
+----
+
+En mettant la valeur chiffrée ainsi, la datasource peut à nouveau se connecter.

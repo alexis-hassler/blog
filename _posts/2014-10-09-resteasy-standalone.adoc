@@ -1,0 +1,79 @@
+---
+layout: post
+title: Démarrer RESTEasy en mode standalone
+author: Alexis Hassler
+tags:
+- JAX-RS
+- JavaEE
+- resteasy
+---
+
+image::/images/redhat/resteasy-logo.png[, 180, role="left"]
+
+Dans un des premiers billets sur ce blog, je montrais comment démarrer link:/2010/03/31/jrebel-avec-openjdk-et-grizzly.html[Jersey en mode autonome], avec Grizzly, avec un peu de JRebel. 
+J'ai voulu faire une mise en place similaire avec link:https://resteasy.dev/[RESTEasy], l'implémentation de JAX-RS de JBoss.
+
+RESTEasy n'a pas de mode autonome, il doit être utilisé avec un serveur Web. 
+Il est intégré en standard dans WildFly, mais peut aussi être intégré à d'autres serveurs, comme Tomcat, Undertow ou le serveur Web du JDK d'Oracle. 
+J'aime bien cette dernière possibilité car elle ne nécessite pas d'installation supplémentaire et donc peut facilement être utilisée pour un prototype ou pour des tests.
+//<!--more-->
+
+La première étape est la définition de mon classpath. 
+Dans mon fichier pom.xml, je déclare des dépendances vers `org.jboss.resteasy:resteasy-jaxrs` et `org.jboss.resteasy:resteasy-jdk-http`. 
+La première est le coeur de RESTEasy avec l'API JAX-RS et la seconde est l'extension permettant l'intégration avec le serveur Web du JDK. 
+Je ne les ai pas mis ici, mais j'ai aussi ajouté des dépendances vers les providers pour le support de JSON (`org.jboss.resteasy:resteasy-jackson-provider`) et celui des listes (`org.jboss.resteasy:resteasy-jaxb-provider`).
+
+[source.width-80, xml, subs="verbatim,quotes"]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>resteasy-jaxrs</artifactId>
+        <version>${resteasy.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>resteasy-jdk-http</artifactId>
+        <version>${resteasy.version}</version>
+    </dependency>
+    <!-- ... -->
+</dependencies>
+----
+
+L'étape suivante est la création d'une classe de démarrage avec une méthode main. 
+Dans cette méthode, on initialise le HttpServer du JDK, en l'associant à REASTEasy grâce à la classe HttpContextBuilder fournie par l'extension.
+
+Dans l'extrait de code ci-dessous, seule la classe HttpContextBuilder vient de REATEasy. 
+Sa méthode bind() initialise et configure le moteur JAX-RS, associe les classes de ressources JAX-RS et passe tout ça dans un handler de HttpServer.
+
+[source.width-80, java, subs="verbatim,quotes"]
+----
+    HttpServer server = HttpServer.create(new InetSocketAddress(7000), 1);
+    HttpContextBuilder contextBuilder = new HttpContextBuilder();
+    contextBuilder.getDeployment()
+                  .getActualResourceClasses()
+                  .add(TextEndpoint.class);
+    HttpContext context = contextBuilder.bind(server);
+    server.start();
+----
+
+L'unique ressource référencée est MessageEndpoint que j'ai implémentée et qui répond aux requêtes GET pour récupérer un message unique ou tous les messages. 
+Vous pourrez retrouver son code source sur link:https://github.com/hasalex/resteasy-demo[Github], avec l'exemple complet.
+HttpServer est démarré, en écoute sur le port 7000. On peut tester avec cURL : 
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+curl -w "\n" -H "accept:application/json" http://localhost:7000/message/1
+----
+
+ou
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+curl -w "\n" -H "accept:application/json" http://localhost:7000/message
+----
+
+Voilà, mon serveur JAX-RS est en place. 
+La prochaine étape sera d'englober ça dans une Rule pour jUnit, afin d'utiliser mon serveur dans des tests.
+
+image::/images/redhat/resteasy-banner.png[, 640, 76, role="center"]

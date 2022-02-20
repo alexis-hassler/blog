@@ -1,0 +1,117 @@
+---
+layout: post
+title: "Vert.x : \"Don't block the event loop\", même en debug ?"
+author: Alexis Hassler
+tags:
+- debug
+- vert.x
+courses:
+- vertx
+---
+
+image::/images/vertx/vertx-logo.png[Logo Vert.x, 200, 60, role="center"]
+
+Il y a une règle essentielle dans link:http://vertx.io/[Vert.x]. 
+Elle est affichée, répétée dans la documentation, mais elle me gène pour debugger&nbsp;:
+
+[.center]
+====
+*Don't block the event loop*
+====
+
+Voilà pourquoi, et comment j'ai contourné le problème...
+
+== Mes débuts en Vert.x
+
+J'ai débuté récemment avec Vert.x 3, après avoir assisté à des conférences de Julien Viet, Clément Escoffier, Julien Ponge et Thomas Segismont. 
+Ils sont tous les quatre français et font partie de l'équipe de développement de *Vert.x*.
+
+J'ai été convaincu par leurs présentations. 
+Si vous voulez jeter un coup d'œil, certaines sont disponibles en vidéo&nbsp;: 
+
+* link:https://youtu.be/ApGNp4uHKdY[Microservices réactifs avec Eclipse Vert.x et Kubernetes] (Clement Escoffier) 
+* link:https://youtu.be/ZkWsilpiSqw[Applications réactives avec Eclipse Vert.x] (Julien Ponge - Julien Viet) 
+
+// <!--more-->
+== Non-bloquant
+
+Je ne vais pas revenir sur les principes de Vert.x, c'est très bien expliqué dans les vidéos. 
+Et je vous renverrai volontiers vers mon wiki sur lequel j'ai consigné mes link:https://www.jtips.info/tag/Vertx[notes d'apprentissage de Vert.x].
+
+Ce qui m'a gêné c'est sa règle d'or&nbsp; :
+
+[.center]
+====
+*Don't block the event loop*
+====
+
+Je sais, je l'ai déjà citée, mais ils semblent vraiment y tenir chez Vert.x.
+
+image::/images/vertx/dont-block-the-box.jpg[, 320, 220, role="center"]
+
+Ça signifie qu'il ne faut pas exécuter d'opération bloquante dans un _verticle_ classique. 
+Tout ce qui peut bloquer un thread sur une durée significative doit être fait dans un _worker verticle_ ou appelé via `vertx.executeBlocking()`.
+
+== Significatif ?
+
+Pour Vert.x, une durée significative, c'est *deux secondes*.
+
+image::/images/misc/formula1.gif[, 320, 216, role="center"]
+
+C'est la valeur de la constante `DEFAULT_MAX_EVENT_LOOP_EXECUTE_TIME` dans `VertxOptions`. 
+Et ça peut être modifié au démarrage.
+
+== Si on dépasse ?
+
+Si le thread est bloqué plus de deux secondes, on peut avoir une alerte :
+
+[source.width-80,  bash, subs="verbatim,quotes"]
+----
+Jan 01, 1970 0:00:00 AM io.vertx.core.impl.BlockedThreadChecker
+WARNING: Thread[vert.x-eventloop-thread-2,5,main] has been blocked for 3615 ms,
+         time limit is 2000
+io.vertx.core.VertxException: Thread blocked
+    at ...
+----
+
+== How cool is that ?
+
+Je n'ai rien à redire à ce comportement, sauf en debug. 
+Chaque point d'arrêt va bloquer le thread, et on va avoir une sortie standard polluée par le `BlockedThreadChecker`. 
+
+Pour éviter ça, on peut augmenter la valeur de `maxEventLoopExecuteTime` ou, mieux encore, augmenter le délai de vérification.
+
+[source.width-80,  java, subs="verbatim,quotes"]
+----
+  vertxOptions.setBlockedThreadCheckInterval(1_000_000L);
+----
+
+== Uniquement en debug
+
+Évidemment, je ne voudrais avoir cette ligne qu'en debug. 
+Pour ça, je peux parcourir les arguments de démarrage et vérifier si `-agentlib:jdwp` est présent.
+
+[source.width-80,  java, subs="verbatim,quotes"]
+----
+if (ManagementFactory.getRuntimeMXBean()
+                     .getInputArguments()
+                     .stream()
+                     .anyMatch(arg -> arg.startsWith("-agentlib:jdwp"))) {
+    vertxOptions.setBlockedThreadCheckInterval(1_000_000L);
+}
+----
+
+Comme ça, je peux debugger sans être pollué par les alertes du `BlockedThreadChecker`, mais je les conserve en exécution normale.
+
+image::/images/misc/bugs.gif[, 320, 238, role="center"]
+
+Evidemment, si vous avez d'autres solutions à proposer, n'hésitez pas à partager.
+
+== Edit (18 mai 2017) 
+
+[quote, Clement Escoffier (@clementplop)]
+____
+link:https://twitter.com/AlexisHassler[@AlexisHassler] Le vertx maven plugin a un debug goal qui fait ca.
+____
+
+Lorsqu'on lance Vert.x en link:https://reactiverse.io/vertx-maven-plugin/#vertx:debug[debug avec son plugin], il met `MaxEventLoopExecuteTime` à une valeur très élévée (environs 300 000 ans). 

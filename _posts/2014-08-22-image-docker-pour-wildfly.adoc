@@ -1,0 +1,63 @@
+---
+layout: post
+title: Construire une image Docker pour WildFly
+author: Alexis Hassler
+tags:
+- Dockerfile
+- WildFly
+- Docker
+courses:
+- docker
+- wildfly
+---
+
+Il y a quelques jours, j'ai publié un billet pour la link:/2014/08/18/cluster-wildfly-avec-docker.html[mise en place d'un *cluster WildFly* avec *Docker*], puis un billet qui détaillait la construction de l'link:/2014/08/21/image-docker-pour-modcluster.html[image Docker avec Apache et mod_cluster]. 
+Aujourd'hui je vais détailler la construction de l'image Docker avec *WildFly 8.1*.
+
+Cette image est basée sur les composants suivants :
+
+* Debian Jessie
+* Java OpenJDK 7
+* WildFly 8.1.0.Final
+
+Voyons ça dans les détails...
+//<!--more-->*
+
+== Pourquoi pas link:https://registry.hub.docker.com/u/jboss/wildfly/[jboss/wildfly] ?
+
+Il existe une image officielle pour WildFly, fournie par RedHat / JBoss. Comme l'a souligné link:https://goldmann.pl/[Marek Goldmann], il aurait été logique de l'utiliser. 
+Je suis parti sur la construction de ma propre image pour les raisons suivantes :
+
+* mon objectif initial est d'apprendre à utiliser Docker,
+* je suis plus à l'aise avec Debian ou Ubuntu qu'avec Fedora,
+* l'image officielle est assez grosse (> 900 Mo),
+* je voulais garder une grande liberté de personnalisation.
+
+== Debian Jessie
+
+Pour l'image sewatech/modcluster, j'avais choisi Debian Jessie. 
+Pour celle-ci, j'ai utilisé la même image de base, sans autre critère.
+
+== Java OpenJDK 7
+
+WildFly fonctionne avec Java 7 ou 8. 
+OpenJDK 7 est la version disponible dans Debian Jessie, c'est donc celle-ci que j'ai prise, au risque de paraître has-been.
+
+== WildFly 8.1.0
+
+C'est tout simplement la dernière version disponible au moment de faire l'image.
+
+Par contre, la configuration standard ne fonctionne pas avec la configuration réseau de Docker (en version 1.1.2). 
+En effet, si je démarre WildFly avec un binding sur toutes les adresses IP (-b 0.0.0.0), mod_cluster détecte l'instance, mais est incapable de renvoyer correctement les requêtes et si je fais un binding uniquement sur l'adresse IP publique (celle de eth0), mod_cluster ne détecte pas l'instance. 
+Je dois avouer que je ne comprends pas les vraies raisons de ce dysfonctionnement, mais j'ai trouvé une configuration qui fonctionne, sans être trop laxiste en terme de sécurité. 
+Et j'ai posé une link:https://community.jboss.org/thread/243735[question sur le forum de JBoss] pour la bizarrerie que j'ai détectée.
+
+Le fichier de configuration, standalone-ha.xml, redéfinis complètement la configuration réseau de WildFly.
+
+== Image Docker
+
+Hop, tout ça dans un link:https://github.com/Sewatech/docker-wildfly/blob/master/Dockerfile[Dockerfile], sur github. 
+Et l'image est dans le registre central de Docker, sous le nom link:https://registry.hub.docker.com/u/sewatech/wildfly/[sewatech/wildfly].
+
+Utiliser la, et n'hésitez pas à me faire des retours et à proposer des améliorations, voire des PR sur le dockerfile. 
+Cette image est vraiment rudimentaire et j'ai moi-même quelques idées d'amélioration.

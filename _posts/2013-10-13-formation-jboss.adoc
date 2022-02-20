@@ -1,0 +1,85 @@
+---
+layout: post
+title: 'Formation JBoss : attention aux contrefaçons'
+author: Alexis Hassler
+tags:
+- JBoss
+- JBossAS7
+- Formation
+courses:
+- wildfly
+---
+
+La plupart des métiers ont leur quota de charlatan. On parle souvent des SSII, mais les organismes de formation sont
+bien placés dans le domaine. J'en veux pour preuve l'offre de formations JBoss.
+
+Le serveur d'applications JBoss AS est très populaire, il est donc logique que la plupart des organismes de formation en informatique le proposent à leurs catalogues. 
+Mais pour quelle version de JBoss AS ? 
+La version la plus demandée aujourd'hui est JBoss AS 7, avec pas mal de gens qui utilisent encore JBoss AS 5 et quelques restes de JBoss AS 4. 
+Logiquement on devrait trouver du JBoss AS 7 partout. 
+Et les différences sont telles entre les versions 5 et 7 qu'il est totalement inutile de suivre une formation JBoss AS 5 alors qu'on veut utiliser la version 7. 
+C'est du temps et de l'argent perdus. 
+Chaque plan doit donc préciser sur quelle version il se base. Et c'est là que les ennuis commencent.
+//<!--more-->
+
+Dans la plupart des catalogues, on trouve des plans de formation JBoss sans aucune mention de la version. 
+Pour ça, je parlerais d'amateurisme. 
+Les charlatans sont ceux qui précisent une version mais dont le plan ne correspond pas à la version indiquée. 
+Mais comment détecter la version de JBoss avec le plan ?
+
+Quelques indices qui permettent de savoir que le plan est adapté à JBoss 5, voire JBoss 4.
+
+[.center]
+====
+[%autowidth.stretch]
+|===
+|JBoss AS 5 |JBoss AS 7
+
+|J2EE
+|Java EE
+
+|Java EE 5
+|Java EE 6
+
+|configurations (ou profils) minimal, default, all, standard, web
+|mode standalone et domaine
+
+|jmx-console, embeded JOPR, twiddle et jmx-invoker
+|console d'administration, jboss-cli
+
+|noyau (ou kernel) JMX ou AOP, MBeans, fichiers sar
+|jboss-dmr, extensions, profils et sous-systèmes
+
+|JBossSX et de login-config.xml
+|security realms, security domains
+
+|JBoss Cache
+|Infinispan
+
+|JBoss Messaging
+|HornetQ
+
+|Tomcat / Jetty
+|-
+|=== 
+====
+
+On pourrait ajouter quelques éléments spécifiques à JBoss AS 7 : versions publiées et versions à compiler
+soi-même, différence entre AS et EAP, WildFly,... Mais là ça serait de la gourmandise. Si déjà les plans pouvaient être
+clairement orientés vers la version 5 ou la 7 et si on essayait moins de balader les clients, on aurait déjà fait un
+gros progrès.
+
+Pour finir sur une note positive, j'aimerais citer quelques organismes qui font bien la
+différence entre les versions et qui proposent des plans distincts.
+
+* RedHat : JBoss EAP 6, link:http://fr.redhat.com/training/courses/jb248/[niveau 1] et link:http://fr.redhat.com/training/courses/jb346/[niveau avancé], et link:http://fr.redhat.com/training/courses/jb336/[JBoss EAP 5].
+* PLB : link:http://www.plb.fr/formation/open-source/formation-jboss-7,10-1031.php[JBoss AS 7], link:http://www.plb.fr/formation/serveurs/formation-jboss,15-196.php[JBoss AS 5]
+* Objis : link:http://www.objis.com/formation-java/Formation-JBOSS-7.html[JBoss AS 7], link:http://www.objis.com/formation-java/Formation-administration-jboss-5.html[JBoss AS 5]
+* Oxiane : link:http://www.oxiane.com/formation-administration-jboss7.html[JBoss AS 7], link:http://www.oxiane.com/formation-administration-jboss.html[JBoss AS 5]
+* *Sewatech* (c'est moi!) : link:http://www.sewatech.fr/formation-jboss-7.html[JBoss AS 7], link:http://www.sewatech.fr/formation-jboss-5.html[JBoss AS 5]
+
+Et l'idéal, c'est de pouvoir discuter du contenu avec le formateur, surtout si vous voulez une formation intra-entreprise. 
+Le formateur pourra vous mitonner une petite formation préparée avec amour. 
+La formation aussi, c'est une histoire de passion et d'engagement.
+
+NOTE: Une formation peut être bonne malgré un plan pourri et réciproquement, surtout dans les grands organismes qui confient leurs sessions à des formateurs externes

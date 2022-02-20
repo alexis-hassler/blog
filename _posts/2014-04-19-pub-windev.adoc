@@ -1,0 +1,42 @@
+---
+layout: post
+title: 'Pub WinDev : mon mail de réponse'
+author: Alexis Hassler
+tags:
+- pub
+- WinDev
+---
+
+A mon retour de DevoxxFR, j'ai eu le plaisir d'avoir un colis venant de PC SOFT, l'éditeur des suites de développement WinDev et WebDev. 
+Ce colis a provoqué une alternance de réactions chez moi, entre rires et colère. 
+J'ai décidé de dire mon point de vue à PC SOFT par mail, et d'en publier le contenu ici.
+//<!--more-->
+
+image::/images/misc/windev-1.jpeg[, 400, 300, role="center"]
+
+Ceux qui me connaissent ou qui suivent mon blog savent que WinDev/WebDev n'est pas ma tasse de thé. Par contre, je n'ai rien contre le fait que ce genre de produit existe. Ça doit probablement apporter des services à ceux qui l'utilisent sinon la société aurait coulé depuis longtemps. De plus, ça enrichit la concurrence et la diversité sur le marché du développement logiciel. Le seul reproche que je leur ai toujours fait, c'est sur leur campagnes de publicité, à base de filles dénudées et de slogans caricaturaux.
+
+[quote]
+____
+Bonjour,
+
+J’aimerais réagir à votre dernière campagne de publicité.
+
+Vous nous aviez habitué à vous publicité sexiste. Je les ai toujours trouvées à coté de la plaque. J’ai toujours pensé qu’une techno qui a besoin de ce genre d’images ne peut pas me correspondre. J’avais décidé d’ignorer ces pubs.
+
+Par contre, il est difficile d’ignorer votre dernière campagne : 1,2 kg de papier envoyé par la poste. 1,2 kg de papier glacé, cartonné. Tout ça pour des informations que je devrais probablement trouver sur le Web. Avec un CD de démo en prime. Je crois que la dernière fois que j’ai vu un CD de démo, c’était au siècle dernier. C’est peut-être ça l’image que vous vouliez passer, celle d’un techno du siècle passé.
+
+Que les choses soient claires, j’aime votre produit. Il me procure du travail, puisque depuis j’ai travaillé sur plusieurs projets de migration d’applications Win/WebDev qui avaient montrées les limites de la techno. Non je n’ai rien contre vous, je veux juste vous faire un retour amical. Juste vous donner mon point de vue : votre campagne de pub est ridicule. Elle est archaïque et très mal ciblée.
+
+Je n’ai rien contre vous, mais je vous demanderais juste de ne plus m’envoyer vos publicités.
+
+Cordialement,
+
+Alexis Hassler
+____
+
+image::/images/misc/windev-2.jpeg[, 400, 300, role="center"]
+
+Après coup, je me demande si le mail était le bon moyen de communication. 
+J'aurais peut-être dû préférer un courrier postal. 
+Ou alors un message par pigeon voyageur ?

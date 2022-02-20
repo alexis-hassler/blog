@@ -1,0 +1,87 @@
+---
+layout: post
+title: MacBook, c'est fini
+date: '2016-12-09T18:53:00.000+01:00'
+author: Alexis Hassler
+tags:
+- Linux
+- Apple
+- MacBook Pro
+- Laptop
+---
+
+== Mac c'est has been
+
+Moi aussi je voulais être à la mode, j'ai donc décider de remplacer mon Mac Book Pro par un laptop *Linux*. 
+Par contre, je ne suis sûr d'avoir exactement les mêmes raisons que la vague actuelle.
+
+== Mac et liberté
+
+D'abord, je dois préciser que je n'ai eu que deux *MacBook Pro* dans ma vie. 
+Et que je n'ai jamais idéalisé cette machine. 
+Elle est pratique et efficace pour mon boulot, point.
+
+image::/images/misc/apple-logo.png["Logo Apple", 100, role="center"]
+J'ai toujours été méfiant par rapport à Apple et à ses logiciels. 
+Pour être plus précis, j'ai toujours refusé d'avoir des fichiers dans un format supporté uniquement sur MacOS. 
+Par exemple, je n'ai jamais utilisé la suite bureautique d'Apple. 
+J'ai toujours préféré utiliser LibreOffice, même s'il est de moins bonne qualité. 
+Ma liberté est plus importante que ma productivité.
+
+// <!--more-->
+== Touch bar bashing
+
+J'avais pris ma décision avant l'annonce des nouveaux modèles. 
+Rien à voir avec la _touch bar_.
+
+Peut-être avec la mémoire : être limité à 16 Go ne me gène pas trop en 2016, mais dans 3 ans, ça risque de faire léger. 
+Pour le reste, la puissance du processeur est bonne (8Mo L3), le SSD en PCIe a l'air rapide.
+
+== La rencontre
+
+image::/images/misc/macbook-pro-2009.jpg[MacBook Pro de 2009, 200, 121, role="right"]
+L'expérience avec mon 1° MBP était positive. Je précise que ce n'était
+pas un retina. J'avais pu faire un upgrade de mémoire, et remplacer le HDD par un SSD, tout seul, pour quelques dizaines
+d'euros. 
+
+== Les premiers accrocs
+
+image::/images/misc/macbook-pro-2013.jpg[MacBook Pro de 2009, 200, 146, role="left"]
+Pour le 2°, je n'avais plus le choix. 
+Pour du 15", Apple ne proposait que du retina. 
+Finie, la possibilité d'upgrade. 
+Petite entaille dans ma liberté à disposer de mon laptop. J'ai accepté.
+
+J'ai commencé à râler après un peu plus que 2 ans 1/2 , quand la *batterie* a commencé à déconner. 
+Pas juste tenir moins longtemps hein. 
+Avis de l'atelier Apple : c'est normal qu'après 2 ans, une batterie faiblisse. 
+Bon en 17 ans de laptop, c'est la première qui déconne autant et aussi rapidement. 
+Je dirais pas de chance, il me reste plus qu'à la changer.
+
+== La discorde
+
+Là aussi, c'est plus le bon vieux MBP où on ouvrait le capot et on remplaçait la vieille batterie par celle commandée sur le web à 50 ou 80 €. 
+Non, maintenant c'est retour à l'atelier et ça coûte *plus de 200 €*.
+OK ça ne fait pas plaisir, mais ce n'est pas complètement étonnant. 
+C'est du Apple.
+
+image::/images/misc/apple-genius-bar.png[, 60, role="right"]
+Donc, je prends rendez-vous au Genius Bar. 
+Ça me bouffe une après-midi, pour que le gars me dise que ma batterie est HS et qu'il faut que je prenne rendez-vous (une autre 1/2 journée) pour la changer… 
+et que ça prendra au minimum une semaine. 
+*1&nbsp;SEMAINE*. 
+Pas de délai, d'immobilisation.
+
+Non, là c'est vraiment pas sérieux. 
+Je n'en veux pas au technicien, mais le SAV devrait afficher clairement cette information sur son site web. 
+Et j'en veux surtout à l'ingénieur qui a conçu un tel appareil et qui devrait être pendu par les c***lles.
+
+== Le divorce
+
+Donc au bout de 2 ans 1/2, il est normal de devoir bouffer 3 1/2 journées pour aller au genius bar et leur laisser mon ordi pendant au moins une semaine. 
+Et que ça me coutera 220 €. 
+Et que j'ai juste l'impression de me faire balader.
+
+*Donc, voilà. J'ai commandé un nouveau laptop. Sous Linux.*
+
+image::/images/misc/linux.jpg[, 180, 200, role="center"]

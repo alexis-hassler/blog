@@ -1,0 +1,69 @@
+---
+layout: post
+title: Script de création de machine virutelle VirtualBox
+date: '2010-02-11T14:15:00.006+01:00'
+author: Alexis Hassler
+tags:
+- VirtualBox
+---
+
+J'utilise régulièrement des machines virtuelles pour évaluer des produits ou pour élaborer des procédures d'installation. 
+Ce procédé a plein d'avantages, comme pouvoir transférer le résultat sur d'autres machines, repartir facilement d'un environnement vierge ou ne pas polluer mon environnement de travail.
+
+J'utilise un nombre restreint de configurations types. 
+Par exemple, pour toutes les installations de type serveur (JBoss, Glassfish, Hudson CI,...), j'ai configuré une Debian avec Java, MySQL et quelques autres logiciels. 
+Chaque fois que j'en ai besoin, je fais une copie de l'environnement étalon et je travaille sur cette copie. 
+
+Le principal défaut de cette procédure est que la duplication de disque virtuel est facile à réaliser, mais pas la duplication de la configuration. 
+J'ai donc décidé de faire un script shell pour automatiser la création de nouvelles machines virtuelles à partir du disque étalon.
+//<!--more-->
+
+Pour créer la machine virtuelle :
+
+[source, subs="verbatim,quotes"]
+----
+#!/bin/sh
+vbox_home=`pwd`/`dirname $0`
+vm_name=$1
+vdi_file=$vbox_home/VDI/$(echo $vm_name | tr "[:upper:]" "[:lower:]").vdi
+
+# Création du disque dur
+echo "Creating virtual hard drive disk file ($vdi_file)"
+cp $vbox_home/VDI/deb5-server.vdi $vdi_file
+VBoxManage internalcommands sethduuid $vdi_file
+echo "Opening virtual hard drive disk ($vdi_file)"
+VBoxManage openmedium disk $vdi_file
+
+# Création de la machine virtuelle
+echo "Creating virtual machine $vm_name"
+VBoxManage createvm --name $vm_name --basefolder $vbox_home/Machines/                 \
+                                    --ostype Debian --register
+VBoxManage modifyvm $vm_name --memory 512 
+VBoxManage modifyvm $vm_name --nic2 hostonly --hostonlyadapter2 vboxnet0
+
+echo "Attaching hdd to the virtual machine"
+VBoxManage storagectl $vm_name --name "Contrôleur IDE" --add ide
+VBoxManage storageattach $vm_name --storagectl "Contrôleur IDE" --port 0              \
+                                  --device 0 --type hdd --medium $vdi_file
+
+echo "Adding shared folders"
+VBoxManage sharedfolder add $vm_name --name "stockage" --hostpath ~/stockage --readonly
+VBoxManage sharedfolder add $vm_name --name "tmp" --hostpath ~/stockage/tmp
+----
+
+Pour supprimer la machine virtuelle :
+
+[source, subs="verbatim,quotes"]
+----
+#!/bin/sh
+vbox_home=`pwd`/`dirname $0`
+vm_name=$1
+vdi_file=$vbox_home/VDI/$(echo $vm_name | tr "[:upper:]" "[:lower:]").vdi
+
+echo "Removing virtual machine ($vm_name)"
+VBoxManage storageattach $vm_name --storagectl "Contrôleur IDE" --port 0 --device 0   \
+                                  --type hdd --medium none
+VBoxManage unregistervm $vm_name --delete
+echo "Removing virtual hard drive disk  ($vdi_file)"
+VBoxManage closemedium disk $vdi_file --delete
+----

@@ -1,0 +1,98 @@
+---
+layout: post
+title: Adieu boot2docker, bonjour docker-machine
+author: Alexis Hassler
+tags:
+- boot2docker
+- Docker Machine
+- Docker
+courses:
+- docker
+---
+
+Eh oui, *boot2docker*, c'est fini. 
+C'était sympa, tu m'as permis d'utiliser Docker là où ce n'était pas permis. 
+Mais maintenant, tu dois laisser ta place à *Docker Machine*.
+[.purple]#_Voilà, c'est fini. Ne sois jamais amère, reste toujours sincère. T'as eu c'que t'as voulu, même si t'as pas voulu c'que t'as eu._#
+
+// <!--more-->
+Docker ne fonctionne nativement que sur Linux (du moins pour l'instant). 
+Pour être plus précis, Docker fonctionne sur un modèle client-serveur où l'outil de commande (client) marche sous Linux, Windows et MacOS et le démon (serveur) ne fonctionne que sous Linux. 
+Donc pour l'utiliser sur MacOS, ou d'autres systèmes encore plus exotiques, il faut installer ce démon dans une machine virtuelle.
+
+image::/images/docker/mac_docker_host.png[, 251, 320, role="center"]
+
+C'est ce que fait link:http://boot2docker.io/[boot2docker]. 
+L'outil nous télécharge une machine virtuelle VirtualBox légère, qui embarque le démon docker. 
+Il nous permet de la piloter cette VM, essentiellement pour la démarrer et l'arrêter. 
+Sur MacOS, on peut télécharger l'_installer_ de boot2docker et l'installer manuellement, ou passer par link:http://brew.sh/[Homebrew].
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+brew install docker
+brew install boot2docker
+----
+
+[.width-100.center.background-blue.white.big.line-400]
+*Mais ça, c'était avant.*
+
+Aujourd'hui, boot2docker est déprécié, au profit de link:https://docs.docker.com/machine/[Docker Machine]. 
+
+image::https://www.docker.com/sites/default/files/products/docker_machine.png[, 168, 200, role="right"]
+
+Le but de Docker Machine est plus vaste que boot2docker. 
+Il est là pour installer Docker sur une machine distante et configurer notre client pour qu'il y accède. 
+Par machine distante, on entend chez un des prestataires cloud supportés (Amazon AWS, Google Compute Engine, Digital Ocean,...) ou sur un moteur de virtualisation supporté (VirtualBox, VMware Fusion,...). 
+Docker Machine avec son driver VirtualBox remplace donc boot2docker.
+
+Là aussi, il y a deux façons de l'installer. 
+La documentation officielle préconise d'utiliser la Docker Toolbox, qui contient aussi Docker, Docker Compose et Kitematic. 
+Personnellement, je reste fidèle à link:http://brew.sh/[Homebrew].
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+brew install docker-machine
+----
+
+En écoutant les link:https://lescastcodeurs.com/[Cast Codeurs], j'ai découvert que Docker Toolbox était disponible avec link:http://caskroom.io/[Homebrew Cask] :
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+brew cask install dockertoolbox
+----
+
+Une fois que tout est installé, je peux créer ma VM.
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+docker-machine create -d virtualbox docker-vm
+eval "$(docker-machine env docker-vm)" 
+----
+
+Oui, mais si vous avez bien suivi, avant j'avais boot2docker, pour lequel j'avais déjà une VM avec plein d'images.
+Ce serait donc bien de récupérer tout ça. 
+Et bien c'est prévu dans Docker Machine. 
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+docker-machine create -d virtualbox --virtualbox-import-boot2docker-vm boot2docker-vm
+eval "$(docker-machine env boot2docker-vm)"
+----
+
+Les commandes ont un peu changé, au lieu de _up_ et _down,_ on a _start_ et _stop,_ ce qui est plus cohérent avec les commandes Docker. 
+
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+docker-machine start
+docker-machine stop
+----
+
+Il ne me reste plus qu'à désinstaller boot2docker.
+    
+[source.width-80, bash, subs="verbatim,quotes"]
+----
+boot2docker destroy
+brew remove boot2docker
+----
+
+[.purple]#_C'est fini...hum, c'est fini..._#
