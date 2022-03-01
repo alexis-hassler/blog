@@ -1,0 +1,136 @@
+---
+layout: post
+title: Quand est-ce qu'on change d'heure ?
+author: Alexis Hassler
+courses:
+- java-jdk8
+references:
+- url: https://stackoverflow.com/tags/timezone/info
+  title: Stack Overflow, Time Zones
+- url: https://stackoverflow.com/tags/dst/info
+  title: Stack Overflow, Daylight Saving Time
+---
+
+image::/images/date/clock-daylight.jpg[, 120, role="left"]
+
+C'est assez facile à retrouver.
+Nous passerons à l'heure d'été le dernier dimanche de mars, à 2h00, puis nous repasserons à l'heure d'hiver le dernier dimanche d'octobre, à 3h00.
+
+Ce qui m'intéresse c'est que mon code puisse connaitre cette information.
+Et comme je veux gérer ça dans mon backend en Java, voyons voir ce que les APIs du JDK proposent.
+
+*TLDR* Toutes les informations sont disponibles via des méthodes publiques depuis le JDK 8, dans le package **`java.time`**.
+// <!--more-->
+
+== C'est quoi la règle ?
+
+Toute l'API est basée sur un objet `ZoneRules` associé au fuseau horaire.
+On y trouve les décalages horaires par rapport au fuseau UTC, les règles de calcul des transitions, ainsi que les transitions qui précèdent la mise en application de la règle actuelle.
+
+Regardons d'un peu plus près comment est construite une règle :
+
+[.uml.center]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/zone/ZoneOffsetTransitionRule.html[ZoneOffsetTransitionRule, window=_blank]
+** month: Month
+** dayOfMonthIndicator: int
+** dayOfWeek: DayOfWeek
+** localTime: LocalTime
+** offsetBefore: ZoneOffset
+** offsetAfter: ZoneOffset
+
+Par exemple, pour notre fuseau horaire, nous avons deux règles :
+
+* Mars, 25, Dimanche, 1h00, 1h, 2h : le dimanche après le 25 mars à 1h00 UTC, le décalage passe de 1h à 2h.
+* Octobre, 25, Dimanche, 1h00, 2h, 1h : le dimanche après le 25 octobre à 1h00 UTC, le décalage passe de 2h à 1h.
+
+image::/images/date/chat-changement-heure.jpg[, 400, role="center", link="https://www.laminuteduchat.com/"]
+
+Mais à la limite, c'est aussi bien exprimé dans le `toString()`.
+
+[source, subs="verbatim,quotes"]
+----
+ZoneId zone = ZoneId.of("Europe/Paris");
+zone.getRules().getTransitionRules().stream().forEach(System.out::println);
+// TransitionRule[Gap +01:00 to +02:00, SUNDAY on or after MARCH 25 at 01:00 UTC]
+// TransitionRule[Overlap +02:00 to +01:00, SUNDAY on or after OCTOBER 25 at 01:00 UTC]
+----
+
+OK, comme ça on a compris la règle, mais concrètement c'est quand notre prochaine transition ?
+
+== C'est quand la prochaine transition ?
+
+Une transition, c'est un instant, un décalage avant et un décalage après. 
+C'est donc plus concret qu'une règle.
+
+[.uml.center]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/zone/ZoneOffsetTransition.html[ZoneOffsetTransition, window=_blank]
+** instant: Instant
+** offsetBefore: ZoneOffset
+** offsetAfter: ZoneOffset
+
+Et pour connaître la prochaine transition, on le demande à l'objet _rules_ de notre fuseau horaire.
+
+[source, subs="verbatim,quotes"]
+----
+ZoneId zoneId = ZoneId.of("Europe/Paris");
+ZoneOffsetTransition transition = zoneId.getRules().nextTransition(Instant.now());
+System.out.println(transition)
+// Transition[Gap at **2022-03-27T02:00**+01:00 to +02:00]
+----
+
+La réponse à la question en titre ("Quand est-ce qu'on change d'heure ?") est donc le 27 mars 2022.
+A 2h00 heure locale, le décalage passera de 1h à 2h.
+
+Attention au piège, l'objet _rules_ a une méthode `getTransitions()` qui ne peut pas être utilisée pour notre besoin.
+Cette méthode renvoie la liste des transitions qui ne respectent pas la règle.
+Pour notre fuseau horaire, ce sont les transitions qui sont antérieures à l'entrée en application de la règle actuelle en 1996.
+
+== Partout dans le monde
+
+image::/images/date/daylight-world.svg[, 800, role="center", id="daylight-world"]
+
+Je me suis trouvé confronté à cette question sur un projet IoT chez https://rtone.fr[Rtone, window=_blank].
+Lorsqu'on configure un appareil, on lui envoie le décalage par rapport à l'heure UTC dans son nouveau fuseau horaire.
+A chaque fois qu'on déplace l'appareil, il faut lui renvoyer le décalage.
+Et, évidemment, sans déplacement, il faut renvoyer le décalage au changement d'heure.
+
+Le backend doit connaître le prochain changement d'heure dans le monde et connaitre le fuseau horaire concerné.
+Pour ça:
+
+[source, subs="verbatim,quotes"]
+----
+[.comment]#// On parcourt tous les fuseaux horaires.#
+ZoneId.getAvailableZoneIds().stream()
+      .map(ZoneId::of)
+      [.comment]#// On ne garde que ceux qui ont une future transition.#
+      .filter(zoneId ->
+                  zoneId.getRules()
+                        .nextTransition(Instant.now()) != null
+      )
+      [.comment]#// Et on conserve celui qui a la plus petite date de transition.#
+      .min(
+            comparing(zoneId -> 
+                        zoneId.getRules()
+                              .nextTransition(Instant.now())
+                              .getInstant()
+                     )
+      )
+      [.comment]#// Enfin, on planifie l'action qui se déclenchera à la prochaine transition.#
+      .ifPresent(this::scheduleNextTransition);
+----
+
+Et le vainqueur est... America/Miquelon qui change d'heure le 13 mars 2022 à 2h00 UTC et dont le décalage passera de -3h à -2h.
+
+== Conclusion
+
+Le point d'entrée est https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZoneId.html[`java.time.ZoneId`, window=_blank] qui représente un fuseau horaire dans l'API de date et heure du JDK 8.
+A partir de là, on récupère l'ensemble des règles (`getRules()`) des changements d'heure puis on demande la prochaine transition (`nextTransition(Instant.now())`).
+
+Tout ça n'est public que depuis le JDK 8.
+Les informations étaient déjà présentes avant, mais dans des classes internes du JDK.
+
+Reste que le nombre de pays qui pratiquent le changement d'heure est en baisse constante.
+Sur le link:#daylight-world[planisphère ci-dessus], la couleur orange représente ceux qui l'ont pratiqué puis ont arrêté.
+L'Union Européenne a aussi décidé de l'abandonner, peut-être, un jour.
+A cause de ces décisions basée sur le bien-être des gens, le genre d'amusement présenté ici pourrait disparaître.
+Nos politiciens pourraient penser au plaisir des développeurs quand ils simplifient les règles.
