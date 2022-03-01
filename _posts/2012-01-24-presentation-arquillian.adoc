@@ -22,6 +22,7 @@ En 2011, j'ai eu l'occasion de présenter Arquillian à Softshake.
 C'était une expérience nouvelle pour moi, que j'ai trouvée enrichissante et excitante. 
 J'ai donc saisi les opportunités de la renouveler, d'une part devant les étudiants de l'INSA Lyon, puis chez les parisiens de Ippon. 
 Lors de cette session, j'ai enregistré un screencast que j'ai inséré ci-dessous.
+//<!--more-->
 
 J'espère continuer à présenter ce talk et je pense en proposer d'autres dans le futur. 
 Certes, je n'ai pas la légitimité de certains développeurs, mais j'aime ça et j'ai envie de continuer.

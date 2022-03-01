@@ -12,6 +12,7 @@ Cela a donné satisfaction pendant un temps, car l'objectif était surtout d'ali
 Aujourd'hui, on se rend compte que ce mode de gestion est lourd car SPIP ne permet pas une structuration suffisante de l'information. 
 Lorsque Google a annoncé son offre App Engine, je me suis dit que cela pourrait être intéressant : la gestion et la publication du catalogue ne sont pas des applications très gourmandes, on devrait donc rester en deçà des quotas, les données ne sont pas particulièrement confidentielle, et Java est le langage que je pratique depuis une bonne dizaine d'années. 
 Donc, c'est parti...
+//<!--more-->
 
 Dans un premier temps, je vais devoir étudier un peu cette plate-forme GAE, et toutes les contraintes qui lui sont inhérentes. 
 En vrac, les points que je vais devoir étudier sont :

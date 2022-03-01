@@ -145,8 +145,9 @@ code {
 }
 
 code {
-  padding: 1px 5px;
+  // padding: 1px 5px;
   background-color: rgb(245, 245, 245);
+  color: #411212;
 }
 
 .listingblock {
@@ -167,6 +168,11 @@ pre {
     border: 0;
     padding-right: 0;
     padding-left: 0;
+    color: $text-color;
+
+    .comment {
+      color: purple;
+    }
   }
 }
 
@@ -353,4 +359,24 @@ th.valign-top, td.valign-top {
   table {
     margin: 0 auto;
   }
+}
+
+.references {
+  border-top: solid 1px #525252;
+  padding-top: 0.5rem;
+  p {
+    margin-bottom: 0.1rem;
+  }
+}
+
+a[target="_blank"]::after {
+  --icon-size: 0.7em;
+  background-image: url(/images/common/link-icon.svg);
+  background-size: var(--icon-size);
+  background-position: right;
+  background-repeat: no-repeat;
+  display: inline-block;
+  width: calc(var(--icon-size) * 1.2);
+  height: var(--icon-size);
+  content:"";
 }

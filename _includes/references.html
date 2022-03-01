@@ -1,0 +1,14 @@
+{%- if page.references -%}
+{% capture list %}
+{%- for reference in page.references -%}
+<li><a href="{{ reference.url }}" target="_blank" >{{ reference.title }}</a></li>
+{%- endfor -%}
+{% endcapture list %}
+
+<div class="references">
+<p><strong>Références</strong></p>
+<ul>
+    {{ list }}
+</ul>
+</div>
+{%- endif -%}

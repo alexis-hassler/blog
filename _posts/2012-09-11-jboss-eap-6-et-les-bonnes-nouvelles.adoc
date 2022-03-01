@@ -13,6 +13,7 @@ La nouvelle n'est pas très fraîche puisqu'elle date de juin 2012, mais je n'en
 JBoss EAP est la version avec support de JBoss. 
 Pour avoir le droit d'utiliser JBoss EAP, il faut payer une souscription annuelle à RedHat, mais si vous voulez juste jeter un coup d'oeil, il existe un version d'évaluation (30 jours), sans support qu'on peut télécharger sur le link:https://access.redhat.com/[Customer Portal] de RedHat (avec inscription préalable). 
 Pour schématiser, c'est un JBoss AS avec des bugs en moins et un contrat de support en plus.
+//<!--more-->
 
 Dans le processus de développement, il y a d'abord JBoss AS, développé par RedHat avec des contributions externes, puis lorsqu'une bonne partie des bugs est corrigée, une version de JBoss EAP est livrée. 
 Cette version EAP 6 est basée sur un JBoss AS 7.1. 

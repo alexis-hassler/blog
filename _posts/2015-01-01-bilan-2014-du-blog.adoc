@@ -18,6 +18,7 @@ Quel est le profil des gens qui visitent ce blog, pour s'intéresser à de telle
 La seule chose qui me rassure, c'est que la fréquentation est en baisse depuis quelques mois.
 
 image::/images/misc/blog-analytics.png[, 640, 98, role="center"]
+//<!--more-->
 
 Quand je regarde les 3 articles qui suivent, ça ne me rassure pas forcément. 
 Il y en a deux qui concernent Google Maps, link:/2013/07/09/du-sig-google-maps.html[Du SIG à Google Maps] et link:/2013/07/11/generer-kml.html[Générer un document KML pour Google Maps], et un sur mon link:/2014/04/19/pub-windev.html[mail de réponse à de la pub Windev]. 

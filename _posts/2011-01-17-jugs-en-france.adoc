@@ -10,6 +10,7 @@ tags:
 Depuis quelques temps, j'ai ajouté une référence aux Java User Groups de France et d'alentours en annexe de mes supports de formation. 
 Sur les dernières versions, j'ai trouvé plus sympa de faire ça graphiquement. 
 En plus, avec le nombre de JUGs en France, c'est plus pratique à faire tenir sur une page.
+//<!--more-->
 
 .JUGs en France
 image::/images/misc/jugs-france.png["Carte des Java User Groups de France", 600, 624, role="center"]

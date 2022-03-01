@@ -12,9 +12,10 @@ Pour mon projet actuel, le back-end est en Spring MVC 4 qu'on déploie dans Tomc
 
 Dans ces conditions, le navigateur charge l'application sur http://localhost:4200 et les données sur http://localhost:8080.
 Le navigateur devra refuser ces dernières si le serveur n'a pas explicitement autorisé leur exploitation depuis une autre _origin_.
+//<!--more-->
 
 [%inline]
-image::assets/cors.svg[]
+image::assets/cors.svg[,500]
 
 Si vous cherchez une explication plus sérieuse, je vous suggère une visite de https://developer.mozilla.org/fr/docs/HTTP/Access_control_CORS[MDN].
 
@@ -38,7 +39,7 @@ Si vous lisez ce https://spring.io/blog/2015/06/08/cors-support-in-spring-framew
 Tomcat supporte directement CORS, avec un _servlet filter_. 
 
 [.step1%inline]
-image::assets/tomcat-valve.svg[]
+image::assets/tomcat-valve.svg[, 500]
 
 Pas besoin d'annotation ici, par contre on ajoute quelques lignes dans web.xml (non ce n'est pas dégradant de faire de l'XML).
 
@@ -81,7 +82,7 @@ En cas d'exception non gérée par exemple, c'est le serveur d'applications qui 
 Il en est de même si on confie l'authentification et les autorisations au serveur d'application.
 
 [.step2%inline]
-image::assets/tomcat-valve.svg[]
+image::assets/tomcat-valve.svg[, 500]
 
 Si la réponse n'a pas les bons headers, le client va la rejeter directement, sans l'analyser.
 Il ne pourra donc pas réagir de façon pertinente.
@@ -150,7 +151,7 @@ Enfin, et c'est peut-être la meilleure solution, on peut intégrer une [valve q
 
 
 [.step3%inline]
-image::assets/tomcat-valve.svg[]
+image::assets/tomcat-valve.svg[, 500]
 
 == Et dans JBoss / WildFly ?
 

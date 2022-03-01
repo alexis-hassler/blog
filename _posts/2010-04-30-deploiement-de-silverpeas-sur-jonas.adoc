@@ -8,6 +8,7 @@ tags:
 ---
 
 Voici la présentation que j'ai donnée pour OOsphère, en avril 2010, au sujet du déploiement de Silverpeas sur JOnAS et sous JBoss AS 5.
+//<!--more-->
 
 [.center]
 --

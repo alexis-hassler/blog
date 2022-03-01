@@ -14,6 +14,7 @@ tags:
 En rangeant mes affaires, je suis retombé sur une vidéo que j'avais enregistrée en 2008 pour le magazine "Linux Developer Journal". Ce numéro du magazine avait donné une part importante à Java, puisque link:https://www.pere-nono.net/[Noël Perez] y avait écrit un article et link:https://www.antoniogoncalves.org/[Antonio Goncalves] y avait fait un edito. Tout ceci n'a pas vraiment porté chance au magazine puisque c'était le dernier numéro qui a été publié.
 
 Cette vidéo est un tutoriel sur le développement Java avec JSF, Spring et Hibernate.
+//<!--more-->
 
 [.center]
 --
