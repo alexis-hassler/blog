@@ -262,6 +262,10 @@ pre {
 .big {
   font-size: x-large;
 }
+.small {
+  font-size: small;
+}
+
 
 // Tables
 table.tableblock {
@@ -379,4 +383,11 @@ a[target="_blank"]::after {
   width: calc(var(--icon-size) * 1.2);
   height: var(--icon-size);
   content:"";
+}
+
+.inline {
+  display: flex;
+  & > * {
+    display: inline-flex;
+  }
 }

@@ -30,3 +30,7 @@ wildfly-cluster:
   url: https://www.sewatech.fr/formation-wildfly-cluster.html
   title: Déployer WildFly en cluster
   duration: 3
+junit:
+  url: https://www.sewatech.fr/formation-tests-unitaires.html
+  title:  JUnit pour tests unitaires et d'intégration
+  duration: 3

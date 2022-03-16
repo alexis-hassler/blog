@@ -48,4 +48,19 @@ div.ulist.uml {
             }
         }
     }
+    .static {
+        text-decoration: underline;
+    }
 }
+.inline {
+  display: flex;
+  div.ulist.uml {
+    display: inline-flex;
+  }
+}
+.center {
+  .content {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}  

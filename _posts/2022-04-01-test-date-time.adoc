@@ -1,0 +1,355 @@
+---
+layout: post
+title: Une histoire de temps et de tests
+author: Alexis Hassler
+courses:
+- junit
+references:
+---
+:figure-caption!:
+
+image::/images/date/clepsydre.jpg[, 120, role="right"]
+
+Le temps, c'est compliqué, ça change tout le temps.
+Et je ne parle pas de météo, mais bien du temps qui passe.
+Et c'est justement parce qu'il passe que ça change.
+
+Bon, je vais m'arrêter là avec les pensées profondes. 
+Je n'ai pas prévu de marquer l'histoire de la philosophie avec ce billet.
+Ce qui m'intéresse ici, c'est de pouvoir tester des méthodes qui utilisent des objets temporels, et plus précisément des objets du package récent `java.time` : `Instant.now()`, `LocalDateTime.now()`, `ZonedDateTime.now()`,...
+
+Partons sur ce petit exemple, dans lequel on choisit une activité distincte en fonction de l'heure de la journée.
+
+[source, subs="verbatim,quotes"]
+----
+public class ActivityService {
+
+  private final Action action;
+
+  public ActivityService(Action action) {
+    this.action = action;
+  }
+
+  public void chooseActivity() {
+    if (*LocalDateTime.now()*.get(ChronoField.AMPM_OF_DAY) == 0) {
+      action.doSleep();
+    } else {
+      action.doPlay();
+    }
+  }
+
+}
+----
+
+En utilisant le code tel quel, `action.doSleep()` est appelé si le test est exécuté le matin et `action.doPlay()` si le code est appelé l'après-midi.
+Voyons comment adapter le code pour qu'on puisse développer tester de façon reproductible.
+// <!--more-->
+
+== On a toujours fait comme ça
+
+Commençons par la technique la plus classique, que j'utilise et vois utilisée depuis une bonne vingtaine d'années.
+Elle consiste à déléguer la création des dates à un _builder_, qu'on injecte dans notre classe.
+
+[source, subs="verbatim,quotes"]
+----
+public class ActivityService {
+
+  private final Action action;
+  private final DateBuilder dateBuilder;
+
+  public ActivityService(Action action, *DateBuilder dateBuilder*) {
+    this.action = action;
+    this.dateBuilder = dateBuilder;
+  }
+
+  public void chooseActivity() {
+    if (*dateBuilder.currentLocalDateTime()*.get(ChronoField.AMPM_OF_DAY) == 0) {
+      action.doSleep();
+    } else {
+      action.doPlay();
+    }
+  }
+
+}
+----
+
+=== Bâtisseur de dates
+
+Avec cette façon de procéder, on n'appelle jamais `Instant.now()` directement, ni aucune méthode autre méthode `Xxx.now()`.
+Le _builder_ est la seule classe ayant cette responsabilité.
+
+[source, subs="verbatim,quotes"]
+----
+public class DateBuilder {
+
+  public Instant *currentInstant()* {
+    return Instant.now();
+  }
+
+  public LocalDateTime *currentLocalDateTime()* {
+    return LocalDateTime.now();
+  }
+
+  //...
+}
+----
+
+Pour supporter toutes les méthodes `Xxx.now()`, on doit implémenter une dizaine de méthodes dans `DateBuilder`.
+A ça il faut ajouter les variantes qui prennent un paramètre de type `ZoneId` (`LocalDateTime.now(ZoneId zone)`, `ZonedDateTime.now(ZoneId zone)`,...), ce qui nous fait monter à une petite vingtaine de méthodes (19 pour être précis).
+
+=== Moquons le maçon
+
+Pour tester unitairement `ActivityService`, on va créer des _mocks_ des dépendances, y compris pour `DateBuilder`.
+De cette façon, à chaque appel, l'objet produira la date et l'heure qu'on a choisies dans la préparation du test.
+Et donc le test est parfaitement indépendant de l'heure d'exécution et devient reproductible.
+
+[source, subs="verbatim,quotes"]
+----
+  @Test
+  void chooseActivity_should_play_in_the_afternoon() {
+    // GIVeN
+    var action = mock(Action.class);
+    var dateBuilder = *mock(DateBuilder.class)*;
+    when(dateBuilder.currentLocalDateTime())
+        .thenReturn(LocalDateTime.parse("1970-01-01T21:00"));
+
+    var activityService = new ActivityService(action, dateBuilder);
+
+    // WHeN
+    activityService.chooseActivity();
+
+    // THeN
+    verify(action, never()).doSleep();
+    verify(action, times(1)).doPlay();
+  }
+----
+
+== Remettons l'horloge au centre du village
+
+.[.small]#source: https://numelyo.bm-lyon.fr/BML:BML_01ICO001014cd12f1d2bdd1[Bibliothèque municipale de Lyon, window=_blank]#
+image::/images/date/horloge-tassin.jpg[, 600, role="center"]
+
+Depuis le JDK 8, il existe une autre solution, suggérée directement dans la javadoc du JDK.
+Dans les explications sur la classe abstraite https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html[`Clock`], on trouve ce passage :
+
+[quote, java.time.Clock, javadoc]
+____
+All key date-time classes also have a now() factory method that uses the system clock in the default time zone. 
+The primary purpose of this abstraction is to allow alternate clocks to be plugged in as and when required. 
+Applications use an object to obtain the current time rather than a static method. 
+*This can simplify testing.* 
+____
+
+Cette classe permettrait donc de simplifier les tests. 
+C'est exactement ce qu'on recherche, on va donc s'y intéresser.
+
+=== [.text-black]#Rock around the `Clock`#
+
+Avant de voir comment elle peut nous simplifier les tests, voyons ce qu'elle fait.
+Et pour ça, revenons à la javadoc.
+
+[quote, java.time.Clock, javadoc]
+____
+A clock providing access to the current instant, date and time using a time-zone.
+____
+
+[.uml.center]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html[_Clock_, window=_blank]
+** _instant(): Instant_
+** _getZone(): ZoneId_
+
+Son rôle, c'est de fournir l'instant courant, et c'est à peu près tout.
+
+L'implémentation par défaut fait ça avec les informations du système, via la méthode native `System.currentTimeMillis()`.
+C'est celle qui est utilisée lorsqu'on appelle une méthode `Xxx.now()` sans paramètre.
+Toutes ces méthodes ont une variante avec un paramètre `Clock` permettant de s'appuyer sur un autre référenciel.
+
+[.inline.center]
+--
+[.uml]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Instant.html[_Instant_, window=_blank]
+** [.static]#now(): Instant#
+** [.static]#now(Clock clock): Instant#
+
+[.uml]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDateTime.html[_LocalDateTime_, window=_blank]
+** [.static]#now(): LocalDateTime#
+** [.static]#now(Clock clock): LocalDateTime#
+
+[.uml]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html[_ZonedDateTime_, window=_blank]
+** [.static]#now(): ZonedDateTime#
+** [.static]#now(Clock clock): ZonedDateTime#
+--
+
+=== Donnons du temps au temps
+
+Maintenant qu'on a posé ces bases, on se rend compte qu'on peut très bien injecter une instance de `Clock` plutôt qu'un `DateBuilder`.
+Pour en profiter, il faut s'obliger à utiliser les méthodes `Xxx.now(...)` qui prennent un paramètre de type `Clock`, au détriment des variantes sans paramètre.
+
+[source, subs="verbatim,quotes"]
+----
+public class ActivityService {
+
+  private final Action action;
+  private final Clock clock;
+
+  public ActivityService(Action action, *Clock clock*) {
+    this.action = action;
+    this.clock = clock;
+  }
+
+  public void chooseActivity() {
+    if (*LocalDateTime.now(clock)*.get(ChronoField.AMPM_OF_DAY) == 0) {
+      action.doSleep();
+    } else {
+      action.doPlay();
+    }
+  }
+
+}
+----
+
+On abandonne l'idée d'un _builder_ construit par nos soins et on n'utilise que des classes de l'API standard.
+
+=== Un jour j'irai à New-York avec toi
+
+image::/images/date/clock-timezone.jpg[, 200, role="left"]
+
+Plus haut, j'avais dit que les méthodes `Xxx.now()` avaient presque toutes une variante avec une instance de `ZoneId` en paramètre, pour positionner les objets temporels dans un fuseau horaire.
+Ça ne concerne pas `Instant`, mais `LocalDateTime`, `ZonedDateTime`,....
+
+Maintenant qu'on a abandonné les méthodes sans paramètre au profit de la variante avec un paramètre de type `Clock`, voyons ce que ça donne avec les fuseaux horaires.
+
+Il n'y a pas de variante avec deux paramètres `Xxx.now(clock, zoneId)` comme on pourrait s'y attendre.
+C'est l'objet `Clock` qui porte les informations de fuseau.
+
+[.uml.center]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html[_Clock_, window=_blank]
+** [.static]#system(ZoneId zone): Clock#
+** _getZone(): ZoneId_
+** _withZone(ZoneId zone): Clock_
+
+Grâce à la méthode `withZone(...)` appelée sur l'objet injecté, on crée une copie positionnée sur le fuseau horaire de notre choix.
+
+[source, subs="verbatim,quotes"]
+----
+public class ActivityService {
+
+  private final Action action;
+  private final Clock clock;
+
+  public ActivityService(Action action, *Clock clock*) {
+    this.action = action;
+    this.clock = clock;
+  }
+
+  public void chooseActivity(ZoneId zoneId) {
+    if (LocalDateTime.now(*clock.withZone(zoneId)*).get(ChronoField.AMPM_OF_DAY) == 0) {
+      action.doSleep();
+    } else {
+      action.doPlay();
+    }
+  }
+
+}
+----
+
+Ceci soulève une autre question.
+La question originelle. 
+Comment l'instance injectée doit-elle être créée ?
+Une instance de `Clock` pouvant être positionnée dans un fuseau horaire, comment faut-il instancier l'horloge de référence ?
+
+[.uml.center]
+* https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html[_Clock_, window=_blank]
+** [.static]#systemUTC(): Clock#
+** [.static]#systemDefaultZone(): Clock#
+** [.static]#system(ZoneId zone): Clock#
+
+Comme on parle d'horloge de référence, on va la positionner sur le fuseau horaire de référence, le fuseau UTC.
+On va utiliser la méthode statique `systemUTC()`, qui est d'ailleurs utilisée par `Xxx.now()` sans paramètre.
+
+// NOTE: Chez Rtone, ils utilisent `tickMillis()` pour éviter les hétérogénéités dues aux systèmes (millis / nanos).
+
+=== Ni clou, ni vis
+
+Dans la première solution, on pouvait tester la classe de service grâce à des objets _mock_.
+On pourrait aussi faire un _mock_ de `Clock` afin de figer la date et l'heure qu'il fournit.
+
+[source, subs="verbatim,quotes"]
+----
+    Clock clock = mock(Clock.class);
+    when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+    when(clock.instant()).thenReturn(Instant.EPOCH.plus(21, HOURS));
+----
+
+image::/images/misc/fixe-tout.png[, 80, role="right"]
+
+Ça fonctionne, mais avec `Clock`, il n'y plus besoin de ça.
+En effet, le JDK fournit directement une implémentation adaptée aux tests.
+Elle se présente sous la forme d'une horloge fixe, qui retourne toujours la même heure.
+
+[source, subs="verbatim,quotes"]
+----
+    Clock clock = Clock.fixed(Instant.EPOCH.plus(21, HOURS), ZoneOffset.UTC);
+----
+
+Avec cette horloge, tous les instants créés seront à la même heure.
+
+[source, subs="verbatim,quotes"]
+----
+    Instant instant1 = Instant.now(clock);
+    logger.info(instant1)
+    [.comment]#// 1970-01-01T21:00:00Z#
+    ...
+    // Later
+    Instant instant2 = Instant.now(clock);
+    logger.info(instant2)
+    [.comment]#// 1970-01-01T21:00:00Z#
+----
+
+Voici ce que devient le test unitaire avec une telle horloge.
+
+[source, subs="verbatim,quotes"]
+----
+  @Test
+  void chooseActivity_should_play_in_the_afternoon() {
+    // GIVeN
+    var action = mock(Action.class);
+    var clock = Clock.fixed(Instant.EPOCH.plus(21, HOURS), ZoneOffset.UTC);;
+
+    var activityService = new ActivityService(action, clock);
+
+    // WHeN
+    activityService.chooseActivity();
+
+    // THeN
+    verify(action, never()).doSleep();
+    verify(action, times(1)).doPlay();
+  }
+----
+
+== Au vent en emporte le temps
+
+A partir du moment où on utilise des objets temporels du paquetage `java.time`, une classe `DateBuilder` ne sert à rien.
+C'est même une abstraction inutile.
+En injectant un objet (ou bean) de type `Clock`, on arrive à avoir un code tout aussi facile à tester, en restant sur l'API standard.
+
+Par contre, si on utilise encore les anciennes API avec `java.util.Date` et `java.util.Calendar`, on n'a pas le choix, il faut passer par un _builder_.
+
+Et comme j'ai commencé par de la philosophie de haut niveau, je vais conclure avec de la poésie de haut niveau.
+
+[.inline.center]
+--
+[quote]
+____
+Pour le bonheur +
+De nos deux cœurs +
+*Arrête le temps et les heures* +
+Je t'en supplie +
+A l'infini +
+Retiens la nuit
+____
+
+image::/images/misc/jauni.jpg[, , 170]
+--
