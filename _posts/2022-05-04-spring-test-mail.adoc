@@ -1,0 +1,247 @@
+---
+layout: post
+title: Comment vérifier l'envoi d'e-mails en test d'intégration ?
+author: Alexis Hassler
+courses:
+- junit
+- spring
+references:
+- url: https://github.com/mailhog/MailHog
+  title: MailHog
+- url: https://site.mockito.org/
+  title: Mockito
+---
+:figure-caption!:
+
+image::/images/misc/mailbox.jpg[, 120, role="left"]
+
+En avril, je traitais le sujet de la date dans les tests.
+Je continue sur ma lancée avec les tests, mais cette fois-ci il s'agit de tests d'intégration et de l'envoi d'e-mails.
+
+Lorsqu'une application envoie des e-mails, ses tests d'intégration doivent d'une part avoir accès à un serveur SMTP, mais ils doivent aussi pouvoir valider que les messages envoyés sont conformes aux attentes.
+Nous allons aborder ces deux aspects.
+// <!--more-->
+
+== Docker, évidemment
+
+Docker va nous apporter plus qu'un simple accès, il permet aussi de l'isolation et de la reproductibilité des tests.
+En utilisant *Testcontainers*, on peut démarrer des conteneurs directement depuis les tests, en récupérer la configuration pour l'utiliser pour paramétrer la connexion.
+Je ne vais pas développer ce sujet ici, j'y ai déjà consacré une page sur *JTips*, globalement pour les https://www.jtips.info/JUnit/Testcontainers[tests d'intégration] d'un part et plus spécifiquement pour les https://www.jtips.info/Spring/Testcontainers[tests avec Spring] d'autre part.
+
+image::/images/spring/spring-testcontainers-mailhog.svg["Spring + Testcontainers + MailHog", , 100, role="center"]
+
+On va se concentrer sur l'utilisation d'un conteneur basé sur https://github.com/mailhog/MailHog[*MailHog*, window=_blank].
+Cette application se comporte comme un serveur SMTP et stocke les messages pour les restituer via une page Web.
+
+Dans l'exemple ci-dessous, je démarre un serveur MailHog dans un environnement Spring Boot.
+
+[source, subs="verbatim,quotes"]
+----
+public class TestContextInitializer 
+    implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+  @Override
+  public void initialize(ConfigurableApplicationContext context) {
+    // **Démarrage du conteneur**
+    GenericContainer smtp = new GenericContainer<>("mailhog/mailhog")
+        .withExposedPorts(1025, 8025);
+    smtp.start();
+
+    // **Injection des caractéristiques dans les propriétés de Spring Boot**
+    TestPropertyValues
+        .of("spring.mail.host=" + smtp.getContainerIpAddress())
+        .of("spring.mail.port=" + smtp.getMappedPort(1025))
+        .of("spring.mail.http-port=" + smtp.getMappedPort(8025))
+        .applyTo(context);
+  }
+
+}
+----
+
+Maintenant qu'on a un serveur SMTP et que nos e-mails y sont envoyés, voyons comment on peut vérifier qu'on lui envoie les bons messages.
+
+On a vu en préambule que MailHog donnait accès aux messages via une page Web.
+Il offre aussi une API HTTP pour y accéder par programme, dont les pincipaux endpoints : 
+
+* Lire tous les messages : `GET /api/v2/messages`
+* Supprimer tous les messages : `DELETE /api/v1/messages`
+* Lire un message : `GET /api/v1/messages/{id}`
+* Supprimer un message : `DELETE /api/v1/messages/{id}`
+
+Cette API permet de vérifier le nombre de messages envoyés avec succès et le contenu des messages envoyés.
+Le plus pratique est probablement d'encapsuler l'API dans une classe `MailHogClient`.
+
+[source, subs="verbatim,quotes"]
+----
+  @Test
+  void action_should_send_message() {
+    // GIVeN
+    mailHogClient.deleteAllMessages();
+
+    // WHeN
+    service.doAction();
+
+    // THeN
+    Message message = mailHogClient.findLatestMessages();
+    assertThat(message).isNotNull();
+    assertThat(message.getContentType()).startsWith("text/html");
+    assertThat(message.getSubject()).startsWith("Hello World");
+  }
+----
+
+Au final, ça fait beaucoup de tuyauterie pour valider qu'on a envoyé les bons messages.
+Il faut du Docker avec Testcontainers, et du code pour les messages par l'API.
+
+== Mock
+
+image::/images/spring/spring-mockito.svg["Spring + Mockito", , 100, role="center"]
+
+Plutôt que de déployer tout ça, on pourrait opter pour une solution plus simple en remplaçant le composant d'envoi d'e-mails par un _mock_.
+Dans Spring, ce composant est un bean de type MailSender ou JavaMailSender.
+
+[source, subs="verbatim,quotes"]
+----
+@Configuration
+public class IntegrationTestConfiguration {
+
+  @Bean
+  public JavaMailSender mockJavaMailSender() {
+    return *mock(JavaMailSender.class)*;
+  }    
+
+}
+----
+
+Avec Spring Boot, il n'y a pas de conflit puisque le MailSender classique n'est instancié que s'il n'y a pas d'instance par ailleurs.
+Sinon, on peut toujours ajouter `@Primary` pour résoudre le conflit.
+
+Ensuite, on injecte le bean dans le test et on l'utilise comme un _mock_ normal.
+Sauf qu'il faut le réinitialiser.
+
+[source, subs="verbatim,quotes"]
+----
+public class SomeIT {
+
+  *@Autowired JavaMailSender mailSender*
+
+  @BeforeEach
+  public void before() {
+    //reset mock
+    *reset(mailSender)*;
+  }
+
+  @Test
+  public void action_should_send_email() {
+    // GIVeN
+    //...
+
+    // WHeN
+    service.action();
+
+    // THeN
+    verify(mailSender, times(1)).send(any(MimeMessage));
+    verify(mailSender, never()) .send(any(MimeMessage[]));
+    verify(mailSender, never()) .send(any(MimeMessagePreparator));
+    verify(mailSender, never()) .send(any(MimeMessagePreparator[]));
+  }
+
+}
+----
+
+Cette solution impose moins de tuyauterie, mais resteint le périmètre de l'intégration.
+On ne vérifie pas que l'envoi de messages se passe bien, mais uniquement qu'on a essayé.
+
+== Les deux mon capitaine
+
+Il est possible de combiner les avantages des deux solutions.
+Pour ça, on va concerver un vrai `MailSender` et lui adjoindre une variante décorée (_spy_) par Mockito.
+
+image::/images/spring/spring-mockito-mailhog.svg["Spring + Mockito + MailHog", , 100, role="center"]
+
+Pour avoir les deux beans, c'est assez facile avec Spring Framework sans Boot.
+On crée une classe de configuration dédiée aux tests, avec une méthode de fabrique MailSender espionné, dans laquelle on injecte le bean normal.
+
+[source, subs="verbatim,quotes"]
+----
+@Configuration
+@EnableConfigurationProperties(MailProperties.class)
+public class MainConfiguration {
+  @Bean
+  public *JavaMailSender mailSender(MailProperties properties)* {
+    JavaMailSender mailSender = new JavaMailSender();
+    // ...
+    return mailSender;
+  }
+}
+----
+
+[source, subs="verbatim,quotes"]
+----
+@Configuration
+public class IntegrationTestConfiguration {
+  @Bean
+  *@Primary*
+  public JavaMailSender spyMailSender(
+        *@Qualifier("mailSender")* JavaMailSender mailSender) {
+    return **_spy_(**mailSender**)**;
+  }
+}
+----
+
+Avec Spring Boot, c'est un peu plus complexe.
+Comme on l'a vu dans le chapitre précédent, lorsqu'on déclare un nouveau bean de type MailSender pour les tests, Boot ne produit plus son MailSender normal.
+C'était bien partique avec le _mock_, puisqu'on ne voulait plus du bean normal.
+Avec le _spy_, ça nous oblige à dupliquer du code existant pour instancier explicitement le JavaMailSender à espionner.
+
+[source, subs="verbatim,quotes"]
+----
+@Configuration
+@EnableConfigurationProperties(MailProperties.class)
+public class IntegrationTestConfiguration {
+
+  @Bean
+  public *JavaMailSender spyJavaMailSender(MailProperties properties)* {
+    return **_spy_(**buildMailSender(properties, sender)*)*;
+  }
+
+  private JavaMailSender buildMailSender(MailProperties properties) {
+    JavaMailSenderImpl sender = new JavaMailSenderImpl();
+
+    sender.setHost(properties.getHost());
+    if (properties.getPort() != null) {
+      sender.setPort(properties.getPort());
+    }
+    sender.setUsername(properties.getUsername());
+    sender.setPassword(properties.getPassword());
+    sender.setProtocol(properties.getProtocol());
+    if (properties.getDefaultEncoding() != null) {
+      sender.setDefaultEncoding(properties.getDefaultEncoding().name());
+    }
+    if (!properties.getProperties().isEmpty()) {
+      sender.setJavaMailProperties(asProperties(properties.getProperties()));
+    }
+
+    return sender;
+  }
+
+  private Properties asProperties(Map<String, String> source) {
+    Properties properties = new Properties();
+    properties.putAll(source);
+    return properties;
+  }
+}
+----
+
+Avec cette configuration, on valide que les messages partent bien en SMTP et on peut vérifier le contenu de ce qu'on envoie.
+
+image::/images/misc/pigeon-messager.png[Pigeon messager de guerre, 500, role=center]
+
+A vous de choisir le niveau de tuyauterie et de vérification vous souhaitez implémenter.
+En tout, il n'y a aucune raison de ne pas vérifier que l'envoi de messages est conforme.
+
+[NOTE.edit, caption=Edit]
+====
+On me souffle dans l'oreillette que j'aurais pu simplifier mon code en déclarant un _mock_ local avec l'annotation de Spring Boot https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/test/mock/mockito/MockBean.html[`@MockBean`, window=_blank], ou un _spy_ local avec https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/test/mock/mockito/SpyBean.html[`@SpyBean`, window=_blank].
+====
+
+//  => HTTP API: https://github.com/mailhog/MailHog/blob/master/docs/APIv2/swagger-2.0.yaml
