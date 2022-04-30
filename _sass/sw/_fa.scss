@@ -39,4 +39,12 @@ span.icon > .fa {
       color: #bf0000;
     }
   }
+
+  &.edit {
+    td.icon {
+      .icon-note:before {
+        content: "\f044";
+      }
+    }
+  }
 }

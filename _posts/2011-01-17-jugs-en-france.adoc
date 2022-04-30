@@ -21,4 +21,7 @@ N'hésitez pas à me remonter vos remarques : mauvaise position, mauvais logo, J
 Sur ce dernier point, des rumeurs de création de nouveaux JUGs courent : Brest, Montpellier, Clermont-Ferrand,... 
 Si vous avez du nouveau, je suis aussi preneur.
 
-[Edit 06/08/2011] J'ai transféré la carte sur mon link:https://www.jtips.info/JavaUserGroups[wiki], c'est plus facile à mettre à jour.
+[NOTE.edit, caption="Edit 06/08/2011"]
+====
+J'ai transféré la carte sur mon link:https://www.jtips.info/JavaUserGroups[wiki], c'est plus facile à mettre à jour.
+====

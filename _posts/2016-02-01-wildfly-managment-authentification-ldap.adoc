@@ -74,6 +74,8 @@ Avec le fichier properties, on était en DIGEST, avec LDAP on est passé en BASI
 Enfin, comme pour l'authentification par fichier properties, tous les utilisateurs présents dans la branche LDAP sont autorisés à se connecter et ont tous les droits sur notre WildFly. 
 Pour restreindre les autorisations, il faudra passer en *RBAC*, et c'est le sujet du prochain billet. 
 
-*Edit:* 
+[NOTE.edit, caption="Edit"]
+====
 Sur les conseils d'Emmanuel Lecharny, j'ai retiré les attributs `search-dn` et `search-credential` de la connexion, le binding se fait alors avec les informations de l'utilisateur ; 
 ainsi on ne stocke plus de mot de passe LDAP dans la configuration. 
+====

@@ -127,9 +127,7 @@ Le vainqueur est donc *`FileChannel`*, avec un buffer de 64 ko.
 * link:/2020/05/15/direct-buffer-memory.html[Article précédent : "Lecture de fichier et consommation mémoire"]
 * https://gitlab.com/bojoblog/java-examples/-/tree/master/nio-example[Code de test, avec les résultats détaillés]
 
-[NOTE]
+[NOTE.edit, caption="Edit"]
 ====
-Edit:
-
 * 18/05/2020: ajout de MappedByteBuffer (et RandomAccessFile) dans certains tests, suggéré par https://twitter.com/elecharny_tek[E. Lecharny]
 ====
