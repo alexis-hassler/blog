@@ -196,7 +196,7 @@ Après la publication du billet, j'ai eu quelques réactions qui me proposent un
 Elle part du principe que *pour ne pas avoir de problème avec CORS, il ne faut pas faire de CORS*.
 
 Dans le billet j'ai furtivement envisagé d'utiliser Apache ou nginx, en reverse-proxy.
-La solution du reverse-proxy peut adoptée sans outil tiers, directement dans la commande `ng` : 
+Il y a une solution du reverse-proxy sans outil tiers, directement dans la commande `ng` : 
 
 [source]
 ----
