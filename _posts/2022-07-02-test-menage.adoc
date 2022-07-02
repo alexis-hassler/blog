@@ -1,0 +1,215 @@
+---
+layout: post
+title: Tests d'intégration, comment vérifier que le ménage a été fait ?
+author: Alexis Hassler
+courses:
+- junit
+- spring
+tags: spring jpa junit
+---
+
+image::/images/junit/junit5-db.svg[JUnit 5 logo with database, 120, role="right"]
+
+Encore un billet sur les tests, et plus précisément sur les tests d'intégration en Java.
+Dans ma mission actuelle, il y a beaucoup de tests d'intégration, trop à mon goût.
+Et ce sont généralement des tests avec une intégration complète : le test envoie une requête HTTP à laquelle le _backend_ testé renvoie une réponse construite avec des données issue d'une base de données de test.
+
+Pour les faire fonctionner de façon reproductible, aussi bien en local qu'en intégration continue, ça demande quelques contorsions.
+J'ai donc cherché des idées pour les améliorer.
+
+Aujourd'hui, je vais vous expliquer ce qu'on a fait pour résoudre le problème du ménage dans les données.
+// <!--more-->
+
+== Le problème
+
+Lorsqu'on développe un test d'intégration, on doit laisser le système dans l'état dans lequel on l'a trouvé en arrivant.
+
+image::/images/misc/endroit-propre.jpg[, 400, role="center"]
+
+Ça concerne en particulier les données en base.
+On initialise des données pour chaque test, le test lui-même peut ajouter ou modifier des données.
+Pour que le test suivant se déroule correctement, il faut faire le ménage après chaque test ou chaque classe de test.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+metricsRepository.deleteAll();
+deviceRepository.deleteAll();
+----
+
+Le problème avec ces tests d'intégration, c'est qu'on ne cherche pas à isoler un composant particulier.
+De ce fait, certaines actions peuvent impacter plusieurs tables.
+A plusieurs reprises, l'auteur du test a oublié des données, parce qu'il n'avait pas conscience qu'elle avaient pu être créées.
+
+Nous avons décidé de mettre en place un dispositif d'aide au développeur pour l'alerter s'il oublie des données.
+
+== Extension JUnit
+
+Nous utilisons *JUnit 5* qui a un système d'extension très puissant.
+Par rapport à JUnit 4, il a été complètement remis à plat et remplace à la fois les _runners_ et les _rules_.
+
+Ce qui va nous intéressé, c'est la possibilité de s'insérer dans le cycle de vie des tests.
+Ça marche un peu à la façon des méthodes annotées `@BeforeAll`, `@BeforeEach`, `@AfterEach` ou `@AfterAll`, mais dans une classe indépendante et réutilisable.
+
+image::/images/junit/lifecycle-extension.svg["JUnit Extension lifecycle", 600, role="center"]
+
+Pour vérifier l'état de la base de données, on développe une classe qui implémente `AfterAllCallback`.
+Ça devient une sorte de méthode `@AfterAll` pour chaque classe de test qui déclare l'extension.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+public class CheckEntitiesExtension implements *AfterAllCallback* {
+
+  @Override
+  public void *afterAll*(ExtensionContext extensionContext) {
+    // ...
+  }
+
+}
+----
+
+L'extension est activée pour chaque classe de test qui la déclare dans *`@ExtendWith`*.
+Une classe de test peut déclarer plusieurs exensions, ce qui nous arrange puisqu'on veut ajouter notre vérification à des tests d'intégration qui ont déjà l'extension `SpringExtension`.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+*@ExtendWith*({SpringExtension.class, *CheckEntitiesExtension.class*})
+public class DeviceApiIT {
+  // ...
+}
+----
+
+== Intégration avec Spring et JPA
+
+Notre architecture se base sur Spring Boot, avec Spring Data JPA.
+La plupart des accès à la base de données se font avec des interfaces _repository_, à base de méthodes abstraites et de conventions de nommage. 
+Mais Spring Boot a des beans qui nous permettent de faire du pur JPA.
+
+[center]
+--
+image:/images/spring/spring-boot.svg[Spring Boot,,120]
+{nbsp} {nbsp} {nbsp} {nbsp} 
+image:/images/spring/spring-data.svg[Spring Data,,120]
+--
+
+La première étape est de récupérer le contexte d'application qui a été démarré par l'extension Spring.
+On l'utilise pour récupérer quelques beans comme l'`EntityManager` et le `TransactionManager`.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  @Override
+  public void afterAll(ExtensionContext extensionContext) {
+    ApplicationContext applicationContext 
+        = *SpringExtension*.getApplicationContext(extensionContext);
+
+    *EntityManager* entityManager = applicationContext.getBean(EntityManager.class);
+    *PlatformTransactionManager* transactionManager =
+        applicationContext.getBean(PlatformTransactionManager.class);
+
+    //...
+  }
+----
+
+A partir de là, on peut se concentrer sur les données avec JPA.
+On récupère la liste des entités via les méta-données de l'_entity manager_.
+Pour chaque entité, on compte le nombre d'occurences en base et si ce nombre est positif c'est qu'il reste des données dans le table. Dans ce cas, on fait échouer le test.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  @Override
+  public void afterAll(ExtensionContext extensionContext) {
+    //...
+    List<String> found =
+        entityManager.getMetamodel()
+            .getEntities()
+            .stream()
+            .filter(entityType -> _count_(entityManager, entityType) > 0)
+            .map(EntityType::getName)
+            .collect(Collectors.toList());
+
+    if (!found.isEmpty()) {
+      *fail*("Data found : " + String.join(", ", found));
+    }
+  }
+----
+
+Pour compter le nombre d'occurences en base de données, j'ai utilisé l'API Criteria de JPA.
+Le code est générique sans grand effort.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  private static Long count(EntityManager entityManager, EntityType<?> entityType) {
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+    query.select(criteriaBuilder.*count*(query.from(entityType)));
+    return entityManager.createQuery(query).getSingleResult();
+  }
+----
+
+OK, c'est pas un bout de code très élégant, mais caché dans une méthode, ça passe.
+
+== Améliorations
+
+Vous vous demandez peut-être pourquoi je compte le nombre d'occurences et pourquoi je ne me contente pas d'un `exists`.
+C'est parce que je veux afficher cette information dans le _fail_.
+
+De plus, certaines données sont initialisées au démarrage de Spring.
+Il ne faut pas faire le ménage dans ces données et les exclure de la vérification.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  private final Set<String> excludedEntityNames =
+      Set.of(
+          UserDbEntity.class.getSimpleName(),
+          TermsDbEntity.class.getSimpleName(),
+          FirmwareDbEntity.class.getSimpleName());
+
+  @Override
+  public void afterAll(ExtensionContext extensionContext) {
+    // ...
+
+    List<String> found =
+        entityManager.getMetamodel()
+            .getEntities()
+            .stream()
+            .*filter(entityType -> !excludedEntityNames.contains(entityType.getName()))*
+    // ...
+----
+
+On ne se contente pas de vérifier que le ménage a été fait, mais on fait la suppression des données dans l'extension.
+Le but n'est pas de mettre en place un ménage automatique.
+On reste sur l'objectif d'alerter le développeur.
+C'est lui qui est responsable de son test, de la préparation jusqu'à la remise en état.
+Non, on fait ça pour éviter qu'un test mal nettoyé ne fasse resortir tous les autres tests en échec.
+
+Dans la pratique, on a directement intégré ces améliorations, mais je n'ai présenté qu'un code simplifié.
+
+== Synthèse
+
+La première préoccupation lorsqu'on intégre ce genre de vérification, avec beaucoup d'accès à la base de données, c'est le surcoût en temps de build.
+Sur mon poste de travail, il est de sept dizièmes de seconde, pour un build complet de trois minutes.
+En environnement d'intégration (CI), il est d'une seconde et demi, pour un build complet de dix minutes.
+Autant dire que c'est négligeable.
+
+Dans notre projet toutes les classes de tests d'intégration héritent d'une classe abstrait `AbstractIT`.
+Il suffit d'ajouter l'extension à cette classe abstraite pour que tous les tests d'intégration en profitent.
+
+image::/images/misc/failed-ci.svg[CI failed, 90, role="left"]
+
+L'effet immédiat, ça a été de casser le build.
+C'est dû à plusieurs tests qui ne faisaient pas bien leur ménage.
+Ça tombe bien, c'est justement ce qu'on cherche à identifier.
+On a dû leur ajouter des appels à `repository.deleteAll()` dans des méthodes `@AfterAll`.
+
+Une fois ce ménage fait, que le _build_ passe, l'extension commence à remplir son objectif principal : 
+quand un développeur oublie des données en fin de test, son test ne passe plus, ni en local ni en CI.
+Il est obligé de faire son ménage, et s'en rend compte directement dans l'IDE.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+[.gr]#java.lang.AssertionError: Data found : DeviceDbEntity(1)#
+----
+
+Avec cette simple extension, c'est la fin du casse-tête sur les builds qui ne passent pas à l'appel de `mvn verify` alors qu'ils passent seuls.
+On ne s'arrache plus les cheveux parce qu'un nouveau test d'intégration est en échec à cause du test passé avant lui qui avait laissé des données en trop.
+
+Par contre, il reste plein de problèmes liés aux traitements asynchrones, et ça j'en parlerai dans un prochain billet.
