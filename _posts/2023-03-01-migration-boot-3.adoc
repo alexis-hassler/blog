@@ -1,0 +1,48 @@
+---
+layout: post
+title: Migration à Spring Boot 3
+author: Alexis Hassler
+courses:
+- spring
+tags: spring
+---
+
+
+== Tâches préalables
+
+== Swagger
+
+SpringFox n'a pas été mis à jour pour être compatible avec Spring Boot 3.
+J'ai donc migré vers Springdoc.
+
+Il a fallu passer de Swagger v2 à OpenAPI v3.
+
+== Spring Security
+
+
+== Hibernate 6
+
+Un gros impact sur la gestion des types personnalisés ou intégrés.
+
+=== Cache
+
+Ne plus utiliser Ehcache directement, mais via JCache.
+
+== Java -> Jakarta
+
+On passe de Java EE à Jakarta EE, avec plusieurs packages qui sont renommés de javax.zzz à jakarta.zzz.
+C'est le cas pour les API suivantes:
+
+* Servlet: javax.servlet => jakarta.servlet
+* JPA: javax.persistence => jakarta.persistence
+* Bean Validation: javax.validation => jakarta.validation
+* Annotations: javax.annotation => jakarta.annotation
+
+D'une part il faut modifier tous les imports, mais il faut aussi mettre à jour les librairies qui dépendandent de Java EE.
+
+* `com.fasterxml.jackson.datatype:jackson-datatype-hibernate5` à `com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta`.
+* `com.vladmihalcea:hibernate-types-55` => `com.vladmihalcea:hibernate-types-60`
+
+=== Problem
+
+C'est supporté en natif par Spring Framework 6.
