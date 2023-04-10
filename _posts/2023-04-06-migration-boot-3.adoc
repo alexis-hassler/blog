@@ -1,0 +1,188 @@
+---
+layout: post
+title: Retour d'expérience, migration à Spring Boot 3
+author: Alexis Hassler
+courses:
+- spring
+tags: spring
+---
+
+image::/images/spring/spring-boot-migration-2-3.svg[Spring Boot logo version 2 to version 3, 120, role="left"]
+
+Ces dernières semaines, j'ai dû faire une migration de Spring Boot 2 à Spring Boot 3.
+Comme dans Spring Boot il y a toute une suite de frameworks et librairies, avec en particulier Spring Framework, Spring Security, Hibernate, ça fait pas mal de galères potientielles.
+
+J'ai lu quelques articles et billets sur le sujet, en particulier le https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide[guide de migration du projet Spring].
+J'en ai conclu que ça n'allait pas être très compliqué, avec surtout un gros rechercher/remplacer de `javax.\*` pour `jakarta.*`.
+Evidemment ça ne s'est pas passé aussi simplement que prévu, c'est ce que je vais raconter ici.
+// <!--more-->
+
+L'application est construite sur des bases classiques.
+Elle implémente un API Web, avec du contenu JSON.
+Elle est organisée en couches avec des _controllers_, des services et des _repositories_.
+Pour ces derniers, on utilise _Spring Data JPA_, avec _Hibernate_ et une base de données PostgreSQL.
+Bref, une application comme il en existe plein.
+
+== Tâches préalables
+
+Comme ça avait été https://spring.io/blog/2021/09/02/a-java-17-and-jakarta-ee-9-baseline-for-spring-framework-6[annoncé dès 2021], nous savions que nous devions utiliser un *JDK 17* pour pouvoir utiliser Spring Boot 3.
+Bien avant la migration, on avait passé notre code du JDK 11 au JDK 17.
+
+Il y a eu un peu plus de surprise avec *Swagger*.
+On utilisait SpringFox pour générer la documentation de l'API à afficher dans SwaggerUI.
+Or SpringFox n'a pas été mis à jour pour être compatible avec Spring Boot 3.
+Je l'ai donc abandonné pour Springdoc.
+Au passage, on utilisait des annotation Swagger v2 qu'il a fallut remplacer par des annotations OpenAPI v3.
+J'en ai profité pour poser mes https://www.jtips.info/Spring/Swagger[notes de configuration de Springdoc sur JTips].
+
+Le passage de Hibernate 5 à *Hibernate 6* implique pas mal de changements, dont l'abandon du support direct d'*Ehcache*.
+Pour continuer de l'utiliser, il faut utiliser *JCache* (ou JSR-101) et faire en sorte qu'Ehcache en soit le _provider_.
+
+L'authentification se fait avec *OIDC* sur un serveur d'autorisation intégré à l'application, basé sur Spring Authorization Server.
+Au démarrage du projet, cette librairie était en version 0.3.
+Forcément, comme on n'était pas en version finale, on pouvait craindre à pas mal de changements.
+En l'occurence, les changements se sont fait sur la version 0.4, compatible avec Spring Boot 2 ; le passage à la version 1.0, compatible avec Spring Boot 3, est beaucoup moins important.
+
+En plus de quelques changements de packages, il a fallu modifier toutes les références à la classe ProviderContext qui a changé de nom pour AuthorizationServerContext.
+Par ailleurs, le support d'OIDC n'est plus activé par défaut, il faut le déclarer explicitement.
+
+[source, java, subs="verbatim,quotes"]
+----
+    authorizationServerConfigurer.oidc(oidcConfigurer -> {});
+----
+
+Avec tout ça, on était prêt à passer à Spring Boot 3.
+
+== Tâches prévues
+
+Grâce à lecture du guide de migration et de quelques autres billets, on connaissait un certain nombre de tâches.
+
+Il y a pas mal de petits changements sur *Spring Security*, au point où il a son https://docs.spring.io/spring-security/reference/migration/index.html[guide de migration] dédié.
+
+* WebSecurityConfigurerAdapter n'existe plus.
+* Quelques méthodes de HttpSecurity ont changé.
+** securityMatcher(...) remplace requestMatcher(...)
+** authorizeHttpRequests(...) remplace authorizeRequests(...)
+** requestMatchers(...) remplace antMatchers(...)
+
+Pour *Spring integration*, les changements se limitent à une plus grande utilisation de `Instant` à la place de `Date`.
+
+* Dans la classe `Trigger`, `nextExecutionTime()` remplacé par `nextExecution()`.
+* Dans la classe `TriggerContext`, `lastActualExecutionTime()` est déprécié en faveur de `lastActualExecution()`.
+
+Le gros morceau semblait être le passage de Java EE à *Jakarta EE*, avec plusieurs packages qui sont renommés de `javax.zzz` à `jakarta.zzz`.
+
+* Servlet: `javax.servlet` => `jakarta.servlet`
+* JPA: `javax.persistence` => `jakarta.persistence`
+* Bean Validation: `javax.validation` => `jakarta.validation`
+* Annotations: `javax.annotation` => `jakarta.annotation`
+* Mail: `javax.mail` => `jakarta.mail`
+
+Finalement le changement de _packages_ est rapide, mais il faut aussi mettre à jour les librairies qui dépendent de Java EE.
+
+* `com.fasterxml.jackson.datatype:jackson-datatype-hibernate5` => `com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta`.
+* `com.vladmihalcea:hibernate-types-55` => `io.hypersistence:hypersistence-utils-hibernate-62`
+
+== Tâches pas prévues
+
+Peut-être que j'ai manqué de concentration en lisant le https://docs.jboss.org/hibernate/orm/6.0/migration-guide/migration-guide.html[guide de migration à *Hibernate 6*], mais je ne pensais pas que le changement sur la gestion des types aurait autant d'impact.
+On avait anticipé les gros changemenents dans la classe `UserType` en remplaçant nos types personnalisés par ceux de la librairie Hypersistence Utils de https://vladmihalcea.com/[Vlad Mihalcea].
+
+Ensuite, il a fallu retoucher pas mal d'annotations et remplacer du texte par des classes.
+C'est plus typé, c'est mieux, plus propre.
+Avant, pour associer une propriété à une colonne de type `jsonb`, il fallait déclarer le type au niveau de la classe, puis l'utiliser par son nom au niveau de la propriété.
+
+[source, java, subs="verbatim,quotes"]
+----
+*@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)*
+public class Product {
+  *@Type(type = "jsonb")*
+  private String detailAsJson;
+  ...
+}
+----
+
+Dans Hibernate 6, l'annotation `@TypeDef` a disparu et l'annotation `@Type` fait directement référence à la classe de description du type jsonb.
+
+[source, java, subs="verbatim,quotes"]
+----
+public class Product {
+  *@Type(JsonBinaryType.class)*
+  private String detailAsJson;
+  ...
+}
+----
+
+Pour le type *UUID*, la gestion a aussi pas mal changé, pour plus de simplicité.
+Avec Hibernate 6, on retire les annotations `@Type(type = "org.hibernate.type.UUIDCharType")`.
+A la place on choisit la façon d'associer les propriétés UUID via la propriété `preferred_uuid_jdbc_type` d'Hibernate (CHAR, VARCHAR, UUID).
+
+[source, java, subs="verbatim,quotes"]
+----
+spring.jpa.properties.hibernate.type.*preferred_uuid_jdbc_type*=VARCHAR
+----
+
+Au passage, comme on utilise beaucoup les *filtres* d'Hibernate et qu'il y a un https://hibernate.atlassian.net/browse/HHH-16179[bug gênant] dans la version 6.0, on est directement passé à la version 6.2.
+
+Enfin, il y a eu un travail important sur l'intégration de la https://www.rfc-editor.org/rfc/rfc7807[*RFC-7807*] (Problem Details for HTTP APIs).
+On utilisait Zalando Problem qui n'a pas été migrée et qui ne le sera probablement jamais puisque qu'elle est devenue inutile.
+En effet, https://www.jtips.info/Spring/Problem[Spring Framework 6 a intégré le support de RFC-7807].
+Il a donc fallu jeter tout le travail qui avait été réalisé et le réimplanté dans la nouvelle version.
+
+Après tout ça, l'application fonctionnait, mais pas les tests d'intégration.
+On utilise *RestTemplate* avec une configuration adaptée aux tests, pour les redirection et la gestion relachée des cookies.
+Le passage de Apache HttpClient 4 à *Apache HttpComponents 5* est documenté, mais j'ai passé plus de temps que prévu sur le sujet.
+Pour la gestion des cookies, la configuration a juste un peu changé.
+
+[source, java, subs="verbatim,quotes"]
+----
+  // Apache HttpClient 4
+  private static HttpClient buildHttpClient() {
+    RequestConfig requestConfig = RequestConfig.custom()
+            .setCookieSpec(*CookieSpecs.STANDARD_STRICT*)
+            .build();
+    return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig)
+            .setRedirectStrategy(*new LaxRedirectStrategy()*)
+            .build();
+  }
+----
+
+[source, java, subs="verbatim,quotes"]
+----
+  // Apache HttpComponents 5
+  private static HttpClient buildHttpClient() {
+    RequestConfig requestConfig = RequestConfig.custom()
+            .setCookieSpec(*StandardCookieSpec.RELAXED*)
+            .build();
+    return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig)
+            .setRedirectStrategy(*new DefaultRedirectStrategy()*)
+            .build();
+  }
+----
+
+Malheureusement, ça n'a pas suffit pour la gestion des redirections de requêtes POST vers GET.
+Dans la nouvelle version, la classe *RedirectExec* ne joint jamais les cookies à la requête GET.
+La seule solution pour y arriver a été de faire ma propre classe CustomRedirectExec identique à l'original mais avec une récupération des headers en plus.
+
+[source, java, subs="verbatim,quotes"]
+----
+    ...
+    currentRequest = redirectBuilder.build();
+    // Ça c'est l'ajout perso
+    currentRequest.setHeaders(scope.originalRequest.getHeaders());
+    EntityUtils.consume(response.getEntity());
+    response.close();
+----
+
+Enfin, il a fallu faire quelques petits ajustements dans les tests d'intégration.
+
+* Les URLs sont gérés avec plus de rigueur pour le '/' de fin.
+* Les content types demandent aussi plus de rigueur.
+
+== Conclusion
+
+J'avais planifié *une petite semaine* pour cette migration.
+Au final, elle m'a pris plus du double.
+Pour être plus précis, j'ai passé environs *80 heures* pour identifier, comprendre et résoudre les problèmes que j'ai présenté ici, plus quelques pétouilles qui n'ont pas d'intérêt ici.
