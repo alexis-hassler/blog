@@ -1,0 +1,18 @@
+---
+layout: post
+title: Prévalidation des permissions
+author: Alexis Hassler
+courses:
+- spring
+tags: spring security
+---
+
+Application avec des permissions complexes
+En tout cas pas de matrice de permissions
+Permission par type et par instance
+Avec une table de permissions et avec les relations entre entités.
+Avec des permissions par user et par role
+
+Implémenté à base d'annotations @PreAuthorize/@PostAuthorize/@PostFilter
+
+Le problème d'ergonomie, c'est comment savoir quelles actions sont permises pour chaque ligne d'une liste.
