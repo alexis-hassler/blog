@@ -7,12 +7,176 @@ courses:
 tags: spring security
 ---
 
-Application avec des permissions complexes
-En tout cas pas de matrice de permissions
-Permission par type et par instance
-Avec une table de permissions et avec les relations entre entités.
-Avec des permissions par user et par role
+Je n'avais jamais travaillé sur un système de permissions aussi complexe.
+Je ne vais pas les détailler mais pour chaque accès backend on évalue une série de conditions reliées par ET/OU.
+Ces conditions sont implémentées avec Spring Security sous forme d'annotations.
+
+Le résultat c'est qu'il n'y a pas de matrice entre une action ou une donnée et un utilisateur.
+Le seul moyen de savoir si un utilisateur a le droit de réaliser une action, c'est d'essayer.
+
+Evidemment, ce n'est pas satisfaisant.
+Du point de vue de l'utilisateur, c'est frustrant de se voir proposer une action et d'avoir un message d'erreur quand il la réalise.
+Il faut pouvoir anticiper et ne pas la lui proposer.
+
+L'enjeu était donc de pouvoir évaluer les conditions de façon anticipée, sans réaliser les actions.
+// <!--more-->
+
+== Implémentation
 
 Implémenté à base d'annotations @PreAuthorize/@PostAuthorize/@PostFilter
 
+[source, subs="verbatim,quotes"]
+----
+@RequestHandler("/product")
+public class ProductController {
+
+  @PostFilter(...)
+  @GetHandler
+  public List<Product> list() {
+    // ...
+  }
+
+  @PreAuthorize(
+    "@permission.onType('product', 'READ') || " + 
+    "@permission.onInstance('product', #id, 'READ')"
+  )
+  @GetHandler("/{id}")
+  public Product get(UUID id) {
+    // ...
+  }
+
+  @PreAuthorize(
+    "@permission.onType('product', 'CREATE') || " + 
+    "@permission.onInstance('product', #id, 'CREATE')"
+  )
+  @PostHandler
+  public Product create(Product product) {
+    // ...
+  }
+
+  @PreAuthorize(
+    "@permission.onType('product', 'UPDATE') || " + 
+    "@permission.onInstance('product', #id, 'UPDATE')"
+  )
+  @DeleteHandler("/{id}")
+  public Product update(Product product) {
+    // ...
+  }
+
+  @PreAuthorize(
+    "@permission.onType('product', 'DELETE') || " + 
+    "@permission.onInstance('product', #id, 'DELETE')"
+  )
+  public Product delete(UUID id) {
+    // ...
+  }
+
+}
+----
+
+Le contenu des annotations est assez simple. 
+La complexité est dans l'implémentation du bean _permission_.
+
+== Évaluation anticipée
+
 Le problème d'ergonomie, c'est comment savoir quelles actions sont permises pour chaque ligne d'une liste.
+
+Le front-end envoie une liste de requêtes qu'il souhaite évaluer.
+Le résultat lui permet de choisir quels boutons, liens et menus seront actifs.
+
+[source, subs="verbatim,quotes"]
+----
+[
+  {
+    "url": "/product",
+    "method": "POST"
+  },
+  {
+    "url": "/product/942b411f-e414-4468-b98c-8d491563c7d8",
+    "method": "GET"
+  },
+  {
+    "url": "/product/942b411f-e414-4468-b98c-8d491563c7d8",
+    "method": "PUT"
+  },
+  {
+    "url": "/price?year=2023",
+    "method": "GET"
+  }
+]
+----
+
+Cette vision a été proposée par mon collègue Hassan.
+Mon rôle a été de trouver comment l'implémenter.
+
+== Structure de la solution
+
+Pour chaque ligne, il faut trouver la méthode qui implémente le endoint, puis récupérer le contenu de l'annotation @PreAuthorize et évaluer l'expression.
+Pour chaque étape j'ai utilisé un maximum de mécanisme de Spring.
+
+== Trouver la méthode
+
+C'est certainement l'étape la plus compliquée.
+Il faut pouvoir exploiter Spring pour ça.
+
+D'abord, il faut un objet de type HttpServletRequest qui représente un ligne.
+Pas besoin d'implémenter toutes les méthodes, mais il faut l'URL, la méthode, les paramètres de la requête, les headers et attributs.
+
+Ensuite, on injecte le bean de type RequestMappingHandlerMapping, on lui demande quels sont les méthodes de endpoints qui correspondent à la requête et laquelle est la plus appropriée.
+
+[source, subs="verbatim,quotes"]
+----
+public class PermissionCheckController {
+
+  private final RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+  @PostMapping("/check")
+  public List<PermissionCheckResponse> check(@RequestBody PermissionCheckRequest[] requests) {
+    HttpServletRequest requestInfo = new ServletRequestInfo(request);
+
+    HandlerMethod handlerMethod = requestMappingHandlerMapping.getHandlerMethods().keySet().stream()
+      .filter(mapping -> mapping.getMatchingCondition(requestInfo) != null)
+      .min((mapping1, mapping2) -> mapping1.compareTo(mapping2, requestInfo)) // Sorting to find the best mapping
+      .map(requestMappingInfo -> getControllerMethod(requestInfo, requestMappingInfo))
+      .orElse(null);
+
+    //...
+  }
+
+}
+----
+
+== Récupérer l'annotation
+
+Une fois qu'on a une référence à la méthode, il est facile d'accéder à l'annotation.
+
+[source, subs="verbatim,quotes"]
+----
+  @PostMapping("/check")
+  public List<PermissionCheckResponse> check(@RequestBody PermissionCheckRequest[] requests) {
+    //...
+
+    PreAuthorize preAuthorize = handlerMethod.method().getAnnotation(PreAuthorize.class);
+
+    //...
+  }
+----
+
+PreAuthorize preAuthorize = serviceMethod.method().getAnnotation(PreAuthorize.class);
+
+== Evaluer l'expression
+
+[source, subs="verbatim,quotes"]
+----
+  @PostMapping("/check")
+  public List<PermissionCheckResponse> check(@RequestBody PermissionCheckRequest[] requests) {
+    //...
+
+    Expression expression = spelExpressionParser.parseExpression(preAuthorize.value());
+    SecurityExpressionRoot securityRoot = new SecurityExpressionRoot(SecurityContextHolder.getContext().getAuthentication()) {};
+    Boolean authorized = expression.getValue(evaluationContext, securityRoot, Boolean.class);
+  }
+----
+
+== Construire la réponse
+
