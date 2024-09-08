@@ -387,7 +387,4 @@ a[target="_blank"]::after {
 
 .inline {
   display: flex;
-  & > * {
-    display: inline-flex;
-  }
 }

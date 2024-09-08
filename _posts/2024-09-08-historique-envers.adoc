@@ -1,0 +1,530 @@
+---
+layout: post
+title: Afficher un historique avec Hibernate Envers
+author: Alexis Hassler
+courses:
+- hibernate
+tags: hibernate
+references:
+- url: https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html#envers
+  title: Documentation Hibernate Envers
+---
+
+image::/images/hibernate/envers-logo.svg[Hibernate Envers logo, 200, role="right"]
+
+Sur un projet en cours, on stocke l'historique complet des modifications sur les entités.
+Le projet utilise les frameworks classiques: *Spring Boot 3* et *JPA / Hibernate 6*.
+Nous avons ajouté https://hibernate.org/orm/envers/[*Hibernate Envers*] pour stocker les changements dans des tables d'audit.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+@Entity
+*@Audited*(withModifiedFlag = true)
+public class Product extends AbstractEntity<UUID> {
+    ...
+}
+----
+
+La façon d'enregistrer ces modifications est bien documentée, je n'y reviendrai pas.
+Pour ce projet, nous avons voulu ajouter une façon générique d'afficher l'historique des changements pour chaque instance d'entité.
+
+// <!--more-->
+
+== Query API d'Envers
+
+Envers a une API de requêtage qui permet d'interroger les tables d'audit sans se préoccuper de la façon dont les données sont stockées.
+Par exemple, pour avoir l'état d'une instance de l'entité `Document` à une certaine révision, on crée une _query_ à laquelle on passe l'identifiant et le numéro de révision.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+AuditQuery query = AuditReaderFactory.get(entityManager)
+        .createQuery()
+        .forEntitiesAtRevision(Customer.class, *revNumer*)
+        .add(AuditEntity.id().eq(*id*));
+Document document = (Document) query.getSingleResult();
+----
+
+L'API permet de faire pas mal de choses, plus ou moins complexes.
+La capacité qui nous intéresse c'est d'avoir une liste des révisions d'une instance d'entité, avec les changements qui ont été réalisés sur pour chaque révision.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+AuditQuery auditQuery = AuditReaderFactory.get(entityManager)
+        .createQuery()
+        .forRevisionsOfEntityWithChanges(entityClass, true)
+        .add(AuditEntity.id().eq(id))
+        .addOrder(AuditEntity.revisionNumber().desc());
+List<Object[]> list = auditQuery.getResultList();
+----
+
+La première chose qui saute aux yeux, c'est le faible niveau de typage.
+Pour l'entité simple, il a fallu transtyper le résultat et pour la liste des révisions, c'est pire puisque chaque ligne du résultat est un tableau d'objets avec:
+
+- à l'index 0, il y a l'entité, dans son état pour la révision,
+- à l'index 1, il y a la révision (l'entité, pas juste le n°)
+- à l'index 2, il y a le type de révision (ADD, MOD, DEL)
+- à l'index 3, il y a la liste des propriétés qui ont changé.
+
+
+== Amélioration simple
+
+La première amélioration qu'on a introduite a été de transformer ce tableau d'objets en _record_, pour avoir une structure lisible.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+public record RevisionWithEntity<T> (T data, Integer rev, RevisionType type,
+                                     Instant at, Set<String> changes) {
+    public RevisionWithEntity(T data,
+                              DefaultRevisionEntity revision,
+                              RevisionType type,
+                              Set<String> changes) {
+        this(data, revision.getId(), type,
+                revision.getRevisionDate().toInstant(), changes);
+    }
+
+    public RevisionWithEntity(Object[] line) {
+        this((T) line[0], (DefaultRevisionEntity) line[1], (RevisionType) line[2],
+                line.length > 3 ? (Set<String>) line[3] : Set.of());
+    }
+}
+----
+
+Évidemment, il n'y a pas de magie, on a toujours autant de transtypage.
+Mais avec ce _record_, c'est encapsulé dans le constructeur.
+Il ne reste plus qu'à ajouter ça après l'appel de l'API de _query_, et d'enpacqueter ça dans une méthode publique.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+public <E> List<RevisionWithEntity<E>> findHistoryById(Class<E> entityClass, Object id) {
+    AuditQuery auditQuery = AuditReaderFactory.get(entityManager)
+                .createQuery()
+                .forRevisionsOfEntityWithChanges(entityClass, true)
+                .add(AuditEntity.id().eq(id))
+                .addOrder(AuditEntity.revisionNumber().desc());
+
+    List<Object[]> list = auditQuery.getResultList();
+    Stream<RevisionWithEntity<E>> revisionWithEntityStream = list.stream()
+                .map(RevisionWithEntity::new);
+    return revisionWithEntityStream.toList();
+}
+----
+
+Cette petite amélioration permet de manipuler des variables typées.
+
+[.inline.center]
+--
+[.uml]
+* \<<component>> +
+HistoryRepository
+** + findHistoryById(entityClass: Class<E>, id: Object): List<RevisionWithEntity<E>>
+
+[.uml]
+* \<<record>> +
+RevisionWithEntity<T>
+** data: T
+** rev: Integer
+** type: RevisionType
+** at: Instant
+** changes: Set<String>
+--
+
+
+== Service d'historique
+
+Pour répondre au besoin, il faut travailler sur un service et des types plus spécifiques, qui permettent de stocker plus d'informations sur les différentes modifications.
+
+[.uml.center]
+* \<<component>> +
+*HistoryService*
+** + *getHistoryById(entityClass: Class<E>, id: K): List<HistoryDto<K>>*
+
+Le service retourne un DTO qui contient la liste des modifications.
+Celles-ci portent soit sur des champs (`fieldChanges`) soit sur des relations (`toManyRelationChanges`).
+
+[.uml.center]
+* \<<record>> +
+*HistoryDto<K>*
+** revNumber: Integer
+** id: K
+** modificationInstant: Instant
+** fieldChanges: Set<SimpleChange>
+** toManyRelationChanges: Set<RelationChange>
+
+Voyons maintenant comment construire ces ensembles de changements à partir de l'API d'Envers.
+
+
+== Champs et associations `@XxxToOne`
+
+Pour répondre au besoin, il faut travailler sur des types plus spécifiques, qui permettent de stocker plus d'informations sur les différentes modifications.
+
+Par exemple, pour chaque changement il nous faut les valeurs avant et après.
+C'est assez facile à faire pour des propriétés simples, c'est plus compliqué pour les relations de type `@XxxToMany`.
+
+Pour les champs simples, on introduit un nouveau _record_ `SimpleChange`.
+Il permet de gérer les champs simples (String, Long,...) mais aussi les associations `@XxxToOne` et assimilés.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+public record SimpleChange(String propertyName, Object oldValue, Object newValue) {
+}
+----
+
+Pour chaque révision, on construit une instance de `SimpleChange` par propriété modifiée.
+On y met le nom de la propriété modifiée, la valeur à la révision (`newValue`) et la valeur à la révision précédente (`oldValue`).
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+private <T extends AbstractEntity<?>> Set<SimpleChange> buildSimpleChanges(
+        RevisionWithEntity<T> revision, RevisionWithEntity<T> previousRevision) {
+    PropertyAccessor oldDataAccessor = buildPropertyAccessor(previousRevision);
+    PropertyAccessor newDataAccessor = buildPropertyAccessor(revision);
+    Set<String> changeNames = revision.changes().stream()
+            .filter(not("class"::equals))
+            .collect(Collectors.toSet());
+    return changeNames.stream()
+            .filter(change -> !isRelationChange(change, newDataAccessor))
+            .map(change ->
+                    new SimpleChange(
+                            change,
+                            buildPropertyValue(change, oldDataAccessor),
+                            buildPropertyValue(change, newDataAccessor))
+            )
+            .collect(Collectors.toSet());
+}
+----
+
+Pour les relations `@XxxToOne`, on aurait pu passer l'objet relié, et laisser le front-end se débrouiller.
+Le risque serait d'envoyer trop d'informations en JSON.
+On aurait aussi pu passer un simple `toString()`, mais ce n'est pas son rôle.
+On préfère passer un résumé (`EntitySummary`), avec l'identifiant et un contenu personnalisé avec une fonction `historyDisplay()`.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+private Object buildPropertyValue(String propertyName, PropertyAccessor data) {
+    if (data == null) {
+        return null;
+    }
+    Object value = data.getPropertyValue(propertyName);
+    if (value instanceof AbstractEntity<?> entity) {
+        return EntitySummary.fromEntity(entity);
+    } else {
+        return value;
+    }
+}
+----
+
+Ça c'est la partie simple, voyons maintenant les relations plus complexes.
+
+[.inline.center]
+--
+[.uml]
+* \<<component>> +
+HistoryService
+** + getHistoryById(entityClass: Class<E>, id: K): List<HistoryDto<K>>
+** - *buildSimpleChanges( +
+{nbsp} {nbsp} {nbsp} {nbsp} revision: RevisionWithEntity<T>, +
+{nbsp} {nbsp} {nbsp} {nbsp} previousRevision: RevisionWithEntity<T>)*: List<SimpleChange>
+** - *buildFieldValue(data: PropertyAccessor, change: String)*: Object
+
+[.uml]
+* \<<record>> +
+SimpleChange
+** fieldName: String
+** oldValue: Object
+** newValue: Object
+--
+
+
+== Associations `@XxxToMany`
+
+On considère que pour une relation `@XxxToMany` on a une collection et que les changements peuvent être de deux types: ajout ou suppression.
+Pour les relations ordonnées, on a un troisième type de changement: réordonnancement.
+
+Comme pour les changements simples, on crée un _record_ pour manipuler les informations.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+public record RelationChange<K>(
+        @JsonIgnore AbstractEntity<K> entity, String change, String type) {
+    public EntitySummary<K> getElement() {
+        return EntitySummary.fromEntity(entity);
+    }
+}
+----
+
+Ça commence de la même façon que pour les changements simple et la partie complexe est isolée dans la méthode `buildToManyRelationChangesStream(...)`.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+private <T extends AbstractEntity<?>> Set<RelationChange> buildToManyRelationChanges(
+        RevisionWithEntity<T> revision, RevisionWithEntity<T> previousRevision) {
+    PropertyAccessor oldDataAccessor = buildPropertyAccessor(previousRevision);
+    PropertyAccessor newDataAccessor = buildPropertyAccessor(revision);
+    return revision.changes().stream()
+            .filter(change -> isRelationChange(change, newDataAccessor))
+            .flatMap(change -> buildToManyRelationChangesStream(
+                                        newDataAccessor, oldDataAccessor, change))
+            .collect(Collectors.toSet());
+}
+----
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+private Stream<RelationChange> buildToManyRelationChangesStream(
+            PropertyAccessor newDataAccessor, PropertyAccessor oldDataAccessor, String change) {
+    TypeDescriptor changeDescriptor = newData.getPropertyTypeDescriptor(change);
+    if (changeDescriptor == null) {
+        return Stream.empty();
+    }
+
+    Collection<?> oldCollectionValue = 
+        (Collection<?>) buildPropertyValue(change, oldDataAccessor);
+    Collection<?> newCollectionValue = 
+        (Collection<?>) buildPropertyValue(change, newDataAccessor);
+
+    // 1st type of change: REMOVED
+    List<?> removed = oldCollectionValue.stream()
+            .filter(element -> !newCollectionValue.contains(element))
+            .toList();
+    Stream<RelationChange> removeChanges = removed.stream()
+            .map(AbstractEntity.class::cast)
+            .map(element -> buildRelationChange(element, change, REMOVED));
+
+    // 2nd type of change: ADDED
+    List<?> added = newCollectionValue.stream()
+            .filter(element -> !oldCollectionValue.contains(element))
+            .toList();
+    Stream<RelationChange> addChanges = added.stream()
+            .map(AbstractEntity.class::cast)
+            .map(element -> buildRelationChange(element, change, ADDED));
+
+    // 3nd type of change: REORDERED, only for ordered relations
+    if (changeDescriptor.hasAnnotation(OrderBy.class)) {
+        List<?> oldOrderedList = new ArrayList<>(oldCollectionValue);
+        oldOrderedList.removeAll(removedEntities);
+        List<?> newOrderedList = new ArrayList<>(newCollectionValue);
+        newOrderedList.removeAll(addedEntities);
+
+        Stream<RelationChange> reordered = IntStream.range(0, oldOrderedList.size())
+                .filter(i -> !oldOrderedList.get(i).equals(newOrderedList.get(i)))
+                .mapToObj(oldOrderedList::get)
+                .map(AbstractEntity.class::cast)
+                .map(element -> buildRelationChange(element, change, REORDERED));
+        return Stream.concat(Stream.concat(removeChanges, addChanges), reordered);
+    } else {
+        return Stream.concat(removeChanges, addChanges);
+    }
+}
+
+private RelationChange buildRelationChange(
+            AbstractEntity<?> element, String change, RelationRevisionType type) {
+    return new RelationChange(type, change, element);
+}
+----
+
+[.inline.center]
+--
+[.uml]
+* \<<component>> +
+HistoryService
+** + getHistoryById(entityClass: Class<E>, id: K): List<HistoryDto>
+** - buildSimpleChanges( +
+{nbsp} {nbsp} {nbsp} {nbsp} revision: RevisionWithEntity<T>, +
+{nbsp} {nbsp} {nbsp} {nbsp} previousRevision: RevisionWithEntity<T>): List<SimpleChange>
+** - buildFieldValue(data: PropertyAccessor, change: String): Object
+** - *buildToManyRelationChanges( +
+{nbsp} {nbsp} {nbsp} {nbsp} revision: RevisionWithEntity<T>,  +
+{nbsp} {nbsp} {nbsp} {nbsp} previousRevision: RevisionWithEntity<T>)*: List<RelationChange>
+** - *buildToManyRelationChangesStream( +
+{nbsp} {nbsp} {nbsp} {nbsp} newData: PropertyAccessor,  +
+{nbsp} {nbsp} {nbsp} {nbsp} oldData: PropertyAccessor ,  +
+{nbsp} {nbsp} {nbsp} {nbsp} change: String)*: Stream<RelationChange>
+** - *buildRelationChange( +
+{nbsp} {nbsp} {nbsp} {nbsp} element: AbstractEntity<?>,  +
+{nbsp} {nbsp} {nbsp} {nbsp} change: String,  +
+{nbsp} {nbsp} {nbsp} {nbsp} type: RelationRevisionType)*: RelationChange
+
+[.uml]
+* \<<record>> +
+RelationChange
+** type: RelationRevisionType
+** fieldName: String
+** entity: AbstractEntity<?>
+--
+
+
+== Assemblage
+
+Voilà.
+Il ne reste plus qu'à assembler tout ça en implémentant la méthode publique `getHistoryById(...)` d'``HistoryService``.
+
+Pour chaque révision trouvée par Envers, nous détectons si elle
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+public <E extends AbstractEntity<K>, K> List<HistoryDto> getHistoryById(
+            Class<E> entityClass, K id) {
+    List<RevisionWithEntity<T>> revisions = repository.findHistoryById(entityClass, id);
+    return revisions.stream()
+            .map((RevisionWithEntity<T> revision) -> {
+                RevisionWithEntity<T> previousRevision = revisions.stream()
+                        .filter(element -> element.rev() < revision.rev())
+                        .findFirst()
+                        .orElse(null);
+                return new HistoryDto(
+                        revision.rev(),
+                        revision.type(),
+                        revision.data().getId(),
+                        revision.at(),
+                        revision.author(),
+                        *buildSimpleChanges*(revision, previousRevision),
+                        *buildToManyRelationChanges*(revision, previousRevision));
+            })
+            .toList();
+}
+----
+
+[.uml.center]
+* \<<component>> +
+*HistoryService*
+** + *getHistoryById(entityClass: Class<E>, id: K): List<HistoryDto>*
+** - buildSimpleChanges( +
+{nbsp} {nbsp} {nbsp} {nbsp} revision: RevisionWithEntity<T>, +
+{nbsp} {nbsp} {nbsp} {nbsp} previousRevision: RevisionWithEntity<T>): List<SimpleChange>
+** - buildFieldValue(data: PropertyAccessor, change: String): Object
+** - buildToManyRelationChanges( +
+{nbsp} {nbsp} {nbsp} {nbsp} revision: RevisionWithEntity<T>,  +
+{nbsp} {nbsp} {nbsp} {nbsp} previousRevision: RevisionWithEntity<T>): List<RelationChange>
+** - buildToManyRelationChangesStream( +
+{nbsp} {nbsp} {nbsp} {nbsp} newData: PropertyAccessor,  +
+{nbsp} {nbsp} {nbsp} {nbsp} oldData: PropertyAccessor ,  +
+{nbsp} {nbsp} {nbsp} {nbsp} change: String): Stream<RelationChange>
+** - buildRelationChange( +
+{nbsp} {nbsp} {nbsp} {nbsp} element: AbstractEntity<?>,  +
+{nbsp} {nbsp} {nbsp} {nbsp} change: String,  +
+{nbsp} {nbsp} {nbsp} {nbsp} type: RelationRevisionType): RelationChange
+
+
+== Endpoint
+
+Pour finir, il reste à utiliser le service qu'on vient de concevoir dans des endpoints.
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+@RestController
+@RequestMapping("/document")
+public class DocumentController {
+    ...
+
+    @GetMapping("/{id}/history")
+    public List<HistoryDto> getHistory(@PathVariable UUID id) {
+        return *historyService.getHistory(Document.class, id)*;
+    }
+}
+----
+
+Après avoir créé un document, puis fait quelques modifications, on obtient l'historique suivant:
+
+[source.margin-top-0.width-80, subs="verbatim,quotes"]
+----
+~$ curl -sw "\n" http://localhost:8080/api/product/1/history | jq
+[
+  {
+    "revNumber": 3,
+    "id": 1,
+    "type": "MOD",
+    "at": "2024-09-09T21:24:49.375Z",
+    "toManyRelationChanges": [
+      {
+        "change": "tags",
+        "type": "REORDERED",
+        "element": {
+          "id": 3,
+          "description": "Tag#3",
+          "clazz": "info.jtips.spring.model.Tag"
+        }
+      },
+      {
+        "change": "tags",
+        "type": "REORDERED",
+        "element": {
+          "id": 5,
+          "description": "Tag#5",
+          "clazz": "info.jtips.spring.model.Tag"
+        }
+      }
+    ]
+  },
+  {
+    "revNumber": 2,
+    "id": 1,
+    "type": "MOD",
+    "at": "2024-09-09T21:24:49.364Z",
+    "fieldChanges": [
+      {
+        "fieldName": "title",
+        "oldValue": "Product#1",
+        "newValue": "Product#1bis"
+      },
+      {
+        "fieldName": "category",
+        "oldValue": {
+          "id": 1,
+          "description": "Category#1",
+          "clazz": "info.jtips.spring.model.Category"
+        },
+        "newValue": {
+          "id": 2,
+          "description": "Category#2",
+          "clazz": "info.jtips.spring.model.Category"
+        }
+      }
+    ],
+    "toManyRelationChanges": [
+      {
+        "change": "tags",
+        "type": "REMOVED",
+        "element": {
+          "id": 2,
+          "description": "Tag#2",
+          "clazz": "info.jtips.spring.model.Tag"
+        }
+      },
+      {
+        "change": "tags",
+        "type": "ADDED",
+        "element": {
+          "id": 5,
+          "description": "Tag#5",
+          "clazz": "info.jtips.spring.model.Tag"
+        }
+      }
+    ]
+  },
+  {
+    "revNumber": 1,
+    "id": 1,
+    "type": "ADD",
+    "at": "2024-09-09T21:24:49.321Z"
+  }
+]
+----
+
+== Conclusion
+
+Pour être tout à fait honnête, j'ai simplifié quelques passages pour rendre le billet plus lisible.
+Par exemple, on a dû gérer quelques cas particuliers pour les relations, et on a dû gérer des erreurs en particulier pour les relations avec des entités revisées de façon conditionnelle.
+Et dans notre application on fait du _soft delete_ ainsi que de la pagination, que j'ai exclus ici.
+
+Par ailleurs, on n'utilise qu'une partie des possibilités des relations de JPA et Hibernate.
+Il y a certainement des ajustements à prévoir.
+
+Enfin, la solution utilise une structure d'entité qui n'est pas universelle, avec l'héritage de `AbstractEntity`.
+C'est suffisant pour notre projet, mais peut-être pas dans un autre contexte.
+
+[.uml.center.margin-top-0]
+* AbstractEntity<K>
+** id: K
+** historyDisplay(): Supplier<String>
+
+Le code utilisé dans les exemples est consultable et exécutable sur le https://gitlab.com/jtips/jtips-examples/-/tree/main/spring-boot-example[compte GitLab de JTips].
