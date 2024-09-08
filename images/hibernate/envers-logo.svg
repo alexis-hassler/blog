@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="555.84113"
+   height="125.19102"
+   viewBox="0 0 555.84113 125.19102"
+   enable-background="new 0 0 600 160"
+   xml:space="preserve"
+   sodipodi:docname="hibernate-logo.svg"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs10" /><sodipodi:namedview
+   id="namedview10"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:zoom="1.9866667"
+   inkscape:cx="272.31544"
+   inkscape:cy="55.620805"
+   inkscape:window-width="1920"
+   inkscape:window-height="1131"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="g10" />
+<g
+   id="g10"
+   transform="translate(-27.836,-24.102743)">
+	<g
+   id="g4">
+		<polygon
+   fill="#59666c"
+   points="45.366,99.143 27.836,68.722 45.373,38.347 62.911,68.722 45.366,99.143 "
+   id="polygon1" />
+		<polygon
+   fill="#bcae79"
+   points="62.921,68.723 98.005,68.722 80.458,38.348 45.383,38.348 "
+   id="polygon2" />
+		<polygon
+   fill="#59666c"
+   points="97.993,68.736 115.523,99.157 97.986,129.532 80.449,99.157 97.993,68.736 "
+   id="polygon3" />
+		<polygon
+   fill="#bcae79"
+   points="80.438,99.154 45.354,99.157 62.901,129.529 97.977,129.529 "
+   id="polygon4" />
+	</g>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+<text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80.9488px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Normal';font-variant-ligatures:no-common-ligatures;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#474747;stroke:#000000;stroke-width:1.01186"
+   x="352.44327"
+   y="83.917595"
+   id="text10"
+   transform="scale(1.0120661,0.98807775)"><tspan
+     sodipodi:role="line"
+     id="tspan10"
+     x="352.44327"
+     y="83.917595"
+     style="stroke-width:1.01186"><tspan
+       style="fill:#59666c;fill-opacity:1;stroke:#59666c;stroke-width:1.01186;stroke-opacity:1"
+       id="tspan11">HIBER</tspan><tspan
+       style="fill:#bcae79;fill-opacity:1;stroke:#bcae79;stroke-width:1.01186;stroke-opacity:1"
+       id="tspan12">NATE</tspan></tspan></text><text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80.9488px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Normal';font-variant-ligatures:no-common-ligatures;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#474747;stroke:#000000;stroke-width:1.01186"
+   x="366.96429"
+   y="149.43687"
+   id="text10-3"
+   transform="scale(1.0120661,0.98807775)"><tspan
+     sodipodi:role="line"
+     id="tspan10-0"
+     x="366.96429"
+     y="149.43687"
+     style="stroke-width:1.01186"><tspan
+       style="fill:#59666c;fill-opacity:1;stroke:#59666c;stroke-width:1.01186;stroke-opacity:1"
+       id="tspan11-4">ENV</tspan><tspan
+       style="fill:#bcae79;fill-opacity:1;stroke:#bcae79;stroke-width:1.01186;stroke-opacity:1"
+       id="tspan12-4">ERS</tspan></tspan></text></g>
+</svg>
