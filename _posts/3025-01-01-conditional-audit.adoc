@@ -1,0 +1,36 @@
+---
+layout: post
+title: Audit conditionnel avec Envers
+author: Alexis Hassler
+courses:
+- hibernate
+tags: hibernate
+---
+
+On historise toutes les modifications sur les entités grâce à Hibernate Envers.
+Puis on affiche l'historique. (autre article)
+
+Dans notre application, on a une entité, Document, qui a 2 états: WIP et RELEASED.
+
+On n'a pas envie de conserver un historique des modifications dans l'état WIP. 
+Seule les modifications en RELEASED sont pertinentes.
+
+On avait deux possibilités pour répondre à ça.
+La première était de le prendre en compte au GET, en ne retournant que les modifications en RELEASED.
+La seconde était de ne pas enregistrer les modifications en WIP.
+C'est cette option qu'on a choisi d'explorer.
+
+== Conditional auditing
+
+Voyons comment faire pour ignorer ces modifications
+
+== Problème de cohérence
+
+les colonnes mod sont HS parce que basées sur les événements d'Hibernate.
+
+== Problème de relation
+
+EntityNotFoundException
+
+== Conclusion
+
