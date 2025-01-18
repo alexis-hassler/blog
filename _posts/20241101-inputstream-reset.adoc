@@ -1,0 +1,89 @@
+---
+layout: post
+title: Mark and reset dans un InputStream
+author: Alexis Hassler
+---
+
+La façon normale d'utiliser un InputStream est 
+
+* ouvrir,
+* parcourir,
+* fermer.
+
+J'ai redécouvert les méthodes `mark(...)` et `reset()` qui permettent de casser le coté linéaire du parcours.
+
+L'idée c'est de marquer un endroit dans le stream pour y revenir plus tard.
+Pratique pour éviter de rouvrir plusieurs streams identiques.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+ByteArrayInputStream input = new ByteArrayInputStream("Hello World".getBytes());
+
+byte[] buffer = new byte[6];
+input.read(buffer, 0, buffer.length);
+System.out.println(new String(buffer));
+// Hello
+
+input.read(buffer, 0, buffer.length);
+System.out.println(new String(buffer));
+// World
+----
+
+[source.width-80, subs="verbatim,quotes"]
+----
+ByteArrayInputStream input = new ByteArrayInputStream("Hello World".getBytes());
+
+input.mark(1024);
+byte[] buffer = new byte[6];
+input.read(buffer, 0, buffer.length);
+System.out.println(new String(buffer));
+// Hello
+
+input.reset();
+input.read(buffer, 0, buffer.length);
+System.out.println(new String(buffer));
+// Hello
+----
+
+Par contre, il y a des limitations qu'on ne voit pas avec un `ByteArrayInputStream`.
+
+== Read limit
+
+La première est liée au paramètre passé à la méthode mark().
+C'est un readlimit.
+Quand le nombre d'octets lus dépasse cette limite, la marque devient caduque et est ignorée, comme si on n'avait pas appelé mark()..
+
+Dans notre exemple, j'aurais pu mettre n'importe quelle valeur car ByteArrayInputStream l'ignore.
+
+== Reset sans mark
+
+IOException
+
+Idem si on dépasse la read limit
+
+== Flux marquable
+
+Tous les flux ne supportent pas cette fonctionnalité.
+On peut tester le support avec la méthode `markSupported()`.
+
+`ByteArrayInputStream` le supporte, de même que `BufferedInputStream`.
+Les streams simples comme FileInputStream ne le supportent pas.
+
+== ByteArrayInputStream
+
+Comme on l'a vu dans l'exemple, ByteArrayInputStream supporte le mécanisme de mark et reset sans limitation.
+Il ignore même la limitation de lecture standard.
+
+== BufferedInputStream
+
+Là c'est un peu plus compliqué.
+
+Rappel du fonctionnement d'un BufferedInputStream: il décore un autre InputStream pour lire le contenu par paquets d'octets.
+La taille du buffer est choisi à l'instantiation, ou est fixée à 8 ko (valeur par défaut).
+
+[source.width-80, subs="verbatim,quotes"]
+----
+InputStream fileInput = new FileInputStream("file.bin")
+BufferedInputStream input = new BufferedInputStream(fileInput);
+
+----
