@@ -9,7 +9,7 @@ courses:
 - java-jdk8
 ---
 
-La classe link:http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html[CompletableFuture] fait partie des nouveautés de Java 8, dans le package java.util.concurrent. Dans un premier temps, je n'y ai pas beaucoup prêté attention, parce que j'avais assez à faire pour prendre en main les lambdas et l'API Stream, et aussi parce que je trouvais sa javadoc assez confuse. 
+La classe link:https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html[CompletableFuture] fait partie des nouveautés de Java 8, dans le package `java.util.concurrent`. Dans un premier temps, je n'y ai pas beaucoup prêté attention, parce que j'avais assez à faire pour prendre en main les lambdas et l'API Stream, et aussi parce que je trouvais sa javadoc assez confuse. 
 
 Récemment, je suis tombé sur link:https://nurkiewicz.com/[NoBlogDefFound] où Tomasz Nurkiewicz explique plein de choses sur les classes de concurrence de Java SE. Plusieurs articles traitent de CompletableFuture et ça m'a bien éclairé sur le sujet. 
 Je vais essayer de résumer ce que j'en ai compris et ce qui m'a plu. 
@@ -17,7 +17,7 @@ Je vais essayer de résumer ce que j'en ai compris et ce qui m'a plu.
 
 == Future
 
-Tout d'abord, CompletableFuture implémente link:http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html[Future], ce qui signifie qu'on peut l'utiliser pour lancer une tâche et récupérer un résultat plus tard avec la méthode get(). 
+Tout d'abord, CompletableFuture implémente link:https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html[Future], ce qui signifie qu'on peut l'utiliser pour lancer une tâche et récupérer un résultat plus tard avec la méthode get(). 
 
 == CompletableFuture vide
 
@@ -93,7 +93,7 @@ A la place, on a une méthode supplyAsync(Supplier<U> supplier), ce qui revient 
 
 == CompletionStage
 
-Le principal intérêt de CompletableFuture, c'est qu'on peut facilement enchainer les tâches. Ce sont les méthodes définies dans l'interface link:http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html[CompletionStage] qui permettent ça. 
+Le principal intérêt de CompletableFuture, c'est qu'on peut facilement enchainer les tâches. Ce sont les méthodes définies dans l'interface link:https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html[CompletionStage] qui permettent ça. 
 C'est sympa, ça ressemble à la programmation avec les streams, ou avec un Optional, à la différence prêt qu'ici on est en mode asynchrone. 
 
 *thenApply* applique une fonction et renvoie un nouveau CompletableFuture, avec un nouveau type de valeur. 
@@ -174,7 +174,7 @@ Il y a beaucoup de choses pour une seule classe (7 méthodes statiques, un cinqu
 
 Je ne vois toujours pas très bien l'intérêt d'avoir au même endroit l'aspect _complete_ et le coté _reactive-like_, d'autant que le nom insiste sur la première fonctionnalité qui ne me semble pas la plus importante. 
 Est-ce que ça n'aurait pas pu être dans des classes, ou au moins des interfaces, différentes ? 
-Guava a bien fait une distinction entre link:http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/util/concurrent/ListenableFuture.html[ListenableFuture] et link:http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/util/concurrent/SettableFuture.html[SettableFuture].  
+Guava a bien fait une distinction entre link:https://guava.dev/releases/18.0/api/docs/com/google/common/util/concurrent/ListenableFuture.html[ListenableFuture] et link:https://guava.dev/releases/18.0/api/docs/com/google/common/util/concurrent/SettableFuture.html[SettableFuture].  
 
 Et puis, l'API n'est pas très cohérente. 
 Par exemple, *getNow* ne renvoie pas les mêmes exceptions que *get,* mais les mêmes que *join*. 
@@ -184,7 +184,7 @@ Et du piège tendu par la méthode link:https://nurkiewicz.com/2015/03/completab
 
 Malgré tout, *CompletableFuture* est bien plus intéressante que je ne pensais au départ, à condition de connaitre et savoir utiliser les expressions lambda pour l'exploiter correctement. 
 Avec ça, notre code peut prendre des allures _Reactive_. 
-D'ailleurs, on peut trouver quelques similitudes avec la classe link:http://reactivex.io/documentation/observable.html[Observable] de link:https://github.com/ReactiveX/RxJava/[RxJava]. 
-Pour la peine, je vais ajouter un paragraphe sur le sujet dans ma toute nouvelle formation "link:http://www.sewatech.fr/formation-java-threads.html[Programmation parallèle et concurrente en Java]".
+D'ailleurs, on peut trouver quelques similitudes avec la classe link:https://reactivex.io/documentation/observable.html[Observable] de link:https://github.com/ReactiveX/RxJava/[RxJava]. 
+Pour la peine, je vais ajouter un paragraphe sur le sujet dans ma toute nouvelle formation "link:https://www.sewatech.fr/formation-java-threads.html[Programmation parallèle et concurrente en Java]".
 
 Je l'ai déjà signalé en introduction, Tomasz Nurkiewicz dit des choses bien plus intéressantes et plus approfondies, alors n'hésitez pas à consulter les link:https://nurkiewicz.com/[articles originaux].

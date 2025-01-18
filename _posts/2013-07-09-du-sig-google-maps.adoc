@@ -24,23 +24,23 @@ image::/images/misc/Departements_LambertCC9Zones.svg[, 200, 186, role="right"]
 Le SIG utilise le système de coordonnées Lambert 93. 
 Ce système est loin d'être exotique puisque c'est le système de référence en France depuis 2006. 
 Ça ne devrait donc pas être trop difficile de trouver une librairie qui sache faire les conversions. 
-Au passage, lorsqu'on voit les link:http://fr.wikipedia.org/wiki/Projection_conique_conforme_de_Lambert[formules], 
+Au passage, lorsqu'on voit les link:https://fr.wikipedia.org/wiki/Projection_conique_conforme_de_Lambert[formules], 
 on s'oriente forcément vers une librairie qui fasse le boulot pour nous.
 
 A partir de là, pas facile de demander à Google de me trouver ce dont j'ai besoin, 
 parce que mon vocabulaire dans le domaine est trop limité et qu'il y a un nombre considérable de systèmes de coordonnées dans le monde. 
 Twitter est alors le meilleur endroit pour demander de l'aide. 
-La première réponse vient de link:http://twitter.com/fnicollet[Fabien Nicollet] :
+La première réponse vient de link:https://bsky.app/profile/fnicollet.bsky.social[Fabien Nicollet] :
 
 [quote, Fabien Nicollet (@fnicollet)]
 ____
-link:https://twitter.com/k33g_org[@k33g_org] link:https://twitter.com/AlexisHassler[@AlexisHassler] salut, le standard c'est proj4J http://t.co/sy7Kd8aabh, si tu veux juste faire des transfo de coordonnées
+link:https://bsky.app/profile/k33gorg.bsky.social[@k33g_org] @AlexisHassler salut, le standard c'est proj4J, si tu veux juste faire des transfo de coordonnées
 ____
 
-J'ai eu d'autres réponse intéressantes de link:http://twitter.com/vheurteaux[V. Heurteaux] et de link:http://twitter.com/Xtof_Franco[Christophe Franco], que je garde en réserve si la première solution ne convient pas.
+J'ai eu d'autres réponse intéressantes de link:https://bsky.app/profile/vheurteaux.bsky.social[V. Heurteaux] et de Christophe Franco, que je garde en réserve si la première solution ne convient pas.
 
-Donc cap sur link:http://trac.osgeo.org/proj4j/[Proj4J]. 
-C'est le portage (partiel) en Java de la vraie référence du domaine, link:http://trac.osgeo.org/proj/[PROJ.4]. 
+Donc cap sur link:https://trac.osgeo.org/proj4j/[Proj4J]. 
+C'est le portage (partiel) en Java de la vraie référence du domaine, link:https://www.osgeo.org/projects/proj/[PROJ.4]. 
 Ça c'est pour la partie rassurante, parce qu'il y a plusieurs points plus inquiétants :
 
 === _Pas d'artefact dans les repositories Maven classiques, pas de binaire à télécharger_
@@ -107,12 +107,12 @@ A ce sujet, un grand merci à ceux qui m'ont orienté vers les solutions pertina
 
 == Vérification des coordonnées
 
-Pour vérifier les coordonnées obtenues et construire un jeu de données de test, le client nous a orienté vers un link:http://www.telegonos.fr/convertir-sans-carte[outil en ligne]. 
+Pour vérifier les coordonnées obtenues et construire un jeu de données de test, le client nous a orienté vers un link:https://www.telegonos.fr/convertir-sans-carte[outil en ligne]. 
 Les résultats concordent à six chiffres après la virgule.
 
 == Génération de la carte
 
 Pour la dernière étape de validation, on veut présenter les points sur Google Maps. 
 Plutôt que d'utiliser l'API, ça nous semblait plus pratique de générer un fichier KML contenant les points qui doivent être affichés sur la carte. 
-En l'occurrence, on a généré un fichier compressé, KMZ. Pour ça aussi, il y a une librairie, link:https://github.com/micromata/javaapiforkml[JAK], ou Java API for KML. 
+En l'occurrence, on a généré un fichier compressé, KMZ. Pour ça aussi, il y a une librairie, link:https://github.com/urbancamo/javaapiforkml[JAK], ou Java API for KML. 
 Mais ça c'est pour le link:/2013/07/11/generer-kml.html[prochain billet]...

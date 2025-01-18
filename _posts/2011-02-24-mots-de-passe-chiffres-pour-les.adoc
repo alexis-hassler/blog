@@ -23,7 +23,7 @@ Parmi les paramètres de connexion, on trouve le nom d'utilisateur et le mot de 
 
 Évidemment, ce mot de passe en clair n'est pas la panacée et déclenchera une levée de bouclier au prochain audit de sécurité.
 
-Il existe plusieurs link:http://community.jboss.org/wiki/encryptingdatasourcepasswords[techniques pour chiffrer le mot de passe]. 
+Il existe plusieurs link:https://developer.jboss.org/docs/DOC-9703[techniques pour chiffrer le mot de passe]. 
 Je vais parler ici de la technique du SecureIdentityLoginModule, qui, si elle n'est pas la plus sécurisée, est simple et rapide à mettre en place. 
 Si je veux en parler ici, c'est que malgré sa simplicité, je suis tombé récemment dans un vilain piège.
 //<!--more-->

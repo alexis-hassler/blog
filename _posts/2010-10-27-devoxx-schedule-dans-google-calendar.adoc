@@ -9,7 +9,7 @@ tags:
 - Jersey
 ---
 
-Les organisateurs de la link:http://www.devoxx.com[conférence Devoxx 2010] ont mis à disposition le planning par une interface REST. 
+Les organisateurs de la link:https://www.devoxx.be[conférence Devoxx 2010] ont mis à disposition le planning par une interface REST. 
 Plusieurs clients ont été développés, en particulier pour des mobiles. 
 A titre personnel, je n'ai ni iPhone ni Android, le plus pratique était donc d'avoir le planning complet dans Google Calendar. 
 J'ai donc décidé de développer un petit programme, en ligne de commande qui lit le planning via l'API REST et qui génère un link:https://www.google.com/calendar[agenda Google].
@@ -34,7 +34,7 @@ Pour développer le client REST, j'ai choisi d'utiliser Jersey avec Jackson.
 ----
 
 La première étape est de développer les classes de données, en s'inspirant du contenu JSON fourni par Devoxx. 
-Par exemple, à partir de la requête "GET \http://cfp.devoxx.com/rest/v1/events/1/schedule", j'ai développé une classe ScheduleItem qui ressemble à ça :
+Par exemple, à partir de la requête `GET \http://cfp.devoxx.com/rest/v1/events/1/schedule`, j'ai développé une classe `ScheduleItem` qui ressemble à ça :
 
 [source, subs="verbatim,quotes"]
 ----
@@ -58,7 +58,7 @@ public final class ScheduleItem {
 }
 ----
 
-L'annotation @JsonDeserialize sert à récupérer les dates qui ne sont pas dans un format naturellement compris par Jackson et @JsonIgnoreProperties apporte une souplesse lorsque la réponse JSON ne correspond pas précisément à la structure de la classe.
+L'annotation `@JsonDeserialize` sert à récupérer les dates qui ne sont pas dans un format naturellement compris par Jackson et `@JsonIgnoreProperties` apporte une souplesse lorsque la réponse JSON ne correspond pas précisément à la structure de la classe.
 
 Le deuxième étape est de développer la méthode qui permet d'envoyer les requêtes GET et de récupérer des objets Java :
 
@@ -81,7 +81,7 @@ Le reste est de l'assemblage : charger les différentes entités, reconstituer l
 == Client GCal
 
 Les choses se présentent moins simplement du coté des API Google. 
-En gros, j'ai le choix entre la link:http://code.google.com/intl/fr/apis/calendar/[Google Calendar API] et le link:http://code.google.com/p/google-api-java-client/[Google API Client]. 
+En gros, j'ai le choix entre la link:https://web.archive.org/web/20100208224544/http://code.google.com/intl/fr/apis/calendar/[Google Calendar API] et le link:https://github.com/googleapis/google-api-java-client[Google API Client]. 
 Les deux librairies utilisent le protocole de communication Atom, la seconde pouvant aussi utiliser REST / JSON. 
 
 Dans un premier temps, je me suis lancé avec Google API Client qui est disponible dans les repositories publiques de Maven et qui semble plus souple. 
@@ -160,10 +160,3 @@ Mon code source est disponible sur link:https://github.com/hasalex/Devoxx2GCal[G
 
 Il ne me reste plus qu'à préparer mon programme pour les 5 jours de Devoxx. 
 Et rendez-vous là-bas...
-
-[.center]
---
-++++
-<iframe src="https://www.google.com/calendar/embed?showTitle=0&amp;showTabs=0&amp;showCalendars=0&amp;showTz=0&amp;mode=DAY&amp;height=600&amp;wkst=2&amp;bgcolor=%23FFFFFF&amp;src=da542njvm5olm12dmhqdqd5v5c%40group.calendar.google.com&amp;color=%231B887A&amp;ctz=Europe%2FBrussels&dates=20101115%2F20101119" style=" border-width:0 " width="600" height="600" frameborder="0" scrolling="no"></iframe>
-++++
---

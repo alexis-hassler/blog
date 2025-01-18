@@ -10,7 +10,7 @@ courses:
 ---
 
 image::/images/wildfly/wildfly-logo.png[role="right"]
-Dans mon link:/2016/02/wildfly-managment-authentification-ldap.html[billet précédent], j'ai montré comment stocker les données d'authentification des administrateurs WildFly dans un annuaire LDAP. 
+Dans mon link:/2016/02/01/wildfly-managment-authentification-ldap.html[billet précédent], j'ai montré comment stocker les données d'authentification des administrateurs WildFly dans un annuaire LDAP. 
 La solution n'était pas complète car on ne gérais pas les autorisations. 
 
 Pour ça, il faut activer le mode *RBAC* et affecter les rôles d'administration aux utilisateurs enregistrés. 

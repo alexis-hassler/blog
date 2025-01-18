@@ -12,7 +12,7 @@ image::/images/network/loading.gif[Loading..., 140]
 
 En 2018, je présentais les https://prez.sewatech.fr/http2/[avantages du protocole HTTP/2] en terme de temps de chargement des pages Web.
 Ma première démo reprenait un classique : comparer le temps de chargment d'une image scindée entre HTTP/1 et HTTP/2.
-On la trouve par exemple sur le site d'https://http2.akamai.com/demo[Akamai].
+On le trouvait par exemple sur le site d'Akamai (page supprimée).
 
 Pour éviter le risque avec les accès réseaux, il fallait qu'elles soient en local alors que pour être visuelles, il faut de la latence.
 Pour résoudre cette contradiction, j'ai choisi d'utiliser des conteneurs Docker et d'ajouter volontairement de la latence au niveau du réseau virtuel.
@@ -118,5 +118,5 @@ Tout ce qui est décrit a été fait et testé sur un poste de travail **Ubuntu 
 
 J'ai utilisé les pages Web ci-dessous pour préparer mes démos et ce billet.
 
-* https://bencane.com/2012/07/16/tc-adding-simulated-network-latency-to-your-linux-server/[Adding simulated network latency to your Linux server] par Benjamin Cane
+* https://bencane.com/simulating-network-latency-for-testing-in-linux-environments-29daad98efcc[Simulating Network Latency for Testing in Linux Environments] par Benjamin Cane
 * https://wiki.linuxfoundation.org/networking/netem[netem] par The Linux Foundation

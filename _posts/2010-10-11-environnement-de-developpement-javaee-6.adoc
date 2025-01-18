@@ -34,7 +34,7 @@ Malgré l'installation des guest add-ons (menu Périphérique / Installer les ad
 
 La solution m'a été apportée par link:https://ludopoitou.com/[Ludovic Poitou]. 
 Le problème vient du fait que ma version de VirtualBox est antérieure à celle de Ubuntu. 
-Pour avoir des bons guest add-ons, il faut utiliser ceux des dépôts d'Ubuntu comme expliqué link:http://www.sysprobs.com/maverick-meerkat-ubuntu-1010-virtualbox-328-ubuntu-1010-guest-additions-fix[ici]. 
+Pour avoir des bons guest add-ons, il faut utiliser ceux des dépôts d'Ubuntu comme expliqué link:https://www.sysprobs.com/maverick-meerkat-ubuntu-1010-virtualbox-328-ubuntu-1010-guest-additions-fix[ici]. 
 
 L'autre solution aurait été d'attendre quelques heures… En effet, VirtualBox 3.2.10, qui est sortie quelques heures après mon installation, annonce le support d'Ubuntu 10.10. 
 Il est probable que je n'aurais pas eu les mêmes problèmes.
@@ -76,4 +76,4 @@ Je ne connais pas de moyen d'automatiser la suite.
 Une fois le système installé, il faut se sortir de synaptic ou apt-get. 
 L'installation de l'environnement se fait de la même façon que sous Windows ou sous MacOS : en téléchargeant puis en déroulant les écrans d'installation.
 
-Il ne me reste plus qu'à ouvrir le livre d'link:http://www.antoniogoncalves.org[Antonio Goncalves], complété de quelques exemples d'link:http://www.adam-bien.com/[Adam Bien] et à coder...
+Il ne me reste plus qu'à ouvrir le livre d'link:https://www.antoniogoncalves.org[Antonio Goncalves], complété de quelques exemples d'link:https://www.adam-bien.com/[Adam Bien] et à coder...

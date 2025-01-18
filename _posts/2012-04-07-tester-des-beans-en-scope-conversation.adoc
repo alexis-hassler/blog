@@ -11,7 +11,7 @@ tags:
 - Test
 ---
 
-Si link:http://arquillian.org/[Arquillian] est un outil fantastique pour tester des composants JavaEE 6, il n'en a pas moins quelques faiblesses ou défauts de jeunesse.
+Si link:https://arquillian.org/[Arquillian] est un outil fantastique pour tester des composants JavaEE 6, il n'en a pas moins quelques faiblesses ou défauts de jeunesse.
 Dans cette article, je veux vous présenter les difficultés que j'ai rencontrées pour tester des beans CDI, utilisés dans un contexte JSF, en portée Conversation.
 //<!--more-->
 
@@ -69,6 +69,6 @@ public void init() {
 ----
 
 Cette solution fonctionne avec les serveurs qui embarquent Weld 1.1 ; 
-elle est inspirée de l'article de JTips sur les link:http://www.jtips.info/index.php?title=WeldSE/Scopes[portées avec WeldSE] et d'link:http://anonsvn.jboss.org/repos/seam/examples/trunk/javaee-booking/src/test/java/org/jboss/seam/examples/booking/booking/BookingAgentTest.java[exemples de Seam].
+elle est inspirée de l'article de JTips sur les link:https://www.jtips.info/WeldSE/Scopes[portées avec WeldSE] et d'exemples de Seam.
 
-Si vous voulez essayer ce contournement, en discuter ou tout simplement découvrir Arquillian, je vous donne rendez-vous à Devoxx France, pour l'atelier link:http://devoxx.fr/display/FR12/Les+3+A+pour+Java+EE+6[Les 3 A pour Java EE 6].
+Si vous voulez essayer ce contournement, en discuter ou tout simplement découvrir Arquillian, je vous donne rendez-vous à Devoxx France, pour l'atelier link:https://web.archive.org/web/20120401104744/http://devoxx.fr/display/FR12/Les+3+A+pour+Java+EE+6[Les 3 A pour Java EE 6].

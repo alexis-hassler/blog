@@ -259,5 +259,5 @@ Sur la base d'un simple compteur, on arrive à mettre en lumière la notion de *
 
 * https://gitlab.com/bojoblog/rxjava-examples[Exemples de code]
 * https://github.com/ReactiveX/RxJava/wiki/Backpressure[RxJava wiki, Backpressure]
-* http://reactivex.io/RxJava/2.x/javadoc/io/reactivex/Flowable.html[RxJava 2 JavaDoc, Flowable]
-* http://reactivex.io/RxJava/3.x/javadoc/io/reactivex/rxjava3/core/Flowable.html[RxJava 3 JavaDoc, Flowable]
+* https://reactivex.io/RxJava/2.x/javadoc/io/reactivex/Flowable.html[RxJava 2 JavaDoc, Flowable]
+* https://reactivex.io/RxJava/3.x/javadoc/io/reactivex/rxjava3/core/Flowable.html[RxJava 3 JavaDoc, Flowable]

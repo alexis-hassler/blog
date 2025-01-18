@@ -8,7 +8,7 @@ tags:
 - Devoxx
 ---
 
-Ces derniers jours, j'ai publié des billets sur mes journées à Devoxx France 2014 : link:/2014/04/devoxx-france-2014-universites-et.html[universités / ateliers], link:/2014/04/devoxx-france-2014-keynotes.html[keynotes] et link:/2014/04/devoxx-france-2014-conferences.html[conférences]. 
+Ces derniers jours, j'ai publié des billets sur mes journées à Devoxx France 2014 : link:/2014/04/20/devoxx-france-2014-universites-et.html[universités / ateliers], link:/2014/04/21/devoxx-france-2014-keynotes.html[keynotes] et link:/2014/04/22/devoxx-france-2014-conferences.html[conférences].
 Mais à Devoxx France, il n'y a pas que les sessions, il y a aussi des choses à coté.
 
 image::/images/devoxx/couleur-biere.jpg[, 320, 132, role="center"]
@@ -17,7 +17,7 @@ image::/images/devoxx/couleur-biere.jpg[, 320, 132, role="center"]
 Le jeudi soir, c'est la soirée vins et fromages. 
 Je passerai vite sur ce sujet, parce que je n'ai pas vu beaucoup de fromage, et sans pain ça perd de son charme. 
 Tout ça parce que j'ai participé aux BOFs. 
-J'ai été obligé (par link:https://twitter.com/Antoine_SD[Antoine Sabot-Durand]) d'assister à la BOF Java EE, mais j'ai passé un bon moment. 
+J'ai été obligé (par link:https://bsky.app/profile/antoine.sabot-durand.net[Antoine Sabot-Durand]) d'assister à la BOF Java EE, mais j'ai passé un bon moment. 
 Les discussions étaient intéressantes, dans une ambiance détendue. 
 J'ai fini par le BoF des JUGs qui comme chaque année ne sert à rien, mais permet de discuter avec des gens que j'aime beaucoup.
 

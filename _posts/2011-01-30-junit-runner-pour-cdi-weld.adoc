@@ -8,7 +8,7 @@ tags:
 - jUnit
 ---
 
-Dans mon link:http://blog.alexis-hassler.com/2011/01/junit-runner-pour-cdi-weld.html[billet précédent], j'ai proposé d'utiliser un _Rule_ pour tester des composants CDI. 
+Dans mon link:/2011/01/30/junit-runner-pour-cdi-weld.html[billet précédent], j'ai proposé d'utiliser un _Rule_ pour tester des composants CDI. 
 Cette technique n'est pas totalement satisfaisante, d'une part parce que l'initialisation se fait pour chaque test et d'autre part parce que son utilisation demande un peu de code. 
 J'ai donc décidé de changer de tactique et développer un _Runner_.
 

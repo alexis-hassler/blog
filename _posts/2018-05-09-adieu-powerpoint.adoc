@@ -55,15 +55,15 @@ Je ne vais pas énumérer les outils que j'ai évalués, mais juste dire que j'a
 Pour être honnête, je manque de recul pour avoir un avis tranché sur la question. 
 Comme souvent, pour ce type d'outils, le choix ne porte pas uniquement sur les fonctionnalités ou la qualité technique, mais aussi sur la pérennité et la confiance.
 
-Pour ça, j'ai juste regardé du coté d'http://opendevise.com/[OpenDevise]. 
+Pour ça, j'ai juste regardé du coté d'https://opendevise.com/[OpenDevise]. 
 Des super speakers, un top niveau technique et surtout des gens bien++. 
-Si vous allez en conférence, vous avez certainement une de leurs speakers : https://twitter.com/carbonfray[Sarah White], https://twitter.com/mojavelinux[Dan Allen] ou https://twitter.com/hsablonniere[Hubert Sablonnière].
+Si vous allez en conférence, vous avez certainement une de leurs speakers : link:https://www.linkedin.com/in/sarah-white-66086358/[Sarah White], link:https://bsky.app/profile/mojavelinux.com[Dan Allen] ou link:https://mastodon.hsablonniere.com/@hsablonniere[Hubert Sablonnière].
 
 J'ai observé leur façon de travailler, sur quels outils ils passaient du temps, et j'ai suivi.
 
 == Asciidoctor
 
-Évidemment, si on parle d'http://opendevise.com/[OpenDevise], Asciidoctor ne sera pas bien loin. 
+Évidemment, si on parle d'link:https://opendevise.com/[OpenDevise], Asciidoctor ne sera pas bien loin. 
 Et effectivement, il est possible de rédiger une présentation en AsciiDoctor et de la générer en BespokeJS.
 
 Parfait ! 

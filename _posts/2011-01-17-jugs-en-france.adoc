@@ -15,7 +15,7 @@ En plus, avec le nombre de JUGs en France, c'est plus pratique à faire tenir su
 .JUGs en France
 image::/images/misc/jugs-france.png["Carte des Java User Groups de France", 600, 624, role="center"]
 
-Je me suis basé sur la link:https://jugs.dev.java.net/profiles/[carte officielle] et sur la link:http://jmdoudoux.developpez.com/cours/developpons/java/chap-communaute.php#communaute-5[liste des JUGs] de Jean-Michel Doudoux. 
+Je me suis basé sur la link:https://dev.java/community/jugs/[carte officielle] et sur la link:https://jmdoudoux.developpez.com/cours/developpons/java/chap-communaute.php#communaute-5[liste des JUGs] de Jean-Michel Doudoux. 
 N'hésitez pas à me remonter vos remarques : mauvaise position, mauvais logo, JUG manquant,...
 
 Sur ce dernier point, des rumeurs de création de nouveaux JUGs courent : Brest, Montpellier, Clermont-Ferrand,... 

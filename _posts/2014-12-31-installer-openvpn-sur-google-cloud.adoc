@@ -8,9 +8,9 @@ tags:
 - Google Cloud
 ---
 
-Korben a fait un super article qui explique link:http://korben.info/installer-openvpn.html[comment s'installer un petit VPN maison quand on n'est pas un gros barbu]. 
+Korben a fait un super article qui explique link:https://korben.info/installer-openvpn.html[comment s'installer un petit VPN maison quand on n'est pas un gros barbu]. 
 Il détaille l'installation d'OpenVPN sur un serveur Ubuntu hébergé sur link:https://www.ovh.com/fr/vps/[VPS chez OVH]. 
-Sa procédure est simple et facile à suivre, grâce à l'utilisation d'link:https://openvpn.net/index.php/access-server/download-openvpn-as-sw.html[Openvpn Access Server].
+Sa procédure est simple et facile à suivre, grâce à l'utilisation d'link:https://openvpn.net/vpn-software-packages/[Openvpn Access Server].
 
 N'étant pas barbu non plus, j'ai bien aimé sa façon de faire. 
 Cet article propose une adaptation pour une installation chez un autre hébergeur : link:https://cloud.google.com/[Google Compute Engine]. 

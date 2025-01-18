@@ -1,12 +1,8 @@
 ---
 layout: post
-title: "  Authentification Digest et chiffrement des mots de passe avec JNDI"
-date: '2016-02-02T08:12:00.000+01:00'
+title: "Authentification Digest et chiffrement des mots de passe avec JNDI"
 author: Alexis Hassler
 tags: 
-modified_time: '2016-02-02T08:12:34.281+01:00'
-blogger_id: tag:blogger.com,1999:blog-1829028238633284708.post-3712895678299553367
-blogger_orig_url: http://blog.alexis-hassler.com/2016/02/authentification-digest-et-chiffrement.html
 ---
 
 Je n'avais pas prévu d'en faire une série, mais le<br />J'avais commencé par Spring Security, puis les Tomcat Realms. Dans les deux cas, j'avais utilisé un cas simple qui évitent les cas particuliers. Ce billet se concentre sur le cas JNDI.<br /><br />Ce cas est un peu particulier car la technique habituelle pour valider une identité stockée dans un annuaire JNDI est le binding. Et cette technique ne peu pas fonctionner en Digest.<br /><br />La technique alternative ressemble aux autres modes de stockage : on utilise un champs supplémentaire pour le mot de passe. Dans ce cas, en stockant la valeur de h(a1), ça devrait marcher, du moins en théorie.<br /><br />=Spring<br /><br />La documentation se concentre sur le BindAuthenticator qui n'est pas compatible avec le Digest. De notre cas on regardera le <a href="http://docs.spring.io/spring-security/site/docs/4.0.x/apidocs/org/springframework/security/ldap/authentication/PasswordComparisonAuthenticator.html" target="_blank">PasswordComparisonAuthenticator</a>. <br />Il utilise par défaut le <a href="http://docs.spring.io/spring-security/site/docs/4.0.x/apidocs/org/springframework/security/authentication/encoding/LdapShaPasswordEncoder.html">LdapShaPasswordEncoder</a>. <br /><br />=Tomcat<br /><br />Dans Tomcat, c'est le JNDIRealm qui sert à ça. Ce realm a deux défauts : son nom et son incapacité à gérer l'authentification Digest. Il a bien la capacité à faire les deux types de validation, mais uniquement en Basic ou Form. Pour le Digest, il manque juste l'implémentation d'une méthode getPassword.<br />J'ai ouvert un ticket à ce sujet, avec un patch. On verra bien si ça intéresse l'équipe. En attendant, j'ai fait mon propre realm, qui comble les deux lacunes : le nom (LdapRealm) et l'authentification Digest. Vous pouvez aussi l'utiliser, il est disponible sur GitHub et dans le repository central de Maven.<br /><br />=WildFly<br /><br />J'ai déjà écrit un billet...

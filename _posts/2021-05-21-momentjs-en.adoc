@@ -54,7 +54,7 @@ Et là, les anglais, australiens et néo-zélandais commencent à râler parce q
 En effet, en utilisant la _locale_ 'en', la librairie utilise le format des américains.
 En effet les américains sont à peu près les seuls au monde à adopter un format aussi peu logique.
 
-[quote, 'https://twitter.com/amazingmap/status/599931666803597312[@amazingmap]', subs="verbatim,quotes"]
+[quote, '@amazingmap', subs="verbatim,quotes"]
 ____
 Amazingly comprehensive  map of every  country in the world that uses the MMDDYYYY format
 

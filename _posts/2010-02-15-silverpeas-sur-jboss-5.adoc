@@ -24,7 +24,7 @@ Il me reste surtout à installer JBoss 5.
 [source, subs="verbatim,quotes"]
 ----
 cd ~/tmp/silverpeas 
-wget http://sourceforge.net/projects/jboss/files/JBoss/JBoss-5.1.0.GA/jboss-5.1.0.GA.zip/download
+wget https://sourceforge.net/projects/jboss/files/JBoss/JBoss-5.1.0.GA/jboss-5.1.0.GA.zip/download
 cd /opt/silverpeas
 tar -xf ~/tmp/silverpeas/jboss-5.1.0.GA.zip
 ----
@@ -105,7 +105,7 @@ sh run.sh &amp;
 
 Cela semble pas mal, du moins pour une utilisation locale. 
 Mais comme je suis sur un serveur et je n'ai pas installé les couches graphiques, je devrai tester à distance. 
-Le problème, c'est que depuis la version 4.2 JBoss est en écoute uniquement sur localhost ; je vais donc ajouter un paramètre au lancement pour remédier à cela.
+Le problème, c'est que depuis la version 4.2, JBoss est en écoute uniquement sur localhost ; je vais donc ajouter un paramètre au lancement pour remédier à cela.
 
 [source, subs="verbatim,quotes"]
 ----

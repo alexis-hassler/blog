@@ -18,10 +18,10 @@ Ces essais m'ont juste servi à comprendre le fonctionnement du SDK avant d'étu
 
 === Installation du plug-in
 
-Google fournit un link:http://code.google.com/intl/fr/appengine/docs/java/tools/eclipse.html[plugin Eclipse] pour GAE. 
+Google fournit un link:https://web.archive.org/web/20090411201715/http://code.google.com/intl/fr/appengine/docs/java/tools/eclipse.html[plugin Eclipse] pour GAE. 
 Il y a une adresse d'update site pour chaque version d'Eclipse. 
 Par exemple, pour Eclipse 3.5, il faut ajouter le site suivant dans Eclipse : +
-{nbsp} {nbsp} {nbsp}`http://dl.google.com/eclipse/plugin/3.5` 
+{nbsp} {nbsp} {nbsp}`\http://dl.google.com/eclipse/plugin/3.5` 
 
 Le site d'update contient le plugin, l'App Engine SDK et GWT. 
 Seul le premier est indispensable. 
@@ -66,7 +66,7 @@ Avant de déployer, il faut aussi pouvoir tester l'application.
 Je ne parle pas encore de tests unitaires automatisés, mais juste de pouvoir exécuter localement l'application et d'afficher les pages dans mon navigateur.
 
 Il faut pour cela exécuter le projet "Run As / Web Application", qui lance le serveur localement sur le port 8888. 
-L'accès aux pages se fait donc par l'URL http://localhost:8888/.
+L'accès aux pages se fait donc par l'URL `\http://localhost:8888/`.
 
 Le port du serveur local peut être modifié dans les "Run Configurations".
 
@@ -79,7 +79,7 @@ image::/images/google/gae-logo.jpg[, role="center"]
 
 == Intégration avec Netbeans 
 
-Pour travailler avec Netbeans, j'ai installé Netbeans 6.8, avec les dernières mises à jour, et j'ai utilisé le link:http://kenai.com/projects/nbappengine/pages/Home[plug-in fourni dans Kenai]. 
+Pour travailler avec Netbeans, j'ai installé Netbeans 6.8, avec les dernières mises à jour, et j'ai utilisé le link:https://web.archive.org/web/20091227024457/http://kenai.com/projects/nbappengine/pages/Home[plug-in fourni dans Kenai]. 
 On verra dans l'avenir proche s'il reste sur Kenai ou s'il doit migrer vers java.net. 
 Quelques indices sont peu encourageants sur la vie du projet : les dernières mises à jour datent de 4 mois et la version 1.3 du SDK n'est pas encore officiellement supportée. 
 
@@ -128,9 +128,9 @@ La documentation sur l'utilisation de Ant avec App Engine me semble pas mal, ave
 == Intégration avec Maven
 
 Le support de Maven n'est pas natif dans le SDK. 
-D'ailleurs, les premières expériences d'link:http://blog.loof.fr/2009/04/appengine-java-refractaire-maven.html[association entre les Maven et GAE] semblent assez négatifs. 
+D'ailleurs, les premières expériences d'link:https://blog.loof.fr/2009/04/appengine-java-refractaire-maven.html[association entre les Maven et GAE] semblent assez négatifs. 
 Depuis cette expérience, les choses semblent évoluer, avec l'apparition d'un plugin indépendant. 
-En fouinant sur le Web, on peut aussi trouver des références à un link:http://dmakariev.blogspot.com/2010/01/jsf-20-with-spring-3-and-spring.html[gae-archetype] ou à des procédures manuelles.
+En fouinant sur le Web, on peut aussi trouver des références à un link:https://dmakariev.blogspot.com/2010/01/jsf-20-with-spring-3-and-spring.html[gae-archetype] ou à des procédures manuelles.
 
 Bref, la situation n'est pas très claire...
 

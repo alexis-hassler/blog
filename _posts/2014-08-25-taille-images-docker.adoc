@@ -8,8 +8,8 @@ courses:
 - docker
 ---
 
-La semaine dernière, j'ai publié un billet sur la mise en place d'un link:/2014/08/22/cluster-wildfly-avec-docker.html[cluster WildFly avec Docker]. 
-Une des premières réactions est venue de link:https://hypedrivendev.wordpress.com/[Cédric Exbrayat] pour me donner quelques conseils pour link:http://www.centurylinklabs.com/optimizing-docker-images/[réduire la taille de mes images].
+La semaine dernière, j'ai publié un billet sur la mise en place d'un link:/2014/08/18/cluster-wildfly-avec-docker.html[cluster WildFly avec Docker]. 
+Une des premières réactions est venue de link:https://hypedrivendev.wordpress.com/[Cédric Exbrayat] pour me donner quelques conseils pour link:https://web.archive.org/web/20140810214606/http://www.centurylinklabs.com/optimizing-docker-images/?hvid=1OW0br[réduire la taille de mes images].
 J'ai donc testé les pistes de cet article avec mes deux images : sewatech/modcluster et sewatech/wildfly.
 
 Les pistes qui sont proposées sont :
@@ -17,13 +17,13 @@ Les pistes qui sont proposées sont :
     * le chaînage des commandes, pour réduire le nombre de couches,
     * l'import + export, qui réduit encore plus les couches.
 
-Enfin, j'ai testé l'utilisation de plusieurs images de base, dont BusyBox, comme me l'a suggéré link:https://twitter.com/DamienDuportal[Damien Duportal].
+Enfin, j'ai testé l'utilisation de plusieurs images de base, dont BusyBox, comme me l'a suggéré link:https://dduportal.github.io[Damien Duportal].
 // <!--more-->
 
 == Taille des images
 
 J'ai construit mes deux images avec des Dockerfiles. 
-Chaque Dockerfile est une séquence de link:https://docs.docker.com/reference/builder/[commandes ADD, COPY, RUN,...]. 
+Chaque Dockerfile est une séquence de link:https://docs.docker.com/reference/dockerfile/[commandes ADD, COPY, RUN,...]. 
 Le résultat est une image Docker constituée d'une image de base et de couches (_layers_) successives, chaque commande générant une nouvelle couche. 
 La taille d'une image étant la somme de ses couches, chaque couche supplémentaire fait grossir le résultat final. 
 En revanche, si deux images utilisent la même image de base, celle-ci n'est présente qu'une seule fois.
@@ -65,7 +65,7 @@ Pour ce qui est de Busybox, la tâche me semble un peu plus ardue.
 Lorsqu'on a construit une image à partir d'un Dockerfile, elle est constituée de couches qui conservent dans les métadonnées la façon dont elles ont été produite. 
 On peut aussi créer une image en exportant un conteneur dans un fichier tar puis en réimportant ce fichier. 
 De cette manière, l'image n'est constituée que d'une seule couche. 
-On arrive à un résultat similaire à la construction directe d'une image de base, suggérée par link:https://twitter.com/hguemar[Haïkel Guémar].
+On arrive à un résultat similaire à la construction directe d'une image de base, suggérée par link:https://www.linkedin.com/in/hguemar/[Haïkel Guémar].
 
 Si on applique ça à l'image sewatech/wildfly initiale, qui faisait *794 Mo*, on obtient l'image _aplatie_ de *674 Mo*.
 

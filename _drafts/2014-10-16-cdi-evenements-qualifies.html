@@ -1,12 +1,8 @@
 ---
 layout: post
 title: CDI événements qualifiés
-date: '2014-10-16T16:33:00.000+02:00'
 author: Alexis Hassler
 tags: 
-modified_time: '2014-10-16T16:33:23.430+02:00'
-blogger_id: tag:blogger.com,1999:blog-1829028238633284708.post-3087683390660678155
-blogger_orig_url: http://blog.alexis-hassler.com/2014/10/cdi-evenements-qualifies.html
 ---
 
 @Inject<br />private Event<message> messageEvent;</message><br /><br />Ça permet d'envoyer des événements types messages :<br />messageEvent.fire( new Message("hello") )<br /><br />On peut aussi qualifier les événements qu'on envoie :<br />messageEvent<br />&nbsp; &nbsp; .select(new AnnotationLiteral<greeting>() {})</greeting><br />&nbsp; &nbsp; .fire( new Message("hello") )<br /><div><br /></div><div>Ça se complique pour les qualifiers qui ont des attributs. Il faut créer une classe qui hérite de AnnotationLiteral<greeting> et qui implémente le qualifier :</greeting></div><div><br /></div><div>public class GreetingAnnotationLiteral extends AnnotationLiteral<greeting> implements&nbsp;Greeting&nbsp;{</greeting></div><div>&nbsp; &nbsp;...</div><div>}</div><div><br /></div><div><br /></div><div>Attention, dans une extension, pas d'@Inject =&gt; utiliser le BeanManager</div><div><br /></div>

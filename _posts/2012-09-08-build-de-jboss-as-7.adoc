@@ -78,5 +78,5 @@ Voilà.
 [NOTE.edit, caption="Edit 07/08/2013"]
 ====
 Le code source de JBoss AS 7 est passé du repository https://github.com/jbossas/jboss-as.git à https://github.com/wildfly/wildfly.git ; 
-sous la pression d'link:http://www.ehsavoie.com/[Emmanuel Hugonnet], j'ai modifié les URLs en conséquence.
+sous la pression d'link:https://www.ehsavoie.com/[Emmanuel Hugonnet], j'ai modifié les URLs en conséquence.
 ====

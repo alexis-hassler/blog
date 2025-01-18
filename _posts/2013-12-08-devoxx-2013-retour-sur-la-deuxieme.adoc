@@ -6,7 +6,7 @@ tags:
 - Devoxx
 ---
 
-link:http://devoxx.be/[Devoxx] 2013 est largement derrière nous et je vous avais déjà expliqué ce que j'avais pensé des link:http://blog.alexis-hassler.com/2013/11/devoxx-2013-retour-sur-les-2-premiers.html[deux premiers jours]. 
+link:https://devoxx.be/[Devoxx] 2013 est largement derrière nous et je vous avais déjà expliqué ce que j'avais pensé des link:https://blog.alexis-hassler.com/2013/11/17/devoxx-2013-retour-sur-les-2-premiers.html[deux premiers jours]. 
 Pour la deuxième partie de la conférence, le rythme s'accélère, avec des conférences d'une heure, des quickies de 15 minutes et de BOFs. 
 Pour cette partie, je ne vais pas essayer d'être exhaustif, mais uniquement relater ce qui m'a marqué.
 //<!--more-->
@@ -17,17 +17,17 @@ Oracle nous a expliqué que Java 8 allait bientôt sortir, en reprenant le même
 les _value objects_. 
 C'est tout. 
 Et c'est léger pour une keynote. 
-La second keynote d'Oracle était orientée sur l'_Internet of Things_, avec des démos cheap garnies d'un peu de bla bla. 
+La seconde keynote d'Oracle était orientée sur l'_Internet of Things_, avec des démos cheap garnies d'un peu de bla bla. 
 Bref, aucune inspiration, aucune énergie à chercher dans ces keynotes. 
 Pour celle de Google, jeudi, je n'y ai pas assistée. 
-Sur ce point, Devoxx (le vrai) devrait s'inspirer de link:http://www.devoxx.fr/[Devoxx France] ou d'autres conférences plus petites, comme link:http://www.mix-it.fr/[Mix-IT], mais qui arrivent à proposer des keynotes beaucoup plus riches.
+Sur ce point, Devoxx (le vrai) devrait s'inspirer de link:https://www.devoxx.fr/[Devoxx France] ou d'autres conférences plus petites, comme link:https://mixitconf.org/fr/[Mix-IT], mais qui arrivent à proposer des keynotes beaucoup plus riches.
 
 image::/images/devoxx/2013-sven-peters.jpg[, 240, role="right"]
-La première *conférence* qui m'a marquée est celle de link:https://twitter.com/svenpet[Sven Peters], qui nous a expliqué comment une équipe peut faire du "Kick-Ass Software Development", en reprenant les recettes qui fonctionnent chez Atlassian. 
+La première *conférence* qui m'a marquée est celle de link:https://svenpet.com/[Sven Peters], qui nous a expliqué comment une équipe peut faire du "Kick-Ass Software Development", en reprenant les recettes qui fonctionnent chez Atlassian. 
 La panoplie est assez large, allant des techniques de communication aux solutions pour accélérer les tests. 
 Le contenu de la présentation était très bon et le speaker excellent.
 
-Ensuite j'ai vraiment apprécié la présentation sur les Lambdas et les Streams par link:https://twitter.com/PaulSandoz[Paul Sandoz], parce qu'elle m'a apporté des choses décalées par rapport aux autres sur le même sujet. 
+Ensuite j'ai vraiment apprécié la présentation sur les Lambdas et les Streams par link:https://www.linkedin.com/in/paul-sandoz-4704562/[Paul Sandoz], parce qu'elle m'a apporté des choses décalées par rapport aux autres sur le même sujet. 
 Elle a répondu à des questions que je n'ai pas encore eu le temps de me poser concernant les nouveautés de l'API de collection.
 
 image::/images/devoxx/2013-david-blevins.jpg[, 310, role="left"]
@@ -44,17 +44,17 @@ C'est un nouveau mécanisme d'extension de Java EE.
 (+1 dans la todo-list post-Devoxx).
 
 image::/images/devoxx/2013-mike-west.jpg[, 310, role="right"]
-J'ai aussi assisté à des présentations sur le front-end, comme celle sur BackboneJS, par link:https://twitter.com/tbranyen[Tim Branyen]. 
+J'ai aussi assisté à des présentations sur le front-end, comme celle sur BackboneJS, par link:https://tbranyen.com[Tim Branyen]. 
 J'y ai appris les principes de base du framework, mais pas bien plus. 
 Surtout, le speaker n'a pas été très convaincant puisque le message qu'il a réussi à me transmettre, c'est que c'est compliqué et qu'il faut beaucoup de code. 
 Ce n'est pas avec des ambassadeurs comme ça que BackboneJS va convaincre dans le monde Java, d'autant que dans le camps d'AngularJS, il y a de très bons speakers.
-La session sur la sécurité et le XSS par link:https://twitter.com/mikewest[Mike West] était bien plus intéressante, avec plein de bonnes informations et de choses à mettre en place : +1 dans la todo-list.
+La session sur la sécurité et le XSS par link:https://mikewest.org/[Mike West] était bien plus intéressante, avec plein de bonnes informations et de choses à mettre en place : +1 dans la todo-list.
 
 image::/images/devoxx/2013-bartosz-majsak.jpg[, 220, role="left"]
 Les *quickies* sont une bonne surprise de cette édition : je n'avais jamais vu de salle pleine pour ces sessions les années précédentes, et cette fois-ci ça a été le cas à plusieurs reprises. 
 Peut-être un effet secondaire du repas médiocre.
 
-Sur les 4 quickies auxquels j'ai assistés, j'en ai particulièrement aimé deux : une valeur sûre, avec link:http://twitter.com/chethaase[Chet Haase] qui a parlé de patterns avec beaucoup d'humour, et une valeur montante, avec link:http://twitter.com/majson[Bartosz Majsak], sur le métier de développeur, qui a donné la patate à toute l'assistance.
+Sur les 4 quickies auxquels j'ai assistés, j'en ai particulièrement aimé deux : une valeur sûre, avec link:https://www.chethaase.com/[Chet Haase] qui a parlé de patterns avec beaucoup d'humour, et une valeur montante, avec link:https://www.linkedin.com/in/bartoszmajsak/[Bartosz Majsak], sur le métier de développeur, qui a donné la patate à toute l'assistance.
 
 Avant de *conclure*, je voudrais dire il n'y a pas que des bonnes choses à Devoxx, il y a aussi les repas de midi et les keynotes. 
 Et je trouve que les sponsors sont trop présents dans la programmation. 

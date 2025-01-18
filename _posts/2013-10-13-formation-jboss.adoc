@@ -10,8 +10,9 @@ courses:
 - wildfly
 ---
 
-La plupart des métiers ont leur quota de charlatan. On parle souvent des SSII, mais les organismes de formation sont
-bien placés dans le domaine. J'en veux pour preuve l'offre de formations JBoss.
+La plupart des métiers ont leur quota de charlatans. 
+On parle souvent des SSII, mais les organismes de formation sont bien placés dans le domaine. 
+J'en veux pour preuve l'offre de formations JBoss.
 
 Le serveur d'applications JBoss AS est très populaire, il est donc logique que la plupart des organismes de formation en informatique le proposent à leurs catalogues. 
 Mais pour quelle version de JBoss AS ? 
@@ -72,11 +73,11 @@ gros progrès.
 Pour finir sur une note positive, j'aimerais citer quelques organismes qui font bien la
 différence entre les versions et qui proposent des plans distincts.
 
-* RedHat : JBoss EAP 6, link:http://fr.redhat.com/training/courses/jb248/[niveau 1] et link:http://fr.redhat.com/training/courses/jb346/[niveau avancé], et link:http://fr.redhat.com/training/courses/jb336/[JBoss EAP 5].
-* PLB : link:http://www.plb.fr/formation/open-source/formation-jboss-7,10-1031.php[JBoss AS 7], link:http://www.plb.fr/formation/serveurs/formation-jboss,15-196.php[JBoss AS 5]
-* Objis : link:http://www.objis.com/formation-java/Formation-JBOSS-7.html[JBoss AS 7], link:http://www.objis.com/formation-java/Formation-administration-jboss-5.html[JBoss AS 5]
-* Oxiane : link:http://www.oxiane.com/formation-administration-jboss7.html[JBoss AS 7], link:http://www.oxiane.com/formation-administration-jboss.html[JBoss AS 5]
-* *Sewatech* (c'est moi!) : link:http://www.sewatech.fr/formation-jboss-7.html[JBoss AS 7], link:http://www.sewatech.fr/formation-jboss-5.html[JBoss AS 5]
+* RedHat : JBoss EAP 6, link:https://web.archive.org/web/20130204201254/http://www.redhat.com/training/courses/jb248/[niveau 1] et link:https://web.archive.org/web/20140714162822/http://redhat.com/training/courses/jb346/[niveau avancé], et link:https://web.archive.org/web/20130224060946/http://www.redhat.com/training/courses/jb336/[JBoss EAP 5].
+* PLB : link:https://web.archive.org/web/20130312200832/http://www.plb.fr/formation/open-source/formation-jboss-7,10-1031.php[JBoss AS 7], link:https://web.archive.org/web/20130312210054/http://www.plb.fr/formation/serveurs/formation-jboss,15-196.php[JBoss AS 5]
+* Objis : link:https://web.archive.org/web/20131002135505/http://www.objis.com/formation-java/Formation-JBOSS-7.html[JBoss AS 7], link:https://web.archive.org/web/20130914124418/http://www.objis.com/formation-java/Formation-administration-jboss-5.html[JBoss AS 5]
+* Oxiane : link:https://web.archive.org/web/20131129105106/http://www.oxiane.com/formation-administration-jboss7.html[JBoss AS 7], JBoss AS 5
+* *Sewatech* (c'est moi!) : link:https://www.sewatech.fr/formation-jboss-7.html[JBoss AS 7], link:https://www.sewatech.fr/formation-jboss-5.html[JBoss AS 5]
 
 Et l'idéal, c'est de pouvoir discuter du contenu avec le formateur, surtout si vous voulez une formation intra-entreprise. 
 Le formateur pourra vous mitonner une petite formation préparée avec amour. 

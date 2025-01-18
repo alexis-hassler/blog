@@ -35,4 +35,4 @@ Certes, je n'ai pas la légitimité de certains développeurs, mais j'aime ça e
 ++++
 
 [.center]
-link:http://vimeo.com/35436963[Tests d'intégration avec Arquillian] par link:http://vimeo.com/sewatech[Alexis Hassler].
+link:https://vimeo.com/35436963[Tests d'intégration avec Arquillian] par link:https://vimeo.com/sewatech[Alexis Hassler].

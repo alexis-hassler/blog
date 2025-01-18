@@ -23,9 +23,9 @@ Cette image est basée sur les composants suivants :
 Voyons ça dans les détails...
 //<!--more-->*
 
-== Pourquoi pas link:https://registry.hub.docker.com/u/jboss/wildfly/[jboss/wildfly] ?
+== Pourquoi pas link:https://registry.hub.docker.com/r/jboss/wildfly/[jboss/wildfly] ?
 
-Il existe une image officielle pour WildFly, fournie par RedHat / JBoss. Comme l'a souligné link:https://goldmann.pl/[Marek Goldmann], il aurait été logique de l'utiliser. 
+Il existe une image officielle pour WildFly, fournie par RedHat / JBoss. Comme l'a souligné link:https://goldmann.pl/blog/[Marek Goldmann], il aurait été logique de l'utiliser. 
 Je suis parti sur la construction de ma propre image pour les raisons suivantes :
 
 * mon objectif initial est d'apprendre à utiliser Docker,
@@ -57,7 +57,7 @@ Le fichier de configuration, standalone-ha.xml, redéfinis complètement la conf
 == Image Docker
 
 Hop, tout ça dans un link:https://github.com/Sewatech/docker-wildfly/blob/master/Dockerfile[Dockerfile], sur github. 
-Et l'image est dans le registre central de Docker, sous le nom link:https://registry.hub.docker.com/u/sewatech/wildfly/[sewatech/wildfly].
+Et l'image est dans le registre central de Docker, sous le nom link:https://registry.hub.docker.com/r/sewatech/wildfly/[sewatech/wildfly].
 
 Utiliser la, et n'hésitez pas à me faire des retours et à proposer des améliorations, voire des PR sur le dockerfile. 
 Cette image est vraiment rudimentaire et j'ai moi-même quelques idées d'amélioration.

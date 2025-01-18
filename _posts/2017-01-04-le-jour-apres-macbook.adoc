@@ -58,7 +58,7 @@ Et coté délai, on passe de celui d'expédition (3 à 4 jours) avant la command
 
 [quote, Alexis Hassler (@AlexisHassler)]
 ____
-Et puis délai de livraison de 14 jours, pour une expédition sous 3 à 4 jours. Livré à dos de chèvre ? (link:https://twitter.com/DellEMCFrance[@DellEMCFrance])
+Et puis délai de livraison de 14 jours, pour une expédition sous 3 à 4 jours. Livré à dos de chèvre ? @DellEMCFrance
 ____
 
 Enfin, le suivi du colis du livreur était nul. 

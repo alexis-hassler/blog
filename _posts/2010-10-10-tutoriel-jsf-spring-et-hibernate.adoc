@@ -27,7 +27,7 @@ link:https://vimeo.com/15705668[Tutoriel JSF, Spring et Hibernate] par link:http
 Le contenu associé à cette vidéo est disponible : 
 
 * Les quelques slides qui me servent de fil conducteur sont sur link:https://www.slideshare.net/sewatech/tutoriel-jsf-spring-et-hibernate[slideshare].
-* Le script de création de la base de données peut être link:https://download.alexis-hassler.com/university-db.sql[téléchargé].
+* Le script de création de la base de données peut être link:https://gist.github.com/hasalex/ea697c65a3dc7b69285908deab367bed[téléchargé].
 * Le code source de l'application peut être récupéré sur link:https://github.com/hasalex/tuto-jsf-spr-hib[GitHub]. Ce repository n'est pas exactement le résultat du tutoriel, mais une version mavenisée.
     
 Si vous avez des problèmes de mise en oeuvre, postez une question sur le link:https://www.developpez.net/forums/[forum developpez.net] et faites-moi signe par link:https://www.developpez.net/forums/u279598/hasalex/[message privé].

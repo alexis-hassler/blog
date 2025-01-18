@@ -134,7 +134,7 @@ Je corrige donc les chemins qui ressemblent à du Windows (hum hum).
 
 Pour la partie help, j'ai préféré désactiver le contexte car je n'ai pas trouvé les répertoires.
 
-Moyennant ces modifications, ça fonctionne, j'accède à l'écran d'accueil à l'adresse http://myserver:8000/ et me connecter avec le login et mot de passe *SilverAdmin* / *SilverAdmin*.
+Moyennant ces modifications, ça fonctionne, j'accède à l'écran d'accueil à l'adresse `\http://myserver:8000/` et me connecter avec le login et mot de passe *SilverAdmin* / *SilverAdmin*.
 
 == Conclusion
 

@@ -170,7 +170,7 @@ user.setAttributes(attributes);
 
 == Notes du relecteur
 
-https://twitter.com/elecharny_tek/[Emmanuel Lécharny] a relu le billet avant sa publication.
+https://framapiaf.org/@elecharny[Emmanuel Lécharny] a relu le billet avant sa publication.
 Il m'a fait un retour intéressant sur les RFC que j'ai citées...
 
 La RFC 1779 est obsolète, elle correspond à LDAP V2 qui est mort et enterré depuis des années (24 ans exactement).

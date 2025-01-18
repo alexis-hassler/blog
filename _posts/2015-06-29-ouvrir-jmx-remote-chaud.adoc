@@ -6,14 +6,14 @@ tags:
 - JMX
 ---
 
-Pour permettre un accès distant au MBeans d'une JVM Oracle ou OpenJDK, il faut la démarrer avec la propriété `com.sun.management.jmxremote.port`, plus quelques autres propriétés détaillées sur link:http://www.jtips.info/index.php?title=JMX/Remote[JTips].
+Pour permettre un accès distant au MBeans d'une JVM Oracle ou OpenJDK, il faut la démarrer avec la propriété `com.sun.management.jmxremote.port`, plus quelques autres propriétés détaillées sur link:https://www.jtips.info/index.php?title=JMX/Remote[JTips].
 
 [source.width-80, bash]
 ----
 java -Dcom.sun.management.jmxremote.port=1099 fr.sewatech.myapp.MyMain
 ----
 
-En rédigeant l'articlelink:http://www.jtips.info/index.php?title=JMX/Remote[ JTips sur JMX Remote], j'ai découvert qu'on pouvait activer cet accès distant à chaud grâce à l'link:https://blogs.oracle.com/CoreJavaTechTips/entry/the_attach_api[API Attach]. 
+En rédigeant l'articlelink:https://www.jtips.info/index.php?title=JMX/Remote[ JTips sur JMX Remote], j'ai découvert qu'on pouvait activer cet accès distant à chaud grâce à l'link:https://blogs.oracle.com/CoreJavaTechTips/entry/the_attach_api[API Attach]. 
 Voyons comment procéder. 
 //<!--more-->
 

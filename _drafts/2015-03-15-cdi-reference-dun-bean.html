@@ -1,12 +1,8 @@
 ---
 layout: post
 title: 'CDI : Référence d''un bean'
-date: '2015-03-15T13:21:00.000+01:00'
 author: Alexis Hassler
 tags: 
-modified_time: '2015-03-15T13:21:18.298+01:00'
-blogger_id: tag:blogger.com,1999:blog-1829028238633284708.post-7630404586188478054
-blogger_orig_url: http://blog.alexis-hassler.com/2015/03/cdi-reference-dun-bean.html
 ---
 
 &nbsp; &nbsp; private <t> T getBeanReference(Class<t> type, BeanManager beanManager) {</t></t><br />&nbsp; &nbsp; &nbsp; &nbsp; Set<bean>&nbsp;beans = beanManager.getBeans(type);</bean><br />&nbsp; &nbsp; &nbsp; &nbsp; Bean bean = beanManager.resolve(beans);<br />&nbsp; &nbsp; &nbsp; &nbsp; CreationalContext creationalContext = beanManager.createCreationalContext(bean);<br />&nbsp; &nbsp; &nbsp; &nbsp; return (T) beanManager.getReference(bean, type, creationalContext);<br />&nbsp; &nbsp; }<br /><br />

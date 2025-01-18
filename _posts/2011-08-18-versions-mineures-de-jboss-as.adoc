@@ -47,4 +47,4 @@ RedHat a écouté la communauté et fournit, avec elle, les corrections nécessa
 Le projet AS va continuer à fournir des versions de qualité, utilisables en production pour ceux qui veulent assurer leur support eux-même. 
 Les versions EAP continueront à apporter une plus-value sur la qualité, la fourniture de patches et, surtout, d'un support qui peut être rassurant pour des applications critiques.
 
-PS : Je souhaite dédicacer cet article à link:http://www.linkedin.com/pub/arnaud-simon-dr/2/3b7/2a4[Arnaud Simon] avec qui nous avons eu une discussion agitée sur ce sujet lors de sa venue au LyonJUG en janvier 2011.
+PS : Je souhaite dédicacer cet article à link:hthttps://www.linkedin.com/in/arnaud-simon/[Arnaud Simon] avec qui nous avons eu une discussion agitée sur ce sujet lors de sa venue au LyonJUG en janvier 2011.

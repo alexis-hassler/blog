@@ -8,7 +8,7 @@ tags:
 ---
 :figure-caption!:
 
-Dans mon link:http://blog.alexis-hassler.com/2014/04/devoxx-france-2014-universites-et.html[billet précédent], j'ai raconté ma première journée pendant laquelle j'ai présenté une université et animé un atelier pratique. 
+Dans mon link:/2014/04/20/devoxx-france-2014-universites-et.html[billet précédent], j'ai raconté ma première journée pendant laquelle j'ai présenté une université et animé un atelier pratique. 
 L'avantage d'avoir tout concentré sur cette journée, c'est que j'ai pu assisté aux deux autres journées l'esprit libéré. 
 Cette année, j'ai donc pu assister à toutes les *keynotes*. 
 Il y en avait 7, de vingt minutes chacune, réparties sur les deux dernières matinées. 
@@ -31,7 +31,7 @@ Si un jour j'ai l'occasion de rencontrer les représentants régionaux de Syntec
 
 image::/images/devoxx/cravate.png[role="center"]
 
-La bonne surprise venait de Henri Fournet sur l'école link:http://simplon.co/[Simplon]. 
+La bonne surprise venait de Henri Fournet sur l'école link:https://www.simplon.co/[Simplon]. 
 Bravo à lui parce qu'il nous a transmis une partie de la foi qu'il avait dans son projet. 
 Cette initiative est à suivre ; elle propose une formation gratuite sur six mois à des personnes d'origines et de profils variés pour qu'ils deviennent développeurs.
 

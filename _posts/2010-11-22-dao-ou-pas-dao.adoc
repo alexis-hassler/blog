@@ -22,7 +22,7 @@ Les plus tatillons ajouterons des couches transversales, des sous-couches et aut
 Dans cette architecture, la présentation est en charge de toute l'interaction avec l'utilisateur, soit l'affichage et la saisie. 
 Le service implémente le cœur du métier, c'est lui qui contient les règles de gestion, de transformation et de validation. 
 Enfin, l'accès aux données, ou DAO pour Data Access Object, met en œuvre les interactions avec le moteur de persistance, pour de la lecture et de l'écriture de données. 
-Cette architecture en couches est justifiée par le link:http://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html[principe de responsabilité unique]  et de façon plus concrète par le besoin d'isoler les parties les plus instables de l'architecture, qui sont la présentation et la persistance, du cœur de l'application. 
+Cette architecture en couches est justifiée par le link:https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html[principe de responsabilité unique]  et de façon plus concrète par le besoin d'isoler les parties les plus instables de l'architecture, qui sont la présentation et la persistance, du cœur de l'application. 
 
 La présentation est considérée comme instable car on voulait pouvoir migrer facilement d'une architecture client/serveur vers du Web. 
 La justification est toujours valable, et d'autant plus que les technologies de présentation sont très variées : AJAX, RIA/RDA, Web mobile, application mobile,… 
@@ -38,7 +38,7 @@ Certains ont peut-être déjà entendu l'histoire, je leur prierais de ne pas me
 On ne doit jamais faire remarquer à un ancien combattant qu'il radote.
 
 L'histoire commence en 2001, ou peut-être fin 2000, il faudrait que je demande à Olivier, il se rappelle probablement mieux que moi. 
-Le client a choisi un consultant pour l'architecture et un SSII (link:http://www.oosphere.com/[OOsphère]) pour la réalisation. 
+Le client a choisi un consultant pour l'architecture et un SSII (link:https://www.oosphere.com/[OOsphère]) pour la réalisation. 
 En terme d'architecture, le client a choisi Websphere, Visual StoneAge for Java (c'est le surnom donné par l'équipe de développement) et des EJB de partout, session et entity, et en version 1 ! Que du bonheur. 
 Pour la façon d'utiliser tout cela, toute liberté nous était donnée. 
 Nous avons choisi de cacher nos EJB entity derrière des DAO ; nous parlions de boites noires. 

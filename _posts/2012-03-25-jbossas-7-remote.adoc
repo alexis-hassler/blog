@@ -10,7 +10,7 @@ tags:
 ---
 
 JBoss AS 7 a changé plein de choses ; il ne ressemble absolument pas aux versions précédentes. 
-Mais ça je l'ai déjà dit sur le link:http://www.sewatech.fr/article-jboss-7.html[site de mon entreprise]. 
+Mais ça je l'ai déjà dit sur le link:https://www.sewatech.fr/article-jboss-7.html[site de mon entreprise]. 
 Malgré tout, à chaque étape j'en ai une nouvelle confirmation. 
 Ainsi j'ai un peu tâtonné pour établir des connexions distantes entre des clients Java et un serveur JBoss AS 7.1. 
 Mes client doivent appeler des EJBs et échanger des messages JMS. 
@@ -22,4 +22,4 @@ En effet, seuls les noms préfixés par java:jboss/exported/ sont accessibles à
 Pour les *EJBs*, c'est un peu plus complexe. 
 En effet, si le fonctionnement classique par JNDI fonctionne aussi, avec le même principe des noms _exportés_, il est déprécié au profit d'un fonctionnement par le client d'EJB JBoss, avec comme préfixe JNDI "ejb:".
 
-Tout ceci est détaillé dans link:http://www.jtips.info[JTips], d'une part pour l'link:http://jtips.info/index.php?title=JBoss7/RemoteJMS[accès distant à JMS], d'autre part pour l'link:http://jtips.info/index.php?title=JBoss7/RemoteEJB[accès distant à un EJB].
+Tout ceci est détaillé dans link:https://www.jtips.info[JTips], d'une part pour l'link:https://jtips.info/index.php?title=JBoss7/RemoteJMS[accès distant à JMS], d'autre part pour l'link:https://jtips.info/index.php?title=JBoss7/RemoteEJB[accès distant à un EJB].

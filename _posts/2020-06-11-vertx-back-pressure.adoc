@@ -187,7 +187,7 @@ Donc oui, ça marche bien mais avec un code qui est de moins en moins lisible.
 ====
 Vert.x existait avant Java 8.
 Je vous laisse faire l'exercice de migration de ce code sans lambda.
-Vous me raconterez (sur https://twitter.com/AlexisHassler[teuteur]) ce que ça donne en lisibilité de code.
+Vous me raconterez (sur https://piaille.fr/@AlexisHassler[mastodon]) ce que ça donne en lisibilité de code.
 ====
 
 == Morceaux en tube
@@ -215,7 +215,7 @@ Dans le billet sur la lecture de gros fichier, Vert.x n'était pas vraiment à s
 Ici, avec les flux en lecture et écriture, c'est tout le contraire. 
 On arrive à une solution très *peu gourmande* en mémoire et particulièrement *robuste* grâce à l'implémentation de _*back pressure*_ dans Vert.x.
 
-Si vous voulez un exemple plus élaboré de  _back pressure_ avec Vert.x, je vous invite à lire le livre de https://twitter.com/jponge[Julien Ponge], https://livebook.manning.com/book/vertx-in-action[Vert.x in action].
+Si vous voulez un exemple plus élaboré de  _back pressure_ avec Vert.x, je vous invite à lire le livre de https://bsky.app/profile/julien.ponge.org[Julien Ponge], https://livebook.manning.com/book/vertx-in-action[Vert.x in action].
 
 == Post-scriptum
 

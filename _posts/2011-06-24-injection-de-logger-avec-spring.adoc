@@ -13,18 +13,18 @@ courses:
 
 Dans mon link:/2011/06/21/injection-de-logger-avec-cdi.html[billet précédent], j'ai mis en place de l'injection contextuelle de logger avec CDI. 
 La solution est particulièrement simple à partir du moment où on pense à utiliser l'InjectionPoint. 
-Comme sur la plupart de projets actuels, il y a (pour l'instant) beaucoup plus de link:http://www.springsource.org/[Spring Framework] que de link:http://download.oracle.com/javaee/6/tutorial/doc/giwhl.html[CDI], j'ai voulu reproduire l'exemple avec de l'injection par Spring.
+Comme sur la plupart de projets actuels, il y a (pour l'instant) beaucoup plus de link:https://spring.io/[Spring Framework] que de link:https://download.oracle.com/javaee/6/tutorial/doc/giwhl.html[CDI], j'ai voulu reproduire l'exemple avec de l'injection par Spring.
 
 Malheureusement, Spring n'a pas d'équivalent à InjectionPoint. 
-Par acquis de conscience, j'ai posé la question sur le link:http://www.developpez.net/forums/d1098967/java/general-java/spring/connaitre-point-dinjection/[forum developpez.net] et sur le link:http://forum.springsource.org/showthread.php?111071-How-to-get-the-injection-point[forum SpringSource].
-C'est sur ce dernier que j'ai eu la piste la plus concrète : créer une annotation spécifique et utiliser un link:http://static.springsource.org/spring/docs/3.0.x/javadoc-api/index.html?org/springframework/beans/factory/config/BeanPostProcessor.html[BeanPostProcessor].
+Par acquis de conscience, j'ai posé la question sur le link:https://www.developpez.net/forums/d1098967/java/general-java/spring/connaitre-point-dinjection/[forum developpez.net] et sur le link:https://web.archive.org/web/20110811150312/http://forum.springsource.org/showthread.php?111071-How-to-get-the-injection-point[forum SpringSource].
+C'est sur ce dernier que j'ai eu la piste la plus concrète : créer une annotation spécifique et utiliser un link:https://docs.spring.io/spring-framework/docs/3.0.x/javadoc-api/org/springframework/beans/factory/config/BeanPostProcessor.html[BeanPostProcessor].
 Une chose est sûr, la solution existe probablement, mais de façon moins élégante qu'en CDI.
 //<!--more-->
 
-Pour choisir le bon PostProcessor, je me suis inspiré des classes de Spring link:https://fisheye.springsource.org/browse/spring-framework/trunk/org.springframework.beans/src/main/java/org/springframework/beans/factory/annotation/RequiredAnnotationBeanPostProcessor.java?hb=true[RequiredAnnotationBeanPostProcessor] et link:https://fisheye.springsource.org/browse/spring-framework/trunk/org.springframework.beans/src/main/java/org/springframework/beans/factory/annotation/AutowiredAnnotationBeanPostProcessor.java?hb=true[AutowiredAnnotationBeanPostProcessor].
-A partir de ces exemples, j'ai choisi de créer une classe LoggingAnnotationBeanPostProcessor qui implémente link:http://static.springsource.org/spring/docs/3.0.x/javadoc-api/index.html?org/springframework/beans/factory/support/MergedBeanDefinitionPostProcessor.html[MergedBeanDefinitionPostProcessor].
+Pour choisir le bon PostProcessor, je me suis inspiré des classes de Spring link:https://github.com/spring-projects/spring-framework/blob/3.0.x/org.springframework.beans/src/main/java/org/springframework/beans/factory/annotation/RequiredAnnotationBeanPostProcessor.java[RequiredAnnotationBeanPostProcessor] et link:https://github.com/spring-projects/spring-framework/blob/3.0.x/org.springframework.beans/src/main/java/org/springframework/beans/factory/annotation/AutowiredAnnotationBeanPostProcessor.java[AutowiredAnnotationBeanPostProcessor].
+A partir de ces exemples, j'ai choisi de créer une classe LoggingAnnotationBeanPostProcessor qui implémente link:https://docs.spring.io/spring-framework/docs/3.0.x/javadoc-api/org/springframework/beans/factory/support/MergedBeanDefinitionPostProcessor.html[MergedBeanDefinitionPostProcessor].
 Cette classe doit être un bean Spring. 
-Dans la méthode postProcessBeforeInitialization, je détecte si le bean qui s'apprête à être initialisé a un champ avec l'annotation @Logging et je lui injecte un logger contextuel.
+Dans la méthode `postProcessBeforeInitialization(...)`, je détecte si le bean qui s'apprête à être initialisé a un champ avec l'annotation `@Logging` et je lui injecte un logger contextuel.
 
 [source, subs="verbatim,quotes"]
 ----
@@ -63,7 +63,7 @@ public class LoggingAnnotationBeanPostProcessor
 }
 ----
 
-Ainsi, il me suffit d'annoter mon champ logger avec @Logging pour que l'injection se fasse.
+Ainsi, il me suffit d'annoter mon champ logger avec `@Logging` pour que l'injection se fasse.
 
 [source, subs="verbatim,quotes"]
 ----

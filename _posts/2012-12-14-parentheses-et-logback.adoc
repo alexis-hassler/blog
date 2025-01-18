@@ -8,10 +8,10 @@ tags:
 
 J'ai perdu une soirée à cause de ça. 
 Et j'ai perdu un peu de crédibilité aussi, en ouvrant un ticket sans fondement.
-Et tout ça parce que j'avais mal lu la link:http://logback.qos.ch/manual[documentation].
+Et tout ça parce que j'avais mal lu la link:https://logback.qos.ch/manual[documentation].
 
 L'histoire a commencé quand j'ai voulu ajouter l'adresse IP des clients de mon application Web dans les logs.
-J'avais déjà configuré mon link:http://logback.qos.ch/manual/mdc.html#mis[MDCInsertingServletFilter], il ne me restait qu'à utiliser ses informations.
+J'avais déjà configuré mon link:https://logback.qos.ch/manual/mdc.html#mis[MDCInsertingServletFilter], il ne me restait qu'à utiliser ses informations.
 J'ai donc configuré le pattern dans le appender, avec un %X{...} et un peu de mise en forme.
 C'est ici que la parenthèse arrive, et les problèmes avec.
 
@@ -31,7 +31,7 @@ Les traces de mon application ont commencé à ressembler à ça :
 C'est une répétition d'heures de d'adresses IP ; j'ai perdu tout ce qui était après l'adresse IP, même le retour à la ligne. 
 Et ça, c'est dû à l'utilisation de la parenthèse fermante dans le pattern.
 
-Après de longues recherches, je suis tombé sur le link:http://logback.qos.ch/manual/layouts.html#Parentheses[paragraphe des parenthèses] dans la documentation de logback, qui explique très bien que les parenthèses ont un rôle spécial, pour grouper des éléments du pattern, et qu'il faut échapper les parenthèses qu'on veut simplement afficher. 
+Après de longues recherches, je suis tombé sur le link:https://logback.qos.ch/manual/layouts.html#Parentheses[paragraphe des parenthèses] dans la documentation de logback, qui explique très bien que les parenthèses ont un rôle spécial, pour grouper des éléments du pattern, et qu'il faut échapper les parenthèses qu'on veut simplement afficher. 
 J'aurais donc dû mettre le pattern suivant :
 
 [source.width-80, subs="verbatim,quotes"]

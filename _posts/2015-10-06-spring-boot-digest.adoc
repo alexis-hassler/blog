@@ -17,14 +17,14 @@ Récemment, j'ai voulu utiliser du link:https://tools.ietf.org/html/rfc2617[*Dig
 J'ai préféré cette technique à Basic parce qu'elle est plus sécurisée. 
 Et pour avoir un bon niveau de sécurité, j'ai aussi voulu chiffrer les mots de passe en base de données. 
 Là je me suis trouvé face à un problème : 
-comment comparer un mot de passe _digéré_ et _salé_ dans en header de ma requête HTTP avec un mot de passe _digéré_ et _salé_ dans la base de données ? Et si c'est possible, comment le mettre en place avec link:http://projects.spring.io/spring-security/[*Spring Security*] et link:http://projects.spring.io/spring-boot/[*Spring Boot*] ?
+comment comparer un mot de passe _digéré_ et _salé_ dans en header de ma requête HTTP avec un mot de passe _digéré_ et _salé_ dans la base de données ? Et si c'est possible, comment le mettre en place avec link:https://spring.io/projects/spring-security[*Spring Security*] et link:https://spring.io/projects/spring-boot[*Spring Boot*] ?
 
 Je vais donc reprendre ma configuration Spring Security au départ, avec une authentification Basic, puis passer à l'authentification Digest et voir comment la rendre compatible avec le chiffrement des mots de passe. 
 
 // <!--more-->
 == Authentification Basic
 
-La configuration de Spring Security pour l'authentification Basic est extrêmement simple. On crée une classe de configuration qui hérite de link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/config/annotation/web/configuration/WebSecurityConfigurerAdapter.html[WebSecurityConfigurerAdapter], dans laquelle on redéfinit les méthodes `configure (AuthenticationManagerBuilder builder)` et `configure(HttpSecurity http)` :
+La configuration de Spring Security pour l'authentification Basic est extrêmement simple. On crée une classe de configuration qui hérite de link:https://docs.spring.io/spring-security/site/docs/5.4.11/api/org/springframework/security/config/annotation/web/configuration/WebSecurityConfigurerAdapter.html[WebSecurityConfigurerAdapter], dans laquelle on redéfinit les méthodes `configure (AuthenticationManagerBuilder builder)` et `configure(HttpSecurity http)` :
 
 [source.width-80, subs="verbatim,quotes"]
 ----
@@ -68,8 +68,8 @@ public class PingController {
 }
 ----
 
-On peut utiliser n'importe quel client HTTP pour tester : link:https://www.blogger.com/curl.haxx.se[curl], link:https://www.getpostman.com/[Postman], un link:http://www.getfirefox.net/[navigateur],... 
-Pour ma part, j'ai choisi link:http://httpie.org/[httpie].
+On peut utiliser n'importe quel client HTTP pour tester : link:https://curl.se[curl], link:https://www.getpostman.com/[Postman], un link:https://www.mozilla.org/fr/firefox/new/[navigateur],... 
+Pour ma part, j'ai choisi link:https://httpie.org/[httpie].
 
 [source.width-80, bash, subs="verbatim,quotes"]
 ----
@@ -78,7 +78,7 @@ http --auth-type=basic --auth=user:pwd http://localhost:8080/ping
 
 Dans cet exemple, les mots de passe sont stockés en clair. 
 Il est plus prudent de les stocker après hachage. 
-Du coté de Spring Security, il suffit d'ajouter un link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/crypto/password/PasswordEncoder.html[PasswordEncoder].
+Du coté de Spring Security, il suffit d'ajouter un link:https://docs.spring.io/spring-security/site/docs/5.4.11/api/org/springframework/security/crypto/password/PasswordEncoder.html[PasswordEncoder].
 
 == Authentification Digest
 
@@ -105,8 +105,8 @@ un AuthenticationEntryPoint et un Filter.
     }
 ----
 
-Le link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.html[DigestAuthenticationEntryPoint] de Spring Security génère le nonce et construit la réponse 401. 
-Le link:http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/www/DigestAuthenticationFilter.html[DigestAuthenticationFilter] intercepte la seconde requête et compare le contenu du header Digest au mot de passe stocké.
+Le link:http://docs.spring.io/spring-security/site/docs/5.4.11/api/org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.html[DigestAuthenticationEntryPoint] de Spring Security génère le nonce et construit la réponse 401. 
+Le link:http://docs.spring.io/spring-security/site/docs/5.4.11/api/org/springframework/security/web/authentication/www/DigestAuthenticationFilter.html[DigestAuthenticationFilter] intercepte la seconde requête et compare le contenu du header Digest au mot de passe stocké.
 
 [source.width-80, bash, subs="verbatim,quotes"]
 ----

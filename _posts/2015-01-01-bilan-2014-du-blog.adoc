@@ -24,7 +24,7 @@ Quand je regarde les 3 articles qui suivent, ça ne me rassure pas forcément.
 Il y en a deux qui concernent Google Maps, link:/2013/07/09/du-sig-google-maps.html[Du SIG à Google Maps] et link:/2013/07/11/generer-kml.html[Générer un document KML pour Google Maps], et un sur mon link:/2014/04/19/pub-windev.html[mail de réponse à de la pub Windev]. 
 Ces articles sont plus récents, mais ne concernent pas du tout mon activité habituelle.
 
-Et ce n'est pas l'audience de link:http://www.jtips.info/[jtips] qui va me rassurer puisque sur ce wiki, c'est une page sur link:http://www.jtips.info/index.php?title=Spring/Annotations[Spring Framework 2.5], donc la rédaction a débuté fin 2007 qui est la plus populaire.
+Et ce n'est pas l'audience de link:https://www.jtips.info/[jtips] qui va me rassurer puisque sur ce wiki, c'est une page sur link:https://www.jtips.info/index.php?title=Spring/Annotations[Spring Framework 2.5], donc la rédaction a débuté fin 2007 qui est la plus populaire.
 
 *Dois-je conclure que peu de gens sont intéressés par mes sujets de prédilection, comme JBoss / WildFly ou Java EE. 
 Ou est-ce que les vieilleries sont mieux référencée par Google ?*

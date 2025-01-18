@@ -23,12 +23,12 @@ Je ne vais pas non plus contester la légitimité de RedHat à gagner de l'argen
 Je vais plutôt me concentrer sur le code.
 // <!--more-->
 
-Dans un link:http://henk53.wordpress.com/2013/01/09/the-curious-case-of-jboss-as-7-1-2-and-7-1-3/[billet récent], Henk (je ne connais pas son nom complet) est revenu sur les différences entre JBoss AS et EAP et a rappelé l'impossibilité de faire un build de JBoss EAP 6. 
+Dans un link:https://henk53.wordpress.com/2013/01/09/the-curious-case-of-jboss-as-7-1-2-and-7-1-3/[billet récent], Henk (je ne connais pas son nom complet) est revenu sur les différences entre JBoss AS et EAP et a rappelé l'impossibilité de faire un build de JBoss EAP 6. 
 Pourtant, on a presque tout ce qu'il faut :
 
-* le code source peut être téléchargé sur un link:ftp://ftp.redhat.com/redhat/jbeap/[FTP dédié],
+* le code source peut être téléchargé sur un link:https://ftp.redhat.com/redhat/jboss/eap/[FTP dédié],
 *  un repository Maven des artéfact utilisés dans EAP 6 est sur le link:https://access.redhat.com/[portail client de RedHat]&nbsp;et sur un
-link:http://maven.repository.redhat.com/techpreview/[site dédié].
+link:https://repository.jboss.org/nexus/content/groups/public/[site dédié].
 
 Rappelons que la disponibilité du code source n'est pas suffisante pour être Open Source, il faut avoir le droit de le modifier, ce qui est garanti par la licence LGPL, mais aussi la possibilité de le compiler. 
 La licence précise bien, mais avec d'autres termes, que *sans build, le code n'est rien*. 
@@ -42,12 +42,12 @@ Donc *il est impossible de compiler JBoss EAP 6*.
 
 Par contre, avec un peu de patience, en tâtonnant, on peut construire quelque chose s'approchant de JBoss EAP 6 en remplaçant les artéfacts suffixés "-redhat" par des artéfacts présents dans des repositories publics. 
 Ainsi, j'ai réussi à faire un *build de quelque chose qui n'est pas JBoss EAP 6 mais qui y ressemble*, il me reste à tester le résultat... 
-Si de votre coté vous voulez aussi tester ce que ça donne, j'ai partagé le script sur link:https://github.com/hasalex/eap-build[GitHub]. 
+Si de votre coté vous voulez aussi tester ce que ça donne, j'ai partagé le script sur link:https://github.com/CentEAP/eap-build[GitHub]. 
 Vous pouvez essayer :
 
 [source.width-80, subs="verbatim,quotes"]
 ----
-  git clone git://github.com/hasalex/eap-build.git
+  git clone git://github.com/CentEAP/eap-build.git
   cd eap-build
   ./build.sh
 ----

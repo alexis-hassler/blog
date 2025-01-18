@@ -129,5 +129,5 @@ Le vainqueur est donc *`FileChannel`*, avec un buffer de 64 ko.
 
 [NOTE.edit, caption="Edit"]
 ====
-* 18/05/2020: ajout de MappedByteBuffer (et RandomAccessFile) dans certains tests, suggéré par https://twitter.com/elecharny_tek[E. Lecharny]
+* 18/05/2020: ajout de MappedByteBuffer (et RandomAccessFile) dans certains tests, suggéré par https://framapiaf.org/@elecharny[E. Lecharny]
 ====

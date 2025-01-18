@@ -10,7 +10,7 @@ On met le front-end et le back-end dans des projets séparés et on les teste da
 
 Pour mon projet actuel, le back-end est en Spring MVC 4 qu'on déploie dans Tomcat et le front-end est en Angular 4 qu'on exécute avec `ng serve`.
 
-Dans ces conditions, le navigateur charge l'application sur http://localhost:4200 et les données sur http://localhost:8080.
+Dans ces conditions, le navigateur charge l'application sur `\http://localhost:4200` et les données sur `\http://localhost:8080`.
 Le navigateur devra refuser ces dernières si le serveur n'a pas explicitement autorisé leur exploitation depuis une autre _origin_.
 //<!--more-->
 
@@ -219,4 +219,4 @@ Et le fichier proxy.conf.json, référencé dans la commande, configure webpack 
 Voila, je ne préoccupe plus du port 8080. 
 Mes front-end et mon back-end sont accessible depuis le port 4200, servi par webpack.
 
-Merci à https://twitter.com/zepag/status/909792141068701698[Pierre-Antoine Grégoire] et https://twitter.com/bcourtine/status/909806881543278593[Benoit Courtine] pour leur suggestions.
+Merci à https://bsky.app/profile/zepag.fr[Pierre-Antoine Grégoire] et https://framapiaf.org/@bcourtine[Benoit Courtine] pour leur suggestions.

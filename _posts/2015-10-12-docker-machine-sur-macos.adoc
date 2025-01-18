@@ -22,7 +22,7 @@ Donc pour l'utiliser sur MacOS, ou d'autres systèmes encore plus exotiques, il 
 
 image::/images/docker/mac_docker_host.png[, 251, 320, role="center"]
 
-C'est ce que fait link:http://boot2docker.io/[boot2docker]. 
+C'est ce que fait link:https://web.archive.org/web/20151005130807/http://boot2docker.io/[boot2docker]. 
 L'outil nous télécharge une machine virtuelle VirtualBox légère, qui embarque le démon docker. 
 Il nous permet de la piloter cette VM, essentiellement pour la démarrer et l'arrêter. 
 Sur MacOS, on peut télécharger l'_installer_ de boot2docker et l'installer manuellement, ou passer par link:http://brew.sh/[Homebrew].
@@ -36,7 +36,7 @@ brew install boot2docker
 [.width-100.center.background-blue.white.big.line-400]
 *Mais ça, c'était avant.*
 
-Aujourd'hui, boot2docker est déprécié, au profit de link:https://docs.docker.com/machine/[Docker Machine]. 
+Aujourd'hui, boot2docker est déprécié, au profit de link:https://web.archive.org/web/20150928094437/https://docs.docker.com/machine/[Docker Machine]. 
 
 image::https://www.docker.com/sites/default/files/products/docker_machine.png[, 168, 200, role="right"]
 
@@ -47,14 +47,14 @@ Docker Machine avec son driver VirtualBox remplace donc boot2docker.
 
 Là aussi, il y a deux façons de l'installer. 
 La documentation officielle préconise d'utiliser la Docker Toolbox, qui contient aussi Docker, Docker Compose et Kitematic. 
-Personnellement, je reste fidèle à link:http://brew.sh/[Homebrew].
+Personnellement, je reste fidèle à link:https://brew.sh/[Homebrew].
 
 [source.width-80, bash, subs="verbatim,quotes"]
 ----
 brew install docker-machine
 ----
 
-En écoutant les link:https://lescastcodeurs.com/[Cast Codeurs], j'ai découvert que Docker Toolbox était disponible avec link:http://caskroom.io/[Homebrew Cask] :
+En écoutant les link:https://lescastcodeurs.com/[Cast Codeurs], j'ai découvert que Docker Toolbox était disponible avec link:https://web.archive.org/web/20151011145647/http://caskroom.io/[Homebrew Cask] :
 
 [source.width-80, bash, subs="verbatim,quotes"]
 ----

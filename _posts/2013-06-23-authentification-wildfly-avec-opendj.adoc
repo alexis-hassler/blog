@@ -90,4 +90,4 @@ run-batch
 Remarques :
 
 * La même configuration fonctionne aussi dans JBoss AS 7.1 ou 7.2.
-* La liste des attributs de configuration du module LdapExtended est disponible sur le link:https://community.jboss.org/wiki/LdapExtLoginModule[wiki de JBoss].
+* La liste des attributs de configuration du module LdapExtended est disponible sur le link:https://developer.jboss.org/docs/DOC-11251[wiki de JBoss].

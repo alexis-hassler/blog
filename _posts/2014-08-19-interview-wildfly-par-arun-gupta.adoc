@@ -9,8 +9,8 @@ courses:
 - wildfly
 ---
 
-link:http://blog.arungupta.me/[Arun Gupta], Director of Advocacy chez RedHat, m'a récemment interviewé au sujet de ma link:http://www.sewatech.fr/formation-wildfly.html[formation WildFly]. 
-Vous pouvez retrouver cette interview sur son link:http://blog.arungupta.me/2014/08/wildfly-administration-course-alexis-hassler[blog].
+link:https://blog.arungupta.me/[Arun Gupta], Director of Advocacy chez RedHat, m'a récemment interviewé au sujet de ma link:https://www.sewatech.fr/formation-wildfly.html[formation WildFly]. 
+Vous pouvez retrouver cette interview sur son link:https://blog.arungupta.me/2014/08/wildfly-administration-course-alexis-hassler[blog].
 
 Pour ceux qui sont allergiques à l'anglais, je retranscris ici une version française.
 //<!--more-->
@@ -67,6 +67,6 @@ Pour Glassfish, nous verrons avec les prochaines versions si la qualité actuell
 WildFly est mon préféré pour son système de modules, ses outils d'administration et sa communauté.
 
 *Q.* [.underline]#Quelles sources d'informations utilises-tu généralement quand tu as besoin d'aide sur WildFly ?#
-*A.* Pour moi, les principales sources sont la link:https://docs.jboss.org/author/display/WFLY8/[documentation officielle] et le link:http://www.mastertheboss.com/[blog de Francesco Marchioni]. 
-Pour un débutant, le livre de Francesco, link:http://www.itbuzzpress.com/wp/product/wildfly-administration-guide/["WildFly, administration guide"] sera plus facile. 
+*A.* Pour moi, les principales sources sont la link:https://docs.jboss.org/author/display/WFLY8/[documentation officielle] et le link:https://www.mastertheboss.com/[blog de Francesco Marchioni]. 
+Pour un débutant, le livre de Francesco, link:https://www.itbuzzpress.com/wp/product/wildfly-administration-guide/["WildFly, administration guide"] sera plus facile. 
 La dernière ressource que je recommanderais serait la link:https://www.jtips.info/tag/WildFly[section WildFly de mon wiki], _but it's in French_.

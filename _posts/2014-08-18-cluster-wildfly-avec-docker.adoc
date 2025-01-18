@@ -18,7 +18,7 @@ Pour aujourd'hui ce sera Docker, et pour rester autour de mes sujets habituels, 
 L'idée, c'est de monter un cluster WildFly 8.1, avec Apache + mod_cluster en frontal, sur une machine, en isolant les instances avec Docker.
 //<!--more-->
 
-Le préalable, c'est d'link:https://docs.docker.com/installation/#installation[installer Docker], et éventuellement link:https://github.com/boot2docker/boot2docker[boot2docker] pour les systèmes d'exploitation de seconde zone. 
+Le préalable, c'est d'link:https://docs.docker.com/get-started/get-docker/#installation[installer Docker], et éventuellement link:https://github.com/boot2docker/boot2docker[boot2docker] pour les systèmes d'exploitation de seconde zone. 
 Pour écrire ce billet et tester son contenu, j'ai travaillé avec boot2docker + docker 1.1.2.
 
 A partir de là, on démarre le front-end, constitué d'un serveur Web *Apache 2.4*, avec *mod_cluster* :
@@ -37,7 +37,7 @@ docker run -p 9991:9990 sewatech/wildfly
 docker run -p 9992:9990 sewatech/wildfly
 ----
 
-Au bout de quelques secondes, on peut vérifier que mod_cluster a bien détecté les instances en se connectant sur la page link:http://docker/cluster-manager[http://docker/cluster-manager].
+Au bout de quelques secondes, on peut vérifier que mod_cluster a bien détecté les instances en se connectant sur la page `\http://docker/cluster-manager`.
 
 Le binding du port d'administration permet de déployer une application dans chaque instance, grâce à un *jboss-cli* installé sur l'hôte. 
 Le couple username / password est alexis / hassler. 
@@ -49,7 +49,7 @@ jboss-cli.sh --controller=docker:9991 --connect --command="deploy example.war"
 jboss-cli.sh --controller=docker:9992 --connect --command="deploy example.war"
 ----
 
-Sur la page de mod_cluster, les contextes doivent apparaître sous chaque instance. On peut aussi accéder à l'application par l'URL link:http://docker/example[http://docker/example].
+Sur la page de mod_cluster, les contextes doivent apparaître sous chaque instance. On peut aussi accéder à l'application par l'URL `\http://docker/example`.
 
 Si le war est déclaré comme _distributable_ (dans WEB-INF/web.xml), les sessions seront distribuées dans le cluster afin d'assurer une tolérance de panne. 
 On peut vérifier que la distribution est bien activée en se connectant à une instance avec jboss-cli et en interrogeant le sous-système jgroups, responsable de la communication entre les instances du cluster.
@@ -60,7 +60,7 @@ On peut vérifier que la distribution est bien activée en se connectant à une 
 ----
 
 On a, en quelques minutes, un cluster WildFly sur notre machine, prêt à être testé. 
-Les images sont disponibles sur link:https://registry.hub.docker.com/repos/sewatech/[Docker Hub]. 
+Les images sont disponibles sur link:https://registry.hub.docker.com/u/sewatech[Docker Hub]. 
 Dans quelques jours je vous donnerai pour le détail la constitution des images. 
 Si vous ne voulez pas attendre, vous pouvez d'ors et déjà retrouver sur Github les dockers files pour link:https://github.com/sewatech/docker-modcluster[sewatech/modcluster] et link:https://github.com/Sewatech/docker-wildfly[sewatech/wildfly].
 

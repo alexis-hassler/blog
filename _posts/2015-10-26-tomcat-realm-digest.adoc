@@ -19,7 +19,7 @@ Comment peux-t-on associer une authentification Digest avec le hachage des mots 
 
 == Tomcat Realm
 
-Sous link:http://tomcat.apache.org/[Tomcat], on configure des link:https://tomcat.apache.org/tomcat-8.0-doc/realm-howto.html[Realms] qui accèdent à des sources de données pour valider le nom d'utilisateur et le mot de passe, ainsi que pour attribuer un ou plusieurs rôles à l'utilisateur authentifié. 
+Sous link:https://tomcat.apache.org/[Tomcat], on configure des link:https://tomcat.apache.org/tomcat-8.0-doc/realm-howto.html[Realms] qui accèdent à des sources de données pour valider le nom d'utilisateur et le mot de passe, ainsi que pour attribuer un ou plusieurs rôles à l'utilisateur authentifié. 
 Par exemple, dans la configuration par défaut, on a le UserDatabaseRealm qui utilise les données stockées dans le fichier conf/tomcat-users.xml.
 
 [source.width-80, subs="verbatim,quotes"]

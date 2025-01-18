@@ -65,7 +65,7 @@ ApplicationDeployArchiveResponse deployResponse0
 ----
 
 Le déploiement se fait, créant au passage l'application, mais celle-ci ne fonctionne pas car elle a été déployée comme un war simple et non un war JavaEE. 
-Après un petit tour sur le forum, j'ai ma réponse (rapide, merci link:http://blog.loof.fr/[Nicolas]). 
+Après un petit tour sur le forum, j'ai ma réponse (rapide, merci link:https://blog.loof.fr/[Nicolas]). 
 Je dois ajouter des paramètres et donc utiliser la méthode applicationDeployArchive.
 
 [source, subs="verbatim,quotes"]

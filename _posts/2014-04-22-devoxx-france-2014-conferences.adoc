@@ -29,7 +29,7 @@ image::/images/devoxx/panneau-mouais.png[role="center"]
 
 La session sur OSGi était aussi décevante. 
 Les orateurs n'étaient pas vraiment à l'aise sur scène, avec des slides et des démos peu adaptés à la taille de la salle. 
-Messieurs, travaillez votre technique de présentation (link:https://www.touilleur-express.fr/2012/01/24/video-reussir-sa-presentation-a-devoxx-france/[ici] ou link:http://blog.javabien.net/2013/02/23/bien-se-preparer-pour-une-conference/[là]), vous porterez bien mieux votre message.
+Messieurs, travaillez votre technique de présentation (link:https://www.touilleur-express.fr/2012/01/24/video-reussir-sa-presentation-a-devoxx-france/[ici] ou link:https://blog.javabien.net/2013/02/23/bien-se-preparer-pour-une-conference/[là]), vous porterez bien mieux votre message.
 
 Pour la session "Realtime Web avec Akka, Kafka, Spark et Mesos", je me suis peut-être laissé attirer par l'accumulation de buzz-words. 
 En réalité, pour suivre la session, il fallait avoir des connaissances minimales sur tous ces produits. 
@@ -70,7 +70,7 @@ Evidemment, les conclusions sont en faveur de l'usage d'Atmosphere, plutôt que 
 J'en suis ressorti convaincu et ravi du moment passé.
 
 Je vais terminer par la session qui m'a scotchée. 
-C'est certainement plus sur la forme que sur le fond, mais link:https://twitter.com/agnes_crepet[Agnès Crepet] et link:https://dev-mind.fr/[Guillaume Ehret] ont fait une présentation sur les tests qui était terrible. 
+C'est certainement plus sur la forme que sur le fond, mais link:https://mastodon.social/@agnes007[Agnès Crepet] et link:https://dev-mind.fr/[Guillaume Ehret] ont fait une présentation sur les tests qui était terrible. 
 Un vrai show, très bien préparé, bien huilé. 
 Pour moi la meilleure des deux jours. 
 Certains diront que je ne suis pas objectif, mais la salle était pleine et les retours des autres participants étaient positifs. 

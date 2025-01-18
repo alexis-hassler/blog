@@ -11,7 +11,7 @@ courses:
 Dernièrement, j'ai eu besoin d'exposer la console d'administration de JBoss AS 7.1 sur un serveur Web Apache. 
 Le choix de la technique à utiliser a été rapide : puisque l'interface de management ne propose pas d'accès AJP, il faut utiliser Apache en reverse proxy HTTP.
 
-Dans un premier temps, j'ai exposé le contexte http://localhost:9990/console via mod_proxy. 
+Dans un premier temps, j'ai exposé le contexte `\http://localhost:9990/console` via mod_proxy. 
 Je me suis rapidement rendu compte que c'était insuffisant car l'application fait des requêtes AJAX sur le contexte management. 
 La configuration suivante de mod_proxy semblait raisonnable :
 
@@ -28,7 +28,7 @@ ProxyPassReverse /management http://localhost:9990/management
 N'étant pas certain que tous les administrateurs de mes clients utilisent Firefox, je me suis mis en quête d'une meilleure solution.
 // <!--more-->
 
-J'ai posé la link:https://community.jboss.org/message/779435[question sur le forum JBoss], et on m'a orienté vers une link:https://community.jboss.org/wiki/ApacheHttpdJBossAS7AdminConsoleProxy[page du wiki] expliquant la bonne configuration. 
+J'ai posé la link:https://community.jboss.org/message/779435[question sur le forum JBoss], et on m'a orienté vers une link:https://developer.jboss.org/docs/DOC-21312[page du wiki] expliquant la bonne configuration. 
 Il me manquait une directive ProxyPreserveHost. 
 La bonne configuration est donc :
 

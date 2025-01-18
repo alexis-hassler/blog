@@ -13,7 +13,7 @@ Habituellement, je développe en java et j'utilise un Jenkins pour l'intégratio
 Récemment, j'ai développé un petit projet perso, pur front-end, ce qui est totalement nouveau pour moi ; 
 le projet en question est une mini console d'administration pour WildFly.
 
-Pour être dans l'ère du temps, j'ai préparé une image Docker qui fait tourner un serveur Apache httpd sur lequel est déployée la console. Et pour faciliter l'utilisation et la distribution de cette image, elle est sur le http://hub.docker.com/[Hub Docker]. 
+Pour être dans l'ère du temps, j'ai préparé une image Docker qui fait tourner un serveur Apache httpd sur lequel est déployée la console. Et pour faciliter l'utilisation et la distribution de cette image, elle est sur le https://hub.docker.com/[Hub Docker]. 
 Voyons la chaîne d'intégration continue in ze cloud et gratuite qui met à jour mon image à chaque fois que mon code est mis à jour sur GitHub.
 
 image::/images/docker/logos-ci-lite.png["Logos CI", 320, 100, role="center"]
@@ -26,7 +26,7 @@ Il est stocké dans un repository public sur GitHub.
 
 == Hub Docker et build automatique
 
-Le point d'arrivée est l'image Docker publiée sur le http://hub.docker.com/[Hub]. 
+Le point d'arrivée est l'image Docker publiée sur le https://hub.docker.com/[Hub]. 
 L'image y est construite directement avec un "build automatique" ; 
 pour cela, j'ai mis un https://github.com/hasalex/docker-fly-ng/[Dockerfile] sur GitHub dans un repository dédié. 
 A chaque mise à jour du Dockerfile, le build est relancé. Un build peut aussi être déclenché manuellement sur le site, ou en envoyant une requête à une certaine URL.
@@ -35,7 +35,7 @@ A chaque mise à jour du Dockerfile, le build est relancé. Un build peut aussi 
 ----
 curl                                                                                    \
   --data "build=true"                                                                   \
-  -X POST https://registry.hub.docker.com/u/$DOCKER_USERNAME/fly-ng/trigger/$DOCKER_KEY/
+  -X POST https://registry.hub.docker.com/r/$DOCKER_USERNAME/fly-ng/trigger/$DOCKER_KEY/
 ----
 
 L'image Docker est construite sur la base de sewatech/apache qui est une Debian avec Apache Httpd à laquelle j'ajoute les fichiers de la console.

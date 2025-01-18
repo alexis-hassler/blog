@@ -50,7 +50,7 @@ git commit -m "First commit"
 
 Maintenant que mon repository local fonctionne, je peux y valider mes modifications. 
 Au bout d'un moment, il faut tout de même publier mon code source pour que d'autres puissent y accéder. 
-J'ai décidé de le publier sur link:http://github.com/[GitHub], sous licence libre LGPL.
+J'ai décidé de le publier sur link:https://github.com/[GitHub], sous licence libre LGPL.
 
 J'avais déjà un compte sur GitHub ; il me servait à remonter des anomalies sur d'autres projets, en particulier lors de la relecture de la link:https://github.com/bcourtine/maven-guide-fr[traduction française du Guide Maven] (dont je conseille la lecture ;-) ). 
 Il m'a donc suffit de créer un repository. 
