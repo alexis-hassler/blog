@@ -388,3 +388,10 @@ a[target="_blank"]::after {
 .inline {
   display: flex;
 }
+
+.margin-bottom-0 {
+  margin-bottom: 0;
+  p {
+    margin-bottom: 0;
+  }
+}
