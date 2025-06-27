@@ -1,0 +1,172 @@
+---
+layout: post
+title: Développer avec l'IA
+author: Alexis Hassler
+---
+
+image::/images/ai/dev-genia.svg[Développeur GenIA, 120, role="left"]
+
+J'ai beaucoup hésité avant de me lancer...
+
+D'une part, le sujet est vraiment partout, et il me semble plus ancré que les hypes précédentes, comme le metaverse ou les cryptomonnaies. 
+C'est difficile de l'ignorer quand on est développeur. 
+D'autre part, le sujet soulève tellement de questions environnementales et sociétales. 
+C'est irresponsable de s'y engager dans son état actuel.
+
+Vous aurez compris que je parle d'IA générative, plus précisément de l'utilisation d'*IA générative* dans le *développement Java*. 
+Je vais vous expliquer comment j'ai abordé le sujet et ce que j'en retire pour le moment. 
+Et comme ça bouge très vite, notez bien la date de publication du billet{nbsp}: c'est fin *juin 2025*. 
+Il n'est pas impossible que je change d'avis pendant l'été{nbsp}!
+
+// <!--more-->
+
+== Mes premiers pas
+
+Dans des projets précédents, mes collègues m'ont poussé à utiliser des outils d'IA générative pour certaines tâches de développement.
+A l'époque, début 2023, je n'avais pas d'outil spécifique pour le développement et j'utilisais ChatGPT.
+
+Le premier cas d'usage qu'on m'a demandé d'explorer, c'était la *génération de documentation technique*.
+Son mode de fonctionnement par chat dans le navigateur limitait fortement les possibilités puisqu'on lui transmet les informations par copier/coller. 
+Il n'avait pas de contexte dans lequel replacer chaque classe.
+Bref, c'était une impasse.
+
+Du coup, on s'est rabattus sur la *génération de Javadoc*.
+Mais là aussi, sans contexte la génération se limitait à dire que `getLabel()` retournait le _label_ et que `buildProduct(...)` construisait un produit.
+Bref, c'était digne de Captain Obvious.
+
+image::/images/ai/captain-obvious.svg[Captain Obvious, 240, role="center"]
+
+Le second cas d'usage était l'*exploration technique*. 
+Par exemple, on avait besoin de projections un peu élaborées avec Hibernate.
+Ses réponses inventaient des classes dans Hibernate et tournaient en rond quand j'essayais de recadrer.
+Bref, j'ai perdu pas mal de temps.
+
+J'ai retenté ma chance début *2025*.
+D'abord parce que l'écosystème a changé avec des outils spécialisés et adaptés au métier de développeurs.
+Et plus particulièrement parce que Jetbrains a une offre intégrée dans son IDE que j'utilise depuis pas mal d'années.
+
+Ensuite parce que je travaille sur un projet qui se prête à cette expérimentation, avec une équipe limitée à un seul développeur, avec une planification un peu chaotique et des spécifications assez instables.
+
+== L'IA avec IntelliJ
+
+image::/images/ai/jetbrains-intellij.svg[IntelliJ IDEA, 60, role="right"]
+
+Le projet a commencé en 2024 sans outil d'IA, mais avec mon IDE habituel, IntelliJ IDEA.
+Pour une transition douce, je souhaitais continuer avec celui-ce plutôt que de basculer sur des outils à la mode.
+
+IntelliJ propose propose quatre niveaux d'intégration de l'IA{nbsp}:
+
+- avec la complétion de code,
+- via des menus contextuels,
+- en chat via un assistant IA,
+- en interaction complète dans le code via un agent.
+
+=== Complétion
+
+La première utilisation de l'IA dans IntelliJ se fait assez facilement.
+C'est juste un enrichissement de la complétion, lorsqu'on fait CTRL+SPACE.
+Pour simplifier, avant elle proposait un mot (variable, méthode,...) maintenant c'est une ligne complète ou quelques lignes.
+
+image::/images/ai/singleline-completion.gif[AI single-line completion example, 800, role="center"]
+
+La valeur ajoutée est limitée, mais avec peu d'inconvénients.
+Ça n'implique pas de changement dans la façon de travailler.
+Et ça utilise un petit modèle spécialisé, en local (JetBrains Mellum, 100 Mo / langage).
+
+La variante plus poussée consiste à écrire un commentaire dans le code.
+L'IA complète le commentaire et propose une série de lignes de code pour l'implémenter.
+
+image::/images/ai/multiline-completion.gif[AI multi-line completion example, 800, role="center"]
+
+J'ai du mal avec ce mode, je trouve ça un peu déstabilisant, car ça génère souvent trop de choses par rapport à mon souhait.
+Tyîquement sur l'exemple ci-dessus, pourquoi est-ce que ça ajoute `System.err.println(...)` ?
+Et j'ai du mal à régler mon commentaire/prompt pour obtenir le bon résultat.
+
+=== Actions d'IA
+
+image::/images/ai/jetbrains-ai.svg[Jetbrain AI, 60, role="right"]
+
+Le menu "Generate with AI" (ou son raccourci) est un peu plus explicite.
+Ça ouvre une zone de prompt et génère directement du code à l'emplacement du curseur.
+Par contre, c'est un peu moins fluide, avec plus de temps de _réflexion_, signe que ça passe par un modèle externe.
+
+image::/images/ai/action-generation.gif[AI code generation, 800, role="center"]
+
+Le menu contextuel "IA Actions" propose aussi de générer des tests unitaires, de générer de la documentation, d'expliquer du code ou de proposer un refactoring.
+J'ai peu utilisé ces actions, je n'ai donc pas encore de recul.
+
+=== Chat
+
+image::/images/ai/jetbrains-ai-chat.svg[Jetbrain AI Chat, 60, role="right"]
+
+Avec le chat, on revient à un mode de fonctionnement plus classique.
+L'avantage avec un chat traditionnel, c'est qu'il est intégré à l'IDE.
+Et cette intégration est sa valeur ajoutée puisqu'il peut utiliser le code du projet comme contexte.
+
+S'il peut lire le code du projet, il n'y écrit rien.
+Il donne ses réponses dans le chat avec du code et des explications.
+Honnêtement, je ne lis presque jamais les explications, c'est le code qui m'intéresse.
+
+Pour cette fonctionnalité, on utilise un modèle classique (GPT, Claude, Gemini,...) hébergé par Jetbrains ou un modèle auto-hébergé.
+
+J'utilise ceci pour des explorations, pour trouver des solutions avec des librairies que je connais peu.
+Le meilleur exemple, c'était pour une personnalisation un peu fine de graphiques avec jfreechart.
+
+=== Junie
+
+image::/images/ai/jetbrains-junie.svg[Jetbrain Junie, 60, role="right"]
+
+Le mode le plus intégré, c'est Junie.
+C'est aussi le mode hype et le plus controversé.
+
+Le point de départ est aussi un chat, mais avec cette fonctionnalité un *agent* intervient directement sur le code.
+Evidemment, tous les changements sont détaillé dans le chat et accompagnés d'explications.
+Et chacune peut être acceptée ou refusée via un diff, comme avec git.
+
+La valeur ajoutée se situe dans l'utilisation d'un fichier de guidelines.
+Il ressemble aux guidelines qu'on écrirait pour embarquer un humain dans le projet. 
+Comme j'ai commencé à utiliser Junie bien après le début du projet, j'ai fait générer le fichier par Junie à partir du code existant.
+
+J'avais quelques réticences, mais elles se sont estompées au fur et à mesure.
+Aujourd'hui, j'utilise Junie pour générer du code classique, comme du simple **F**ind/**U**pdate/**C**reate/**R**emove.
+Il est aussi assez efficace pour générer de la documentation technique ou des tests unitaires.
+Pour ces derniers, je n'ai pas encore trouvé le bon réglage car ils sont trop verbeux à mon goût.
+
+Ce qui me perturbe le plus au quotidient, c'est assez lent. 
+Il faudrait que je trouve une occupation pendant qu'il travaille, sans que ça me sorte du sujet.
+C'est vraiment différent des mes habitudes de travail.
+
+== Qualité du code
+
+Il arrive régulièrement que le code généré ne compile pas ou qu'il faille pas mal d'itérations pour que les tests passent au vert.
+Quand on parle de génération, ça ne se limite vraiment pas à cliquer sur un bouton.
+Ça peut prendre du temps.
+Ça peut aussi être énervant de le voir patauger, il faut de la patience.
+
+Dans tous les modes, le code a généralement des *défauts*, avec des portions pas optimisées et souvent trop verbeuses.
+Dans tous les cas, ça demande une surveillance et de retouches.
+
+== Conclusion
+
+Ces quelques semaines d'expérimentation ont bien changé mon point de vue.
+L'IA générative apporte probablement un *gain de productivité*, sans que je puisse le quantifier.
+
+Elle apporte une plus-value dans la production de code classique du projet (FUCR) et pour des parties classiques pour d'autres, mais pas pour moi.
+Elle n'est pas à l'aise dans les parties plus pointues techniquement, comme des personnalisations fines du framework.
+
+Je pense que ce sont des outils intéressants à condition que le développeur reste aux commandes.
+Dans l'état actuel, je ne laisserais pas un agent libre de proposer ses pull requests car ça impliquerait trop de travail de revue de code.
+
+Évidemment, mes conclusions peuvent être remises en question dans les prochaines semaines.
+
+Il y a aussi une question subsidiaire.
+Est-ce qu'on peut considérer le gain suffisant par rapport aux *coûts environnementaux et sociétaux*{nbsp}?
+La réponse est certainement différente entre les fonctionnalités à petit modèle local et celle à gros modèle généraliste.
+
+
+[.small.margin-bottom-0]
+P.S.{nbsp}:
+
+[.small]
+* Le billet a été totalement écrit par un humain.
+* Les dessins d'illustration ont été générés par une IA et modifiés par un humain.
