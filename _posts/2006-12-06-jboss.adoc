@@ -1,0 +1,81 @@
+---
+layout: post
+title: JBoss est-il apte à la production ?
+keywords: 
+- jboss
+- j2ee
+---
+
+Le question ne se pose pas pour un environnement JBoss dûment préparé, avec un sérieux travail de configuration. 
+Il se pose par contre concrètement pour les configurations fournies par défaut.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Configurations par défaut
+
+On peut aussi se poser la question différemment{nbsp}: lorsque JBoss livre son serveur d'application, à qui s'adressent-ils en priorité{nbsp}?
+
+Historiquement, JBoss s'est avant tout imposé chez les développeurs, de par sa légèreté, sa souplesse d'utilisation et sa facilité d'installation{nbsp}: 
+
+* on télécharge, 
+* on décompresse le fichier, 
+* on pose le fichier à déployer dans deploy,
+* on lance le script run.
+
+Difficile de faire plus simple pour un serveur d'application certifié J2EE.
+
+Le problème, c'est que dans un nombre significatif d'entreprises, la même procédure a été appliquée pour l'environnement de production. 
+Si les performances de cette configuration par défaut peuvent être satisfaisantes pour une application peu gourmande, c'est du coté de la sécurité qu'il faut s'inquièter.
+
+== Performances
+
+Du coté des paramètres de performances, les choses évoluent dans le bon sens au cours des versions. 
+Ainsi, par défaut, JBoss est lancé en option Hotspot server, alors qu'en 4.0.2, il était encore lancé en client.
+
+Du coté de la mémoire, les 128Mo maxi accordés lorsqu'on lance JBoss via le script run.sh (linux et unix) sont vraiment insuffisants. 
+On peut demander au passage pourquoi sous windows, cette limite est placée à 512Mo alors que celle pour linux est longtemp restée aussi basse.
+
+Dans la version 4.0.5, ces différences ont été gommée.
+
+== Sécurité
+
+Parmi les aspects discutables dans la configuration par défaut, j'écarte les failles telles que celle citée sur le https://issues.redhat.com/browse/JBAS-1896[site JIRA de JBoss] pour me concentrer sur des modifications considérées comme normales.
+
+Tout d'abord, on constate que la console d'administration JMX est accessible sans aucune authentification. 
+Lorsqu'on connaît les capacités de cette console, on se rend compte que cela revient à livrer les clés du serveur d'application. 
+
+La jmx-console permet non seulement d'arrêter une application ou le serveur, mais aussi de déployer des applications, sans avoir accès au système de fichiers ou accéder à des informations internes au serveur.
+
+On notera aussi l'installation du http-invoker qui permet d'accéder aux composants EJB, JMX et à l'annuaire JNDI via http, sans authentification. 
+L'accès à JNDI est évidemment autorisé en lecture{nbsp}!
+
+== Composants inutiles
+
+Du coté des composants installés, cela ressemble plus à une foire ambulante qu'à un ensemble organisé et raisonnable. 
+Certains composants semblent là uniquement pour être montrés.
+
+Je pense par exemple à cette base de donnée HsqlDB, que JBoss conseille depuis toujours de retirer de l'environnement de production.
+
+Je pense aussi aux différents invokers. 
+Le http-invoker ne sert généralement à rien, de même que le pooled-invoker. 
+A moins qu'on remplace le jrmp-invoker par ce dernier, comme c'est conseillé. 
+Dans tous les cas, ils sont 3 pour 1 place.
+
+Dans foire-demonstration, on peut citer aussi le HAR deployer qui sert à déployer des composants Hibernate 2 (la majorité des projets fonctionnent aujourd'hui sur Hibernate 3), le système de scheduler (utile, mais rarement utilisé) ou la panoplie de modules JAAS cités en exemple dans les application-policy.
+
+Je ne les citerai pas tous, cela est mieux fait et plus détaillé dans l'article https://developer.jboss.org/docs/DOC-10217[Tuning and Slimming JBossAS] du wiki de JBoss.
+
+== Conclusion
+
+Cette configuration par défaut est une compilation entre les fonctionnalités utiles en développement et des fonctionnalités de démonstration. 
+On attendrait plus de simplicité et de rigueur dans une configuration de production. 
+L'installation JEMS offre des possibilités intéressantes puisque plus de profils d'utilisation sont proposés, et les outils d'administration sont sécurisés par des simples cases à cocher.
+
+Pourquoi JBoss ne proposerait-il pas une configuration 'prod' en plus des 3 configurations déjà proposée dans ses packages zip ou tar.gz{nbsp}?
+
+La réponse est peut-être dans le modèle économique de JBoss{nbsp}: vendre du service. 
+Si la configuration fournie en standard convient, les clients n'auront plus  besoin ni d'accompagnement ni de formation. 
+Finalement, je ne devrais peut-être
+pas me plaindre des choix qui sont faits...
+

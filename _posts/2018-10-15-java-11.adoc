@@ -1,0 +1,91 @@
+---
+layout: post
+title: Sortie du JDK 11
+keywords: 
+- java
+---
+
+Le dernier article sur la sortie d'une nouvelle version de java remonte à 2011 pour le JDK 7. 
+C'était la première version pour Oracle et beaucoup de choses ont changé depuis. 
+Voyons ça...
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Fonctionnalités
+
+La version 8 avait apporté de gros changements dans la façon de développer, avec les expressions lambda, l'API _stream_ ou les _default methods_ dans les interfaces.
+Autant le dire tout de suite, avec Java 11, il n'y a rien de révolutionnaire.
+
+On pourrait mettre en avant le système de modules, à condition qu'il soit réellement adopté, ce dont je doute encore.
+Au niveau des améliorations du langage, il y a le mot-clé **`var`** et quelques autres petites choses.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+// JDK 8
+List<String> list = Arrays.asList("One", "Two", "Three", "Four", "Five");
+
+// JDK 11
+*var* list = Arrays.asList("One", "Two", "Three", "Four", "Five");
+----
+
+Il faudra mettre à jours certains scripts pour prendre en compte le nouveau format des commandes, et le nouveau paramétrage pour les logs (GC, classes,...).
+
+[source.width-90, subs="verbatim,quotes"]
+----
+// JDK 8
+java -XX:+PrintGCDetails -Xloggc:/var/log/myapp/gc.log -jar myapp.jar
+
+// JDK 11
+java -Xlog:gc*:file=/var/log/myapp/gc.log -jar myapp.jar
+----
+
+Au niveau des API, entre Flow, Process et le client HTTP, aucune nouveau ne se détache.
+Au quotidien, on appréciera certainement plus les améliorations des API existantes, comme les _builders_ de collections.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+// JDK 11
+var list = List.of("One", "Two", "Three", "Four", "Five");
+var map  = Map.of(1, "One", 2, "Two", 3, "Three", 4, "Four", 5, "Five");
+----
+
+== Cycle de release
+
+Le principal changement concerne le cycle de release.
+Jusqu'au JDK 8, la livraison se faisait quand tout était prêt, ce qui a mené à des gros délais entre deux versions.
+
+Jusqu'à la version 5, il y avait une version tous les deux ans en moyenne, puis ça s'est dégradé :
+
+* Java 5 : septembre 2004
+* Java 6 : décembre 2006
+* Java 7 : juillet 2011
+* Java 8 : mars 2014
+* Java 9 : septembre 2017
+
+A partir du JDK 9, il a été décidé de passer sur un rythme régulier, tous les 6 mois, avec des versions à support court (STS) et des versions à support long (LTS) :
+
+* Java 8 : mars 2014 => December 2030
+* Java 9 : septembre 2017 => mars 2018
+* Java 10 : mars 2018 => septembre 2018
+* Java 11 : septembre 2018 => September 2026
+* Java 12 : mars 2019 => septembre 2019
+* ...
+
+En clair, les versions à utiliser en production sont la 8 et la 11.
+Et la prochaine version LTS sera la 17, en septembre 2021.
+
+== OpenJDK
+
+L'autre grand changement, c'est qu'il faudra arrêter d'utiliser Oracle JDK.
+Ce dernier est la variante propriétaire d'OpenJDK.
+Elle était gratuite, avec quelques limitations comme l'utilisation du _flight recorder_, mais devient payante.
+
+On préférera les autres distributions d'OpenJDK, comme celle de Red Hat ou d'Azul.
+La bonne nouvelle, c'est que des nouvelles distributions sont annoncées régulièrement.
+
+== Conclusion
+
+Cette version est une étape entre l'ancien modèle et le nouveau.
+En effet, des choses plus exitantes se trouvent dans les projets R&D d'OpenJDK.
+On devrait les voir dans la prochaine version LTS qui sera le JDK 17, en septembre 2021.

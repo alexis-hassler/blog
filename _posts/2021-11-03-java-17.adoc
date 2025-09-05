@@ -1,0 +1,103 @@
+---
+layout: post
+title: Sortie du JDK 17
+keywords: 
+- java
+---
+
+Maintenant que la sortie d'une nouvelle version du JDK est devenu une routine, l'événement est l'arrivée d'une version LTS.
+
+Voyons ce que cette version 17 nous apporte au niveau du langage, du runtime et des API.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Cycle de release
+
+Le nouveau cycle de release commence à être rodé.
+On a eu cinq versions STSfootnote:[Short Term Support] (12 à 16), avec leurs nouveautés, leurs fonctionnalités en _preview_ et leurs API expérimentales.
+Ce JDK 17 consolide ces 3 ans de travail dans une version LTSfootnote:[Long Term Support].
+
+La prochaine version LTS devait être pour le JDK 23 dans 3 ans, mais le délai sera probablement réduit puisqu'on s'oriente vers une version LTS tous les 2 ans.
+
+Par ailleur, Oracle a annonce le retour de la gratuité de son JDK, sous certaines conditions assez peu contraignantes.
+Je ne suis pas sûr que ça m'incite à abandonner OpenJDK pour autant.
+
+Pour rappel, voici une liste de distributions d'OpenJDK :
+
+* https://jdk.java.net/[OpenJDK build from Oracle]
+* https://adoptium.net/[Eclipse Temurin] 
+* https://www.azul.com/downloads/?package=jdk#download-openjdk[Azul Zulu] 
+* https://developers.redhat.com/products/openjdk/download[Red Hat build of OpenJDK] 
+* https://sap.github.io/SapMachine/[SapMachine]
+* https://aws.amazon.com/corretto/[Amazon Corretto]
+* https://docs.microsoft.com/en-us/java/openjdk/download[Microsoft Build of OpenJDK]
+* https://developer.ibm.com/languages/java/semeru-runtimes[IBM Semeru]
+* https://bell-sw.com/pages/downloads/[BellSoft Liberica JDK]
+* https://dragonwell-jdk.io/[Alibaba Dragonwell]
+
+
+== Fonctionnalités
+
+Les nouveautés du langage Java sont bien plus allèchantes que celles du JDK 11.
+Il y a des choses qui peuvent réellement changer notre code, comme les _records_, le _pattern matching_ ou les classes scellées.
+
+Les *_records_* ressemblent à des _java beans_ simplifiés et modernisés.
+Plus précisément, ils permettent de définir des tuples nommés.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+record Person(String name, int age) {}
+----
+
+Le *_pattern matching_* concerne pour l'instant l'instruction *`instanceof`*.
+Sa syntaxe a un peu évolué pour éviter des _cast_.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+if (shape instanceof Rectangle *rect*) {
+    return 2 * (*rect*.length() + *rect*.width());
+} else if (shape instanceof Circle *circle*) {
+    return 2 * PI * *circle*.radius();
+} else {
+    throw new IllegalArgumentException("Unrecognized shape");
+}
+----
+
+Le *_pattern matching_* concerne aussi l'instruction *`switch`*.
+Ce projet est bien plus ambitieux.
+Dans un premier temps, la structure du `switch` a été enrichie pour en faire une expression, avec un recyclage de la flèche `->`.
+Le _pattern matching_ à proprement parler n'est qu'en _preview_.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+return switch (shape) {
+
+  case Rectangle *rect* -> 2 * *rect*.length() + 2 * *rect*.width();
+
+  case Circle *circle* -> 2 * *circle*.radius() * Math.PI;
+
+  default -> 
+    throw new IllegalArgumentException("Unrecognized shape");
+
+};
+----
+
+Au niveau du _runtime_, les ramasse-miettes de nouvellle génération, *ZGC* et *Shenendoah GC*, sont sortis de la phase expérimentale.
+Leurs performances ont l'air vraiment impressionnantes.
+Et *CMS*, l'antique ramasse-miettes concurrent, a été retiré.
+*G1* reste le _garbage collector_ par défaut.
+
+Au niveau des API en revanche, il y a beaucoup de petites choses, mais rien de bouleversant.
+
+
+== Conclusion
+
+C'est dommage que le pattern matching ne soit pas terminé.
+Sinon, cette version LTS aurait pu être considérée comme réellement importante, au même niveau que les versions 5 (_generics_) et 8 (_lambda_).
+
+A ce titre, la réduction du délai à 2 ans pour la prochaine version LTS est une bonne nouvelle, au moins à court terme.
+La version{nbsp}21 marquera une nouvelle étape importante dans la modernisation du JDK.
+Rendez-vous en septembre 2023...
+
+N'hésitez pas à nous link:/contacts.html[contacter] si vous souhaitez planifier une link:/formation-java-nouveautes-jdk-17.html[formation sur les nouveautés du JDK 17].

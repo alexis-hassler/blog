@@ -1,0 +1,80 @@
+---
+layout: post
+title: Les nouveautés de WildFly 8
+tags: 
+- wildfly
+courses:
+- wildfly
+---
+
+link:/formation-wildfly.html[WildFly] est le successeur de link:/formation-jboss-7.html[JBoss AS 7]. 
+Concrètement, il s'agit juste d'un changement de nom, car la base de code reste la même. 
+
+La vraie révolution a déjà eu lieu en 2011 avec JBoss AS 7 qui n'avait rien à voir avec ses prédécesseurs. 
+Donc WildFly est le nouveau nom d'un projet qui a plusieurs années.
+
+Voyons ce qui a changé par rapport à la version précédente.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Java EE 7
+
+La première chose est le passage à Java EE 7. 
+Les principales nouveautés sont : 
+
+- une API de messaging plus simple avec JMS 2,
+- une API Batch pour écrire des traitements par lot, et qui ressemble à Spring Batch,
+- les _passthrough attributes_ de JSF pour assurer le support d'HTML5,
+- les WebSockets,
+- l'API client de JAX-RS,
+- le parsing de JSON (le binding devrait arriver avec Java EE 8).
+
+Pour la petite histoire, le composant qui implémente l'API batch s'appelle jberet. 
+Ce nom faisait partie des propositions pour remplacer JBoss AS et avait perdu au profit de WildFly. 
+Il a donc été recyclé. 
+Une façon d'économiser le travail des juristes qui doivent vérifier la disponibilités de tels noms.
+
+== Ports
+
+Le multiplexage de port permet de réduire le nombre de ports ouverts grace à l'http upgrade. 
+De ce fait, il n'y a plus qu'un seul port d'administration, le 9990 et la plupart des flux applicatifs passent maintenant par le port 8080. 
+C'est le cas évidemment du HTTP, des appels d'EJB ou des échanges de messages JMS.
+
+== Undertow
+
+Tomcat c'est fini. 
+Il était intégré depuis JBoss AS 3. 
+Il a été remplacé par un conteneur Web fait maison qui s'appelle http://undertow.io[Undertow]. 
+Ce serveur peut être utilisé comme serveur Web autonome, avec ou sans l'API servlet, embarqué dans une application Java.
+
+== Droits d'admin
+
+Auparavant, un utilisateur ayant accès aux interfaces d'administration avait le droit de configurer totalement JBoss AS. 
+Dans WildFly, on peut affiner les droits offerts à chaque utilisateur, pour la consultation et/ou la modification de certaines parties de la configuration.
+
+Le nouveau contrôle d'accès est basé sur des rôles. 
+7 rôles sont définis par défaut, allant du Monitor, qui n'a accès qu'aux informations de runtime et en lecture seule, au SuperUser, qui a tous les droits, comme c'était le cas pour JBoss AS 7.
+
+Cette nouvelle fonctionnalité est associée à celle de l'Audit logging : 
+toutes les opérations de gestion sont tracées.
+
+== Patching
+
+L'application de gestion en ligne de commande, jboss-cli, a une nouvelle commande : patch. 
+Cette commande permet de modifier ou d'ajouter des modules à un WildFly installé et démarré, que ce soit en local ou à distance. 
+Toutefois, il ne s'agit pas d'une mise à jour du serveur à chaud puisque les modifications ne sont prises en compte qu'après redémarrage.
+
+== JBoss EAP
+
+La marque JBoss est conservée pour les produits vendus, avec JBoss EAP. 
+Pour l'instant, il reste sur la même version majeure, il Il n'y a donc pas de version EAP directement dérivée de WildFly 8 et il n'y en aura peut-être pas. 
+Il est possible que EAP 7 soit basé sur WildFly 9. 
+Pourtant, certaines nouveautés de WildFly 8 sont déjà présentes dans JBoss EAP 6.2. 
+et JBoss EAP 6 continuera de s'enrichir avec les nouvelles fonctionnalités qui arriveront dans WildFly.
+
+== Formation
+
+C'est chez nous que ça se passe ! 
+Notre link:/formation-wildfly.html[formation WildFly] est disponible en même temps que la version finale de WildFly. 
+Et la première session inter-entreprise est planifiée pour le 13 mai.

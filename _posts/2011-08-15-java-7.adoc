@@ -1,0 +1,310 @@
+---
+layout: post
+title: Sorties de l'été 2011, Java SE 7
+keywords: 
+- java
+---
+
+Au cours de cet été 2011, deux événements m'ont marqué{nbsp}; la sortie de Java SE 7 et celle de JBoss AS 7. 
+Tous deux sont suffisamment importants pour faire l'objet d'articles séparés. Nous commençons donc par la sortie de Java SE 7.
+
+Dans cet article, nous nous concentrons sur les modifications du langage qui concerne directement le développeur{nbsp}: l'opérateur en diamant, le multi-catch d'exceptions, le try-with-resources,...
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Versions de Java
+
+Commençons par un petit historique des versions de Java et de Java SE.
+
+[.center.margin-bottom-1]
+image::/images/common/java7-historique.png[Historique Java]
+
+La première chose qu'on constate, c'est le ralentissement du rythme des sorties. 
+Les cinq premières versions étaient livrées tous les dix-huit mois, avec parfois des versions mineures intermédiaires. 
+C'était aussi le temps des acrobaties marketing{nbsp}; Java 2 SE version 1.4.2, c'est franchement mauvais en terme de lisibilité.
+
+La version 5 a marqué un véritable tournant. 
+Pour le nom, déjà{nbsp}: on passe de J2SE à Java SE{nbsp}; fini le 2 sans signification. 
+Fini aussi le 1.x{nbsp}; vus les changements entre la 1.0 et cette potentielle 1.5, une version 2 aurait été un langage totalement différent{nbsp}; autant changer de nom dans ce cas. 
+Finies aussi les versions mineures. 
+Il n'y aura pas de version 5.1. 
+Enfin sur le contenu, cette version 5 a été très importante pour rendre le langage Java plus pratique. 
+On se rappellera que les generics, les types Enum et les annotations datent de cette version.
+
+La suite est moins enthousiasmante. 
+Deux ans pour une version 6 sans grand relief, puis le silence. 
+Quatre ans et demi sans nouvelle version{nbsp}! 
+Plusieurs causes se cumulent pour expliquer ce délai. La première est la mise en open source du JDK, avec le démarrage du projet OpenJDK peu de temps après la sortie de la version 6. 
+Ce projet s'est accompagné d'un changement de politique entre le JDK et la spécification. 
+Dorénavant, le développement public du JDK précède la rédaction de la spécification. 
+Enfin, dernière explication, et pas des moindres, le rachat de Sun Microsystems par Oracle et le délai imposé par l'Union Européenne pour son enquête. 
+Celle-ci concernait une éventuelle position dominante dans le domaine de la base de données, mais a beaucoup affecté l'évolution de Java.
+
+Finalement, cette version 7 est là et c'est certainement le plus important, probablement plus encore que son contenu. 
+_Java is moving forward_, et j'ajouterais _again_.
+
+== Nouveautés de Java 7
+
+Il existe un nombre important d'articles traitant des nouveautés de Java SE 7. 
+Ne vous enthousiasmez pas trop en les lisant car certains se basent sur les prévisions initiales de Sun qui ont été remises en question en 2010, dans le plan B d'Oracle. 
+Celui-ci avait pour objectif de livrer une version moins ambitieuse mais suffisamment intéressante dans un délai raisonnable. 
+Pour cela, des fonctionnalités majeures ont été reportées à la version 8 ou à plus tard encore. 
+Donc si vous lisez un article vous présentant les closures ou la modularité en Java SE 7, vous risquez d'être déçu...
+
+Donc pour résumer, les principales nouveautés du langage dans Java SE 7 sont{nbsp}:
+
+* link:#diamant[l'opérateur en diamant],
+* link:#switch[le support des String par les switch / case],
+* link:#literal[la mise en forme des valeurs littérales],
+* link:#multicatch[le multi-catch d'exception],
+* link:#try-with-resource[le try-with-resource].
+
+Toutes ces nouveautés viennent du projet Coin. On trouve aussi de nouvelles API comme link:#nio2-filesystem[NIO2] et fork / join, des changements de plus bas niveau, au niveau de la sécurité et avec la nouvelle instruction InvokeDynamic, et quelques modifications mineures.
+
+[#diamant]
+== Opérateur en diamant
+
+Cette nouvelle notation permet d'alléger le code lorsqu'on instancie une classe avec generic. 
+Le cas classique est celui des collections{nbsp}:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  List<MyClass> maListeOld = new ArrayLis<MyClass>();
+----
+
+Le type contenu dans la liste est répété entre la déclaration et l'instanciation. 
+L'opérateur en diamant évite cette redondance{nbsp}:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  List<MyClass> maListeNew = new ArrayList<>();
+----
+
+Les esprits chagrins prétendent que ça ne sert à rien puisque leur IDE préféré leur évite de réécrire le contenu. 
+Mon avis est que c'est encore un cas où l'IDE servait à combler une lacune du langage, comme c'est souvent le cas.
+
+Cette évolution est légère mais sera très souvent utile.
+
+[#switch]
+
+== Strings in switch statements
+
+Dans un premier temps, seuls les types entiers (byte, short, int, long, char) pouvaient être utilisés dans les switch, sous forme littérale ou par l'intermédiaire de constantes.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  switch (month) {
+    case Calendar.DECEMBER :
+    case Calendar.JANUARY :
+    case Calendar.FEBRUARY :
+      season = Season.WINTER;
+      break;
+    ...
+  }
+----
+
+Avec JavaSE 5, le switch a été étendu aux types énumérés.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  enum Season {
+    SPRING, SUMMER, FALL, WINTER;
+  }
+----
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  switch (season) {
+    case WINTER:
+      headgear = "woolly hat";
+      break;
+    ...
+  }
+----
+
+La version 7 apporte maintenant le support du type String.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  switch (headgear) {
+    case "none" :
+      //...
+      break;
+  }
+----
+
+[#literal]
+== Valeurs littérales formatées
+
+Cette nouveauté paraît anecdotique, mais peut faciliter la lecture de code qui manipule des grandes valeurs littérales numériques.
+
+Par exemple, que vaut 2365876245{nbsp}? 
+Deux cent millions, deux milliards, vingt milliards{nbsp}? 
+La même valeur est plus lisible si elle est écrite 2_365_876_245.
+
+Ainsi, `long val = 2365876245L` peut maintenant s'écrire `long val = 2_365_876_245L`.
+
+Autre nouveauté, les valeurs littérales peuvent être écrites en binaire. 
+Jusqu'à maintenant, le décimal, l'octal et l'hexadécimal étaient supportés. 
+Pour écrire une valeur en binaire, il faut la préfixer par `0b`.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  int binaryValue = 0b011100101;
+----
+
+Pour rappel, le préfixe pour l'hexadécimal est `0x` et celui pour l'octal est `0`. 
+Ainsi, la valeur 229 peut s'écrire sous les quatre formes suivantes{nbsp}:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  int decimalValue = 229;
+  int binaryValue = 0B011100101;
+  int hexaValue = 0xe5;
+  int octalValue = 0345;
+----
+
+[#multicatch]
+== Multi-catch
+
+Jusqu'à maintenant, dans la structure try-catch, chaque catch ne pouvait traiter qu'un seul type d'exception. 
+Donc c'est un traitement spécifique pour chaque type d'exception attrapée.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  try {
+    Class.forName("org.sewatech.examples.java7.MyClass").newInstance();
+    //...
+  } catch (ClassNotFoundException e) {
+    System.err.printf("Problème de création de mon objet (%s)\n", e);
+  } catch (InstantiationException e) {
+    System.err.printf("Problème de création de mon objet (%s)\n", e);
+  } catch (IllegalAccessException e) {
+    System.err.printf("Problème de création de mon objet (%s)\n", e);
+  }
+----
+
+On peut certes jouer avec l'héritage entre classes d'exception, mais on arrive rapidement à quelque chose comme `catch(Exception ex)`. 
+Sans grand intérêt.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  try {
+    Class.forName("org.sewatech.examples.java7.MyClass").newInstance();
+    //...
+  } catch (Exception e) {
+    System.err.printf("Problème de création de mon objet (%s)\n", e);
+  }
+----
+
+Pour éviter ce tout-ou-rien, Java SE 7 permet maintenant de traiter plusieurs types d'exceptions, séparés par un 'pipe', pour chaque catch.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  try {
+    Class.forName("org.sewatech.examples.java7.MyClass").newInstance();
+    //...
+  } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+    System.err.printf("Problème de création de mon objet (%s)\n", e);
+  }
+----
+
+Au passage, le rethrow est mieux géré, avec une meilleure inférence.
+
+Très pratique, cette nouveauté ne devrait pas être tant utilisée que cela{nbsp}; la faute aux frameworks comme hibernate, Spring, CDI,... qui nous aident à mieux gérer les exceptions et, surtout, à en séparer le traitement du code métier.
+
+[#try-with-resource]
+== Try-with-resources
+
+Dans plusieurs APIs de Java, il est nécessaire de clore les ressources utilisées. 
+C'est le cas pour JDBC ou IO et plus généralement pour celle utilisant des ressources externes. 
+Pour éviter la fuite de ressources, il est nécessaire de mettre l'appel de la méthode de clôture dans un bloc finally. 
+Si on ajoute à cela la gestion des exceptions, généralement validées (checked), on obtient un code très peu lisible, avec beaucoup de code qui n'a rien à voir avec l'objectif fonctionnel.
+
+Dans l'exemple ci-dessous, on ouvre un fichier texte, qu'on lit ligne par ligne.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  BufferedReader br;
+  try {
+    br = new BufferedReader(new FileReader("readme.txt"));
+    try {
+      while ((line = reader.readLine())!= null) {
+        System.out.println(br.readLine());
+      }
+    } catch (IOException e) {
+      System.err.println("Problème de lecture du fichier");                
+    } finally {
+      try {
+        br.close(); 
+      } catch (IOException ex) {
+      }
+    }
+  } catch (FileNotFoundException ex) {
+    System.err.println("Fichier non trouvé");
+  }
+----
+
+Dans cette portion, on commence par ouvrir un flux de lecture sur le fichier et gérer l'exception d'absence de fichier. 
+Puis on lit le fichier ligne à ligne, ce qui peut provoquer une exception d'entrée-sortie. 
+On clôt le flux dans le finally, ce qui peut provoquer une exception d'entrée-sortie qui ne doit pas être traitée sous peine de masquer l'exception de lecture. 
+Ça fait beaucoup de code pour lire un fichier texte...
+
+Le try-with-resource permet de déclarer la ressource à clore dans le try, ce qui en simplifie grandement la structure.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  try (BufferedReader br = new BufferedReader(new FileReader("readme.txt"))) {
+    String line = null;
+    while ((line = reader.readLine())!= null) {
+      System.out.println(br.readLine());
+    }
+  } catch (IOException e) {
+    System.err.println("Problème de lecture du fichier");
+  }
+----
+
+Cette notation peut être utilisée pour n'importe quelle classe qui implémente la nouvelle interface link:https://download.oracle.com/javase/7/docs/api/java/lang/AutoCloseable.html[java.lang.AutoCloseable].
+
+[#nio2-filesystem]
+== Manipulation de fichiers
+
+L'API des entrées / sorties a eu droit a des modification non négligeables. 
+Tout d'abord, les fonctionnalités de classe java.io.File sont reproduites et réparties dans les classes Path, Files, FileStore et FileSystem du package java.nio.file. 
+Ensuite, le support des spécificités des systèmes de fichiers Posix est apporté, en particulier les permissions et les liens symboliques. 
+Enfin, un système de notification a été ajouté.
+
+Ces nouveautés apportent une meilleure organisation des responsabilités et permettent de simplifier certaines portions de code. 
+Ainsi, l'exemple de lecture d'un fichier devient{nbsp}:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  try (BufferedReader reader = Files.newBufferedReader(Paths.get("readme.txt"), UTF8)) {
+    String line = null;
+    while ((line = reader.readLine())!= null) {
+      System.out.println(line);
+    }
+  }
+----
+
+NIO2 permet de simplifier encore ce code pour le cas des petits fichiers en nous évitant de manipuler le reader.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  List<String> lines = Files.readAllLines(Paths.get("readme.txt"), UTF8);
+  for (String line: lines) {
+    System.out.println(line);
+  }
+----
+
+Le site link:https://www.jtips.info[JTips] fournit des détails sur les link:https://www.jtips.info/Java7/NIO2-FileSystem[nouveautés de NIO2].
+
+== Conclusion
+
+Cette version 7 était attendu de longue date, et sa sortie est une excellente nouvelle pour l'écosystème Java. 
+Les migrations vont se faire très progressivement dans les entreprises, probablement longtemps après la fin de vie du JDK 6, en juillet 2012.
+
+Maintenant, nous attendons impatiemment la version 8 dont le contenu devrait changer le langage beaucoup plus en profondeur, avec la modularité, les closures et d'autres nouveautés.
+
+La priorité est aujourd'hui d'utiliser Java 7, et pour cela, Sewatech a mis ses formations à jour, en particulier link:formation-java-eclipse.html[Initiation au langage java] et link:formation-java.html[Approfondissement java].

@@ -1,0 +1,140 @@
+---
+layout: post
+title: WildFly 25, la promotion d'elytron
+tags: 
+- wildfly
+courses:
+- wildfly
+---
+
+Depuis la version 11, *WildFly* est livré avec 2 sous-systèmes de sécurité, *PicketBox* et *Elytron*.
+PicketBox était actif par défaut, et un script jboss-cli permettait de passer sous Elytron.
+Depuis WildFly 25, Elytron a été promu au rang de sous-système de sécurité par défaut.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== PicketBox
+
+PicketBox est utilisé pour la sécurité depuis la nuit des temps.
+On le trouvait déjà en 2002 dans JBoss AS 3.0, sous le nom de JBoss SX.
+
+On trouve la preuve d'une filiation forte dans la classe SecureIdentityLoginModule qui permet d'utiliser des mots de passe chiffrés dans les datasource.
+L'algorithme n'a pas changé, c'est toujours du Blowfish, et la clé de chiffrement est toujours "jaas is the way".
+J'ai fait un peu d'archéologie, pour comparer le code à une quinzaine d'années d'écart.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+   // *JBoss AS 3.2 (2005)*
+   private static char[] decode(String secret)
+      throws NoSuchPaddingException, NoSuchAlgorithmException,
+      InvalidKeyException, BadPaddingException, IllegalBlockSizeException
+   {
+      byte[] kbytes = *"jaas is the way"*.getBytes();
+      SecretKeySpec key = new SecretKeySpec(kbytes, *"Blowfish"*);
+
+      BigInteger n = new BigInteger(secret, 16);
+      byte[] encoding = n.toByteArray();
+      
+      Cipher cipher = Cipher.getInstance(*"Blowfish"*);
+      cipher.init(Cipher.DECRYPT_MODE, key);
+      byte[] decode = cipher.doFinal(encoding);
+      return new String(decode).toCharArray();
+   }
+----
+
+Pour la version actuelle, j'ai un peu triché en enlevant quelques lignes de code qui corrigent 2 bugs.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+   // *WildFly 25 (2021)*
+   private static char[] decode(String secret)
+      throws NoSuchPaddingException, NoSuchAlgorithmException,
+      InvalidKeyException, BadPaddingException, IllegalBlockSizeException
+   {
+      byte[] kbytes = *"jaas is the way"*.getBytes();
+      SecretKeySpec key = new SecretKeySpec(kbytes, *"Blowfish"*);
+
+      BigInteger n = new BigInteger(secret, 16);
+      byte[] encoding = n.toByteArray();
+      
+      //SECURITY-344: fix leading zeros
+      ...
+      
+      Cipher cipher = Cipher.getInstance(*"Blowfish"*);
+      cipher.init(Cipher.DECRYPT_MODE, key);
+      byte[] decode = cipher.doFinal(encoding);
+      return new String(decode).toCharArray();
+   }
+----
+
+Le nom PicketBox apparait dans les modules de WildFly, mais pas dans la configuration (standalone.xml).
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  <subsystem xmlns="urn:jboss:domain:security:1.2">
+      <security-domains>
+        ...
+      </security-domains>
+  </subsystem>
+----
+
+== Passage à Elytron
+
+Dans WildFly 10, un module `org.wildfly.security.elytron` est apparu, sans configuration associée.
+Une https://docs.jboss.org/author/display/WFLY/WildFly%20Elytron%20Security.html[documentation touffue] (l'export PDF fait plus de 60 pages) explique comment l'utiliser et une https://docs.jboss.org/author/display/WFLY/Migrate%20Legacy%20Security%20to%20Elytron%20Security.html[doc de migration] (plus de 40 pages).
+
+Le sous-système elytron est apparu dans https://www.wildfly.org/news/2017/10/24/WildFly11-Final-Released/[WildFly 11], en 2017, avec une centaine de lignes de configuration.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  <subsystem xmlns="urn:wildfly:elytron:1.2" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
+      <providers>
+        ...
+      </providers>
+      <audit-logging>
+        ...
+      </audit-logging>
+      <security-domains>
+        ...
+      </security-domains>
+      <security-realms>
+        ...
+      </security-realms>
+      <mappers>
+      </mappers>
+      <http>
+        ...
+      </http>
+      <sasl>
+        ...
+      </sasl>
+  </subsystem>
+----
+
+Il faut utilise le script `enable-elytron.cli` pour faire la bascule.
+Il y a une quinzaine de lignes pour basculer une configuration standalone, 4x plus pour le domaine.
+Donc si ce sous-système n'est pas utilisé par défaut, c'est assez facile de l'activer.
+
+Avec https://www.wildfly.org/news/2021/10/05/WildFly25-Final-Released/[WildFly 25], le sous-système elytron est utilisé par défaut, et le sous-système security a tout simplement disparu.
+La doc elytron fait maintenant 250 pages ! 
+Mais pas très pratique, avec beaucoup de code et peu de configuration.
+
+== Fonctionnalité de Elytron
+
+Si la doc est si grosse, c'est que Elytron a beaucoup de fonctionnalités.
+
+Il sert à la fois pour la sécurisation des interfaces de management et pour less applications.
+Il sert à la fois pour l'authn/authz et pour le TLS.
+Il gère l'auth à l'ancienne avec du LDAP, de la DB.
+Il gère l'auth avec token, supporte JWT et Oauth2
+Il gère le stockage sécurisé des secrets, en remplacement des caveaux.
+Il propose beaucoup de souplesse, ce qui implique une certaine complexité, avec des couches d'abstraction .
+
+== Conclusion
+
+Elytron apporte un vent de modernité à la sécurité de WildFly.
+
+Mais aussi de la complexité.
+Alors qu'un effort est fait régulièrement pour simplifier la configuration par défaut, pour privilégier l'implicite et alléger le fichier standalone.xml, le sous-système elytron arrive avec 160 lignes !
+Et chaque opération demande plusieurs lignes de script.

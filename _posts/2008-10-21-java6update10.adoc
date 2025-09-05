@@ -1,0 +1,77 @@
+---
+layout: post
+title: JavaSE 6 update 10, un update majeur ?
+keywords: 
+- java
+---
+
+Normalement, en Java, un update a pour seul objectif de corriger des anomalies. 
+Depuis Java 5, la notion de mise à jour mineure n'existe plus&nbsp;; pour preuve, le numéro de version ne comporte plus qu'un seul chiffre&nbsp;&colon; JavaSE 6 ou JavaSE 7. 
+Nous sommes bien loin de l'antique numérotation à rallonges qui prévalait il y a quelques années avec des J2SE 1.4.2&nbsp;!
+
+Cependant, il reste important pour Sun de corriger les bugs et de combler les failles de sécurité. C'est le rôle des updates. 
+Normalement, une mise à jour de ce type ne devrait modifier le fonctionnement de Java que sur des aspects secondaires, et uniquement en relation avec les bugs corrigés.
+
+A l'opposé de ces modifications mineures, l'update 10 de JavaSE 6 marque un tournant important dans la philosophie de distribution de Java. 
+Par contre, la syntaxe, les classes et interfaces n'ont pas changé&nbsp;; il faudra attendre JavaSE 7 pour cela. 
+C'est pour cela que cette mise à jour est considérée comme mineure.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+  
+== Quoi de neuf&nbsp;?
+
+La grande nouveauté apportée par cette mise à jour est l'abandon de la structure monolithique du runtime JavaSE.
+
+Le fichier d'installation complet du Java Runtime Environment 6 (ou JRE 6), pour Windows, fait environ 15 Mo. Cela fait d'ailleurs plusieurs versions que la taille a été stabilisée à ce niveau. Le problème devient flagrant lors des mises à jour, puisque l'ensemble du JRE est téléchargé et devient vraiment pénalisant dans des environnement Web, lorsque Java veut concurrencer Adobe Flash ou Microsoft Silverlight. Or c'est justement sur ce terrain que Sun s'est engagé avec JavaFX.
+
+== JavaFX et applet
+
+JavaFX est en effet la proposition technique de Sun pour le développement de Rich Internet Applications (RIA). Ce type de solution doit allier la souplesse du déploiement d'applications Web avec une plus grande richesse graphique et une meilleure ergonomie.
+
+JavaFX ne fait pas partie de JavaSE 6 update 10, il ne sortira qu'en fin d'année. Mais on peut considérer que cette mise à jour prépare le terrain.
+
+Sun a d'ailleurs été parmi les pionniers dans le domaine, avec la technique des applets. Mais les contraintes en terme de gestion des évolutions et les incompatibilités entre les versions du JRE ont eu la peau de cette technique. Depuis la fin des années 90, je conseille à mes clients de tout faire pour éviter d'utiliser les applets&nbsp;!
+
+Les choses pourraient bien changer avec cette mise à jour... Elle embarque tout simplement une mise à jour du plug-in Java, le composant du JRE qui se branche sur les navigateurs pour prendre en charge l'exécution des applets. Et cette nouvelle version arrive avec son lot de nouveautés plutôt intéressante.
+
+D'un point de vue technique, la révolution vient du nouveau modèle d'exécution des applets et de son rapprochement avec la technique JNLP de WebStart. Auparavant, une applet s'exécutait au sein du même processus que le navigateur Web. Ceci empêchait tout cohabitation entre versions de Java. Aujourd'hui, même si l'applet est ouverte depuis un navigateur, elle s'exécute dans le processus autonome d'une JRE.
+
+Par défaut, un seul processus Java est démarré, pour toutes les applets, mais il est possible d'en démarrer plusieurs, ce qui ouvre de nombreuses possibilités, comme celle de faire coexister plusieurs versions de Java. Il est aussi possible de passer des paramètres différents, comme pour un lancement en ligne de commande, pour améliorer les performances. Dans l'exemple suivant, l'applet se lance dans une machine virtuelle autonome, avec un paramétrage mémoire spécifique&nbsp;:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+<APPLET archive="sewapplet.jar" code="Sewatech Applet" width="800" height="300">
+    <PARAM name="java_arguments" value="-Xmx256m"">
+    <PARAM name="separate_jvm" value="true">
+</APPLET>
+----
+
+Autre nouveauté, visuelle celle-ci, avec les applets draggables. Cette technique permet de transférer une applet, qui s'exécute dans un navigateur, vers le bureau. Un application Web devient alors une application desktop. Pour que l'applet soit draggable, il faut ajouter un élément dans sa déclaration, au niveau de la page HTML :
+
+[source.width-80, subs="verbatim,quotes"]
+----
+<APPLET archive="sewapplet.jar" code="Sewatech Applet" width="800" height="300">
+    <PARAM name="draggable" value="true">
+</APPLET>
+----
+
+Rien que cela peut nous réconcilier avec les applets.
+
+== Déploiement
+
+En fait, la principale évolution vient du modèle d'installation du JRE. Fini le téléchargement d'un gros fichier de 15 Mo sous Windows, ou 18 à 19 Mo sous Linux, desquels on n'utilise que 30 à 40%.
+
+Dans le modèle d'installation classique, qui est toujours utilisable, le JRE est un ensemble monolithique qu'on installe dans sa globalité, quel que soit le type d'application qu'on veut exécuter. Même pour une application en ligne de commande, on installe les classes graphiques, et même pour un écran simple, on doit installer les API de management ou CORBA.
+
+Dans le nouveau modèle, on installe d'abord le noyau du JRE avec le _Java Kernel Installer_&nbsp;; ce fichier fait entre 5 et 7 Mo. Les modules supplémentaires ne sont téléchargés qu'en cas de besoin. De plus, en utilisant les possibilités de JNLP,  on peut préciser des URL d'extensions nécessaires à l'applet, qui seront automatiquement téléchargées.
+
+== Et le JDK&nbsp;?
+
+Du coté du JDK, il n'y a pas de changement aussi radical. Le fichier à télécharger est toujours en un seul bloc de plusieurs dizaines de Mo (plus de 70 Mo, pour Windows). Cela reste préférable, puisque je vois mal mon éditeur de code commencer à télécharger des composants du JDK avec de me lancer continuer une classe.
+
+Le seul impact est donc dans la façon de développer des applets et des applications WebStart.
+
+== Conclusion
+
+La plupart des projets ne verront pas de changement significatif avec cette nouvelle mise à jour. Les applets sont, et resteront encore longtemps, marginales dans les architectures. Nous attendrons toutefois de voir comment JavaFX arrivera à s'imposer face à des concurrents bien plus avancés comme Adobe Flex.

@@ -1,0 +1,79 @@
+---
+layout: post
+title: Quelles solutions open source pour java ?
+keywords: 
+- java
+- jboss
+- tomcat
+- eclipse
+---
+
+Les solutions open source ont le vent en poupe depuis quelques temps. 
+Des organismes comme la fondation Apache sont reconnues depuis des années pour la qualité de leurs produits et des sociétés éditrices basent leur modèle économique sur la distribution de leurs logiciels sous licence open source. 
+La nouveauté vient, d'une part, du fait que certains éditeurs basculent du modèle traditionnel au modèle open source et, d'autre part, du fait que la plupart des sociétés utilisatrices sont prêtes à faire confiance à des solutions open source.
+  
+Cet article ne remplace pas les catalogues, et ne recherche surtout pas l'exhaustivité. 
+Il expose juste un avis totalement subjectif et ouvert à discussion.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Architecture et framework 
+
+Pour vos développements spécifiques, la première règle est de choisir son architecture avant de sélectionner les composants et frameworks open source qui permettront de la mettre en œuvre. 
+Les outils que je citerai donc ici correspondent à mes choix d'architecture habituels.
+
+Tout d'abord, le https://spring.io/[framework Spring] s'adapte à la plupart des architectures, qu'on soit en Web ou en client/serveur. 
+C'est donc devenu un incontournable qui constitue la colonne vertébrale de la plupart des nouveaux projets.
+
+Des frameworks plus spécifiques à une couche de l'architecture se greffent ensuite sur Spring.
+
+Pour la couche de présentation Web, JSF est devenu un classique. Dans une approche classique, on utilise habituellement https://myfaces.apache.org[Apache MyFaces]. 
+Des composants optionnels doivent souvent être ajoutés, via https://myfaces.apache.org/[Apache Tomawahk], ou Ajax4Jsf. 
+L'autre approche consiste à rechercher directement une suite de composants riches et intégrés. 
+https://www.icesoft.org/java/projects/ICEfaces/overview.jsf[IceFaces] constitue une offre très intéressante, en open source depuis peu.
+
+Si la complexité des mécanismes JSF vous rebute, https://struts.apache.org[Apache Struts] reste une très bonne alternative.
+
+Pour la couche de présentation client riche, que l'on utilise Swing ou SWT, il est nécessaire de s'appuyer sur un framework, et dans ce domaine rien de vraiment convaincant ne s'est présenté. 
+Par défaut, je citerai tout de même https://www.eclipse.org/[Eclipse RCP], qui fournit des services intéressants, à compléter.
+
+Pour la couche d'accès aux données, je privilégie https://hibernate.org/[Hibernate], qui est devenu un standard du marché dans le domaine du mapping objet/relationnel. 
+Cette solution commence à être concurrencée par les EJB 3.
+
+== Outil de développement
+Il reste ensuite à intégrer tout cela dans un environnement de développement. En la matière, https://www.eclipse.org[Eclipse] constitue une référence indiscutable. 
+Il est vrai que ses fonctionnalités sont d'une puissance impressionnante pour tout ce qui tourne autour de la manipulation de code java (refactoring, templates, raccourcis,...).
+
+Par contre, je suis beaucoup plus réservé sur la qualité des assistants de développement. 
+En effet, lorsqu'on utilise Eclipse, on dispose de peu d'assistants visuels, en même des outils aussi intéressants que https://www.eclipse.org/webtools/[WTP] peuvent faire l'objet de critiques importantes (manque stabilité de certaines fonctions, lourdeur,...). 
+Les solutions intégrées comme https://www.genuitec.com/products/myeclipse/[MyEclipse] évitent de s'embêter à agréger des plug-ins d'origines diverses.
+
+De ce point de vue, son concurrent https://netbeans.apache.org/[Netbeans] est mieux positionné, en particulier dans le domaine de JSF avec son plugin Visual Web Pack.
+Par contre, je trouve que l'outil dans son ensemble n'ai pas très pratique.
+
+== Serveur d'application
+
+Pour le déploiement des applications JavaEE (ou J2EE), mon favori reste https://www.wildfly.org/[JBoss], même si je n'ai aucun a priori contre https://jonas.ow2.org/[Jonas] ou même https://tomcat.apache.org/[Apache Tomcat], dans certains cas.
+
+Évidemment, dans cet environnement, on utilisera le système de scripts ant, de traces Log4J, de tests unitaires jUnit, le système d'installateur IzPack (pour les éditeurs).
+
+== Synthèse == 
+
+Pour résumer, voici une plateforme de développement que je conseillerais volontiers&nbsp;:
+
+* Framework&nbsp;: Spring, JSF avec IceFaces et Hibernate
+* Outil de développement&nbsp;: Eclipse avec MyEclipse
+* Serveur d'application&nbsp;: JBoss
+
+== Quid de l'avenir proche&nbsp;?
+
+La démarche de RedHat dans le domaine du développement java me semble assez prometteuse. 
+Si on reproche souvent aux environnements Java de relever plus de l'artisanat que de l'industrie, si on arrive plus rapidement à une bonne productivité de développement avec les environnements .NET de Microsoft, c'est probablement à cause de la diversité des solutions et des difficultés d'assembler tout cela dans un environnement cohérent.
+
+La réponse à ces réactions est d'apporter directement un environnement complet, issu du même fournisseur, sous la forme d'un _stack_. 
+C'est ce qu'une société comme IBM a compris depuis longtemps (on remarquera la proximité de stratégie entre les suites VisualStudio 2005 et Rapid Application Developer 6). Attention, je parle bien de stratégie et pas du coté pratiques des outils&nbsp;!
+
+Avant même son rachat par RedHat, JBoss avait commencé à compléter son offre, initialement limitée au serveur d'application, avec le portail, le workflow, les frameworks (hiberante puis seam). 
+Depuis le rachat par RedHat, cette démarche orientée <i>stack</i> semble s'accélérer avec l'intégration des composants JSF (Ajax4jsf et https://richfaces.jboss.org/[Rich Faces] et de l'outil de développement https://www.redhat.com/en/technologies/jboss-middleware/codeready-studio[Red Hat Developer Studio] issus du récent partenariat avec Exadel. 
+Tout cela semble prometteur&nbsp;: à suivre...

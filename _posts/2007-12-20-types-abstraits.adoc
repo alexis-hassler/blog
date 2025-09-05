@@ -1,0 +1,100 @@
+---
+layout: post
+title: Utilisez les types abstraits
+---
+
+Les bonnes pratiques de conception imposent de concevoir toutes les classes orientées services (métier, accès aux données et services connexes) sous forme duale, une interface et une classe d'implémentation, et d'établir les dépendances vers les interfaces. 
+
+Les classes ne sont utilisées que pour l'instanciation, de préférence via une factory (design pattern factory ou abstract factory).
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Types abstraits et types concrets
+
+Par exemple, dans une application de gestion de cours, la couche métier est constituée d'une interface CourseService et d'une classe CourseServiceImpl et la couche d'accès aux données est constituée d'une interface CoursDAO et d'une classe CourseDAOJdbc. 
+Cette classe implémenente le contrat imposé par l'interface avec l'API d'accès aux bases de données JDBC.
+
+[.center.margin-bottom-1]
+image::/images/common/abstract-courses.jpg[, 384, 191]
+
+En développement, cette pratique se traduit par l'utilisation la plus généralisée possible d'interfaces pour les déclarations (attributs, arguments de méthodes,...). 
+Cela se traduit oar exemple par l'utilisation de classes telles que ArrayList, HashSet ou HashMap uniquement au moment du new{nbsp}; 
+les interfaces List ou Collection, Set et Map sont utilisées partout ailleurs, c'est-à-dire pour les déclarations.
+
+Exemple{nbsp}:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+public class CourseDAOImpl {
+    List<CourseData> findAll() {
+        List<CourseData> result = new ArrayList<CourseData>();
+        //...
+        return result;
+    }
+}
+----
+
+Les exemples de cette nature peuvent aussi être trouvés avec des types plus techniques comme javax.sql.DataSource et toutes les interfaces JDBC donc on ne connait normalement pas les implémentations.
+
+== Pourquoi{nbsp}?
+
+Dans le cadre de la conception, cette façon de construire l'application a essentiellement deux avantages.
+
+Le premier est l'interchangeabilité des implémentations. 
+Ainsi la classe CourseDAOJdbc qui implémente l'interface CourseDAO peut facilement être remplacée par CourseDAOHibernate, qui implémente la même interface. 
+Ceci est l'application concrète du principe de substitution de Liskov (j'aime trop le nom de ce principe pour ne pas le citer).
+
+L'autre avantage est la rationalisation de la gestion des dépendances{nbsp}: les éléments concrets dépendent d'éléments plus abstraits et les éléments instables dépendent d'éléments plus stables.
+
+[.center.margin-bottom-1]
+image::/images/common/abstract-architecture.jpg[, 666, 342]
+
+Les interfaces ont beaucoup moins de dépendances que les classes et comme ces interfaces sont la colonne vertébrale de l'architecture en couches, cela constitue une chaîne de dépendances propres et sans cycle. 
+Les dépendances sont plus touffues au niveau des classes.
+
+== Même pour les types numériques{nbsp}!
+
+Récemment, j'ai regretté de ne pas appliquer systématiquement cette règle de programmation.
+
+En effet, lorsque je travaille avec des types numériques, j'utilise directement les types concrets{nbsp}: Integer, Long,... 
+Or ces classes hértient toutes de Number, que j'aurais pu (et dû{nbsp}?) utiliser plus souvent.
+
+[.center.margin-bottom-1]
+image::/images/common/abstract-number.jpg[, 618, 302]
+
+Concrètement, c'est avec hibernate que j'ai rencontré un problème avec le type Number et ses sous-classes.
+
+Hibernate supporte dans son langage HQL (Hibernate Query Language) des fonctions qui renvoient un nombre entier{nbsp}: count, max, min,... 
+Pour executer ces fonctions, on exécute une query, puis on récupère le résultat.
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  public int count() { 
+      Session session = getSessionFactory().getCurrentSession(); 
+      Query query = session.createQuery("select count(*) from Course"); 
+      int result = ( (Integer)query.uniqueResult() ).intValue(); 
+      return result; 
+  }
+----
+
+L'exemple précédent fonctionne parfaitement avec Hibernate 3.1 car ces fonctions renvoient des Integer. 
+Par contre, il ne passe pas la migration vers Hibernate 3.2{nbsp}! 
+En effet, les fonctions ont évolué et renvoient maintenant des Long.
+
+Si j'avais respecté le principe enoncé en introduction, je n'aurais pas du utiliser Integer car tout ce dont j'avais besoin était la méthode intValue qui est définie dans Number. 
+J'aurais donc du écrire le code suivant{nbsp}:
+
+[source.width-80, subs="verbatim,quotes"]
+----
+  public int count() { 
+      Session session = getSessionFactory().getCurrentSession(); 
+      Query query = session.createQuery("select count(*) from Course"); 
+      int result = ( (Number) query.uniqueResult() ).intValue(); 
+      return result; 
+  }
+----
+
+Ce code respecte le principe d'utilisation des types abstrait et passe sans encombre la migration vers Hibernate 3.2.
+
+Le principe peut s'appliquer partout, même là où on l'attend le moins...

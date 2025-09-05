@@ -1,0 +1,58 @@
+---
+layout: post
+title: Enrichir les logs avec LogWEx
+keywords: 
+- jboss
+- j2ee web
+- tomcat
+---
+
+Plaçons nous dans le cadre d'une application développée correctement, avec des bonnes traces envoyées dans un utilitaire correct de type Log4J, éventuellement via une façade comme commons-logging ou, beaucoup mieux, SLF4J. 
+Grâce à la configuration de Log4J, il est possible de choisir les informations qui apparaissent dans les fichiers de logs en plus du message à proprement parler&nbsp;&colon; heure, niveau du log (erreur, alerte, info, debug, trace), le logger d'origine. 
+Lorsqu'on est en développement, on peut aussi ajouter des informations plus précises sur l'origine comme la méthode et la ligne de code qui a envoyé le message.
+
+Il nous manque souvent une information important&nbsp;&colon; quel utilisateur a été à l'origine du log&nbsp;? Qu'a fait ce même utilisateur avant d'en arriver là&nbsp;? Voyons comment on peut avoir ces informations dans les logs...
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+Dans les logs des applications Web, on ajoute très souvent le nom du thread. 
+Ceci permet de reconstituer une séquence de traces qui correspond au traitement d'une requête HTTP. 
+En effet, dans les serveurs d'applications Web classiques, comme Tomcat, Jetty, JBoss, Weblogic,…, un thread est affecté au traitement de chaque requête, jusqu'à la production de la réponse. 
+Par contre, plusieurs requêtes consécutives d'un même utilisateur peuvent très bien être traitées par des threads différents. 
+L'affichage du nom du thread dans les logs est donc insuffisant pour reconstituer un historique plus important pour un utilisateur.
+
+Il existe plusieurs techniques pour obtenir un résultat satisfaisant. 
+La façon la plus riche est d'utiliser des outils dédié aux audits. 
+Pour plus d'informations sur le sujet, je vous renverrais vers l'https://blog.engineering.publicissapient.fr/2010/08/25/java-en-production-laudit/[article de Cyrille Leclerc et David Galichet] et aux discussions associées. 
+Dans mon cas, je vais m'intéresser aux applications pour lesquelles un tel besoin n'a pas été pris en compte au développement. 
+En gros, on n'a que les logs. 
+Dans ce cas, la technique qui ne nécessite aucun développement passe par un croisement entre les logs applicatifs et les logs d'accès (cf. https://tomcat.apache.org/tomcat-7.0-doc/config/valve.html#Access_Log_Valve[AccessLogValve], pour Tomcat). 
+Ce dernier nous donne des informations comme l'Id de session, l'utilisateur authentifié, s'il l'a été par une technique standard et le nom de thread. 
+Tout cela est réalisable puisque le nom du thread est présent dans les deux fichiers, mais fastidieux.
+
+Donc il va falloir développer. 
+Au minimum, il faut faire un https://download.oracle.com/javaee/5/api/javax/servlet/Filter.html[filtre] qui va intercepter les requêtes. 
+Pour chaque requête, on peut envoyer une trace de début et une trace de fin, avec les mêmes informations que pour les logs d'accès, à la différence que dans le cas du filtre, les traces sortiront avec les logs applicatifs. 
+En centralisant ces traces, l'exploitation est un peu plus simple.
+
+L'idéal serait d'avoir toutes les informations directement dans chaque trace applicative. 
+Dans ce cas, des outils rudimentaires comme grec ou un tableur suffiront pour exploiter les informations. 
+Pour arriver à ce résultat, on va https://www.jtips.info/Log4J/MDC[utiliser le MDC] (Mapped Diagnostic Context) de https://logging.apache.org/log4j/[Log4J] pour que notre filtre y stocke les informations nécessaires (identifiant de session, nom d'utilisateur,...).
+
+[source, subs="verbatim,quotes"]
+----
+	MDC.put("session.id", session.getId()) ;
+----
+
+Une fois les informations présentes dans le MDC, il est facile de paramétrer la layout de Log4 pour qu'elles sortent dans les fichiers de logs&nbsp;: %X__session.id__. 
+L'avantage de cette technique, c'est qu'on n'est plus obligé de ce contenter d'information standards, on peut très facilement ajouter des informations présentes en attributs de session et les ajouter au MDC.
+
+Ayant eu à développer ce type de filtre pour plusieurs clients, nous avons décider de développer un tel filtre sous licence Open Source, sous le nom de https://github.com/hasalex/logwex/[LogWEx] (Logging Extra for Web applications). 
+L'objectif du projet est de vous fournir un filtre générique qui vous fournisse les informations nécessaire uniquement par configuration, sans développement.
+
+La première version ne fournit que l'identifiant de session, le nom de l'utilisateur et les propriétés de la requête (hosto, port, pat,…). 
+Les prochaines versions devraient s'enrichir rapidement pour atteindre l'objectif. 
+Pour l'instant, LogWEx n'est utilisable qu'avec Log4J car c'est l'outil le plus utilisé par nos clients, mais nous évaluerons rapidement l'opportunité de supporter aussi LogBack qui est les meilleur outil de log du moment.
+
+J'invite donc tous ceux qui veulent enrichir leurs logs à essayer https://github.com/hasalex/logwex/[LogWEx] et à nous faire leurs retours sur le https://github.com/hasalex/logwex/issues[bug tracker]  du projet sur GitHub.

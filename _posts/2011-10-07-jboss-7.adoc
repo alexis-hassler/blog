@@ -1,0 +1,191 @@
+---
+layout: post
+title: Sorties de l'été 2011, JBoss AS 7
+keywords: 
+- jboss
+---
+
+Dans notre dernier article, nous avons évoqué les deux sorties majeures de l'été 2011{nbsp}&colon; JavaSE 7 et JBossAS 7. 
+Nous avions détaillé le contenu de JavaSE 7, voyons maintenant ce que la sortie de JBossAS 7 peut nous apporter.
+
+Nous commencerons par les nouveautés les plus visibles comme l'allègement de la plateforme et la réduction du temps de démarrage, puis nous aborderons les évolutions plus profondes comme le nouveau système de modules. 
+
+Enfin, nous parlerons un peu de Cloud.
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== JavaEE 6
+
+JavaEE 6 est une version assez importante dans l'histoire de JavaEE parce que c'est la première qui peut réellement être compétitive vis-à-vis de Spring Framework. 
+En particulier, CDI apporte un mécanisme d'injection universel qui manquait à JavaEE. 
+Ajoutez à cela des simplifications au niveau des architectures et des modèles de développement et on a une technologie plutôt souple et pratique à utiliser. 
+Encore faut-il que les serveurs d'applications qui implémentent cette spécification soient au même niveau...
+
+JBoss AS 6 implémentait déjà JavaEE 6, sans être certifié. 
+JBoss AS 7.0 implémente le _Web Profile_, et est même certifié. 
+Il implémente aussi partie du _Full Profile_, mais il faudra attendre JBoss AS 7.1 pour avoir un vrai _Full Profile_.
+
+== Historique
+
+L'aventure de JBoss a commencé en 1999. 
+L'organisation du projet était basée sur l'open source dès le début.
+
+[.center]
+image:/images/wildfly/jbo7-historique.png["Historique JBoss AS", 340, 240] 
+
+Je n'ai pas cité la version 1 parce que je n'en ai pas trouvé de trace et qu'à titre personnel, j'ai directement commencé avec la version 2. 
+On voit une progression régulière des versions majeurs jusqu'en 2004. 
+A noter que cette année-là, la version 4.0 était la première version certifiée chez JBoss. 
+Ensuite, un gros trou... 
+Puis une version 4.2, dont le but était de nous apporter une implémentation partielle de JavaEE 5 et de nous faire patienter avant la version 5.0 qui devait être certifiée JavaEE 5. 
+Pourquoi un tel délai{nbsp}? Il y a probablement plusieurs raisons. 
+Tout d'abord techniques. 
+Le noyau a été réécrit, pour pouvoir gérer des composants internes de granularité plus fine. 
+Ensuite, JBoss a été rachetée par RedHat, ce qui a probablement déstabilisé les équipe et eu une influence sur leur organisation... 
+Toute ressemblance avec les versions d'un JDK ayant existé est fortuite... 
+Toujours est-il que cette version 5 a traumatisé pas mal de monde. 
+C'est probablement la version la plus utilisée aujourd'hui.
+
+La version 6 qui a suivi est basée sur la même architecture que la 5, mais implémente JavaEE 6, sans être certifiée. 
+Un nouvelle version d'attente, semble-t-il. 
+Et cette année, cette version 7 est sortie, complètement différente des précédentes. 
+Je peux dire sans problème que la version 6 ressemble plus à la v.2 qu'à la v.7.
+
+== Architecture
+
+JBoss AS 7 est consitué d'un noyau, appelé _core infrastructure_ et de composants, appelés _subsystems_. 
+Ces composants sont souvent issus de projets autonomes, comme Hibernate, Weld, HonertQ ou Infinispan.
+
+[.center.margin-bottom-1]
+image::/images/wildfly/jbo7-architecture.png["Architecture JBoss AS 7", 450]
+
+En comparaison avec un JBoss AS 6, il n'y a aucun changement fondamental. 
+Le noyau s'appelait _micro container_ et les composants étaient des _services_. 
+On retrouve Hibernate, Weld, HonertQ et Infinispan.
+
+Le changement n'est donc pas dans les composants utilisés, mais dans le noyau. 
+On ne va pas détailler toutes les parties de l'infrastructure, mais on peut parler du système de _threading_ qui permet des gains de vitesse, en particulier au démarrage et au déploiement, ou de modules qui devrait rationaliser la gestion du classpath.
+
+== Légèreté
+
+Le premier effet de ce changement est la réduction du temps de démarrage. 
+Sur mon poste de travail, un laptop core2 duo, on est passé de 45 secondes à 3 secondes{nbsp}!
+
+En mesurant cette valeur pour les versions précédentes, on constate que la version 5 a été une vraie régression sur ce plan. 
+A l'époque, l'équipe de JBoss était plus concentrée sur la robustesse que sur l'agilité, plus sur l'environnement de production que sur le développement. 
+Et, alors que JBoss avait commencer par séduire les développeurs, il s'est éloigné de ce chemin.
+
+[.center]
+image::/images/wildfly/jbo7-startup.png["Démarrage JBoss AS 7", 450]
+
+En 2009, dans le https://antoniogoncalves.org/2009/12/12/o-application-servers-where-art-thou/[comparatif sur les temps de démarrage] fait par Antonio Goncalves, JBoss était le plus mauvais{nbsp}; même derrière Websphere. 
+Glassfish était en tête. 
+En fait, le temps de démarrage n'était tout simplement pas considéré comme une une fonctionnalité par l'équipe de développement de JBoss alors qu'il faisait partie des priorités chez Glassfish.
+
+On voit bien que les choses ont changé puisqu'aujourd'hui, il y a une page dédiée aux https://developer.jboss.org/docs/DOC-16971[records de démarrage] sur le wiki de JBoss. 
+Le record est inférieur à une seconde.
+L'amélioration du temps de démarrage est pas mal lié au nombre de processeurs parce que JBoss utilise pas mal la mise en parallèle des tâches.
+
+Le deuxième point d'allègement est la *mémoire*. 
+J'ai mesuré ici la mémoire heap utilisée après le démarrage. 
+On voit aussi que la situation s'est nettement dégradée avec la version 5 et a été drastiquement améliorée avec la v7.
+
+[.center]
+image:/images/wildfly/jbo7-heap.png[Mémoire consommée par JBoss AS 7, 450]
+
+Enfin le dernier point d'allègement est le *nombre de fichiers XML* utilisés pour la configuration. 
+On passe de 150 à un seul, ou presque. 
+On dit d'ailleurs que le temps de parsing XML de JBoss AS 5 ou 6 est supérieur au temps complet de démarrage de JBoss AS 7.
+
+Ça améliore donc les temps de démarrage, mais surtout, ça nous facilite la vie. 
+Fini le labyrinthe pour trouver le bon répertoire puis le bon fichier, puis le bon bean dans le fichier. 
+Tout est centralisé dans un seul fichier, avec une structure de répertoire plus simple.
+
+== Déploiement
+
+Pour le déploiement d'applications. ça ressemble a priori aux anciennes versions{nbsp}: on dépose une archive et quelques secondes plus tard, elle est déployée. 
+La nouveauté, c'est que ce mode automatique est désactivé par défaut pour le déploiement en répertoire{nbsp}; il n'est activé que pour le déploiement en archive. 
+C'est plutôt une bonne nouvelle car comment JBoss peut-il savoir que la copie du répertoire est terminée, en particulier depuis wue le fichier web.xml d'un war est facultatif{nbsp}?
+
+En regardant de plus prêt, on constate que le cycle de déploiement est un peu plus complexe, avec plus d'états intermédiaires. 
+Ces états sont marqués sous forme de fichiers marqueurs dans le répertoire de déploiement. 
+Par exemple, si un déploiement échoue, il est marqué en .fail{nbsp}; et tant que le fichier .fail sera présent, JBoss n'essaiera pas de redéployer.
+
+[.center]
+image::/images/wildfly/jbo7-deploiement.png[Déploiement dans JBoss AS 7, 450]
+
+En déploiement manuel, on utilise aussi ces fichiers pour déclencher le déploiement. 
+JBoss n'essaie pas de déployer l'archive ou le répertoire déposé, il ne le fera que lorsqu'il verra le fichier .dodeploy.
+
+== Administration
+
+Du coté des outils d'administration, ça a bien changé aussi. 
+On se rappelle de _jmx-console_ et de _twiddle_, outils certes puissants pour interroger le serveur d'applications, mais très peu ergonomiques, complexes à appréhender et inutilisables pour configurer du fait que leurs effets n'étaient pas persistants.
+Dans JBoss AS 7, on a une nouvelle console, une nouvelle interface en ligne de commande, une interface en HTTP / JSON et une API Java d'administration.
+
+La *console d'administation* n'a peut-être pas la richesse de celles des concurrents, mais elle est utilisable, voire pratique à utiliser.
+On peut y faire les opérations classiques d'administration{nbsp}: créer des datasources, reconfigurer les logs, déployer à distance, reconfigurer les interfaces réseau... 
+Certes, l'admin-console d'AS 5 et 6 permettait de faire tout ça, mais avec des lenteurs et une ergonomie exécrables. 
+Et en bonus par rapport à l'admin-console, on peut consulter le contenu JNDI{nbsp}!
+
+La commande *jboss-admin* fournit le même niveau de fonctionnalités, mais en ligne de commande. 
+Son fonctionnement est plutôt agréable{nbsp}: une fois l'outil lancé, on navigue de façon interactive dans la configuration, à la façon d'un système de fichiers. 
+On retrouve d'ailleurs certaines commandes des systèmes Unix{nbsp}: cd, ls, pwd. 
+Puis sur les noeuds de la configuration, on peut lire le contenu et le modifier.
+
+JBoss AS 7 expose les mêmes fonctionnalités d'administration via une interface HTTP / JSON et via une API Java.
+
+== JBoss Module
+
+Avec les serveurs d'applications, et particulièrement avec JBoss, les prises de tête avec des ClassNotFoundException, des NoClassDefFoundError ou des ClassCastException sont monnaie courante. 
+Sans compter l'enfer pour faire cohabiter des versions différentes d'une librairie. 
+Un ancien collègue m'a même dit un jour{nbsp}: "La fonction principale des classloaders dans JBoss, c'est de faire vivre des consultants".
+Tout ça, c'est dû au classloader et au classpath... qui serait mort, selon les dires de Mark Reinhold, à JavaOne 2009.
+
+Le classpath ne pourra réellement mourir que lorsque JavaSE 8 sera sorti, avec Java Module, issus du projet JigSaw. 
+Et ceci ne devrait pas arriver avant l'été 2013. 
+En attendant, OSGi fournit ce type de fonctionnalités, mais avec bien d'autres choses. 
+Pour JBoss AS 7, l'équipe a choisi de développer sa propre solution appelée JBoss Module.
+
+== Domaine
+
+Depuis toujours, la configuration de JBoss AS était gérée individuellement. 
+La gestion centralisée n'était possible que par l'ajout d'un outil tiers comme RHQ ou JON. 
+Avec AS 7, JBoss a introduit les notions de domaine et de groupe de serveurs.
+
+Un domaine est un ensemble d'instances dont l'administration est centralisée. 
+Sur chaque serveur physique, une instance joue le rôle de _host controller_ alors qu'une seule instance de l'environnement joue le rôle de _domain controller_.
+
+Un _server group_ est un ensemble de serveurs qui ont la même configuration et qui sont mis à jour simultanément par le domain controller.
+
+== Cloud Computing
+
+Avec ses caractéristiques, JBoss AS 7 semble naturellement taillé pour le _cloud_. 
+Avec son offre https://fr.wikipedia.org/wiki/Platform_as_a_service[PaaS] https://www.redhat.com/en/technologies/cloud-computing/openshift[OpenShift], RedHat nous le confirme immédiatement. 
+L'offre s'articule en deux partie{nbsp}:
+
+* *Express*, dans laquelle on n'a aucune action sur JBoss{nbsp}; on ne peut que déployer du code source par une commande `git push`, le build étant fait pas le serveur.
+* *Flex*, qui fournit l'outillage pour gérer nos instances de JBoss sur un environnement Amazon AWS.
+
+Cette offre a rapidement été concurrencée par CloudBees qui a annoncé https://web.archive.org/web/20150910174316/https://blog.cloudbees.com/2011/09/java-ee6-in-cloud-in-production-today.html[l'intégration de JBoss AS 7 dans son offre RUN@cloud].
+
+== Conclusion
+
+La version 7 de JBoss AS est une vrai révolution par rapport à toutes les versions précédentes. 
+Même si beaucoup de composants sont inchangés, toutes les pratiques de configuration et d'administration sont à revoir. 
+Par ailleurs, le changement de mécanisme de chargement de classes peut rendre douloureuses certaines migrations. 
+Mais l'investissement sera vite rentable, toutes vos équipes apprécieront la nouvelle version.
+
+En revanche, pour les personnes qui ont l'habitude d'utiliser Glassfish 3, cette version paraîtra beaucoup moins révolutionnaire. 
+On peut même dire que JBoss AS 7 ressemble plus à Glassfish qu'aux anciens JBoss{nbsp}!
+
+En complément de cet article, vous pouvez aussi consulter les slides que j'ai utilisés lors de ma présentation de JBoss AS 7 à https://soft-shake.ch/[SoftShake 2011]{nbsp}:
+
+++++
+<div class="center">
+  <iframe src="//www.slideshare.net/slideshow/embed_code/key/npQFZ6XGCAn1uf" width="595" height="485" frameborder="0" marginwidth="0"  marginheight="0" scrolling="no" title="Présentation JBoss AS 7"> </iframe>
+</div>
+++++
+
+Enfin, Sewatech propose une formation à l'link:/formation-jboss-7.html[administration de JBoss AS 7], disponible dès janvier 2012.

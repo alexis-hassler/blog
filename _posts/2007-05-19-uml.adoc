@@ -1,0 +1,118 @@
+---
+layout: post
+title: 10 ans d'UML, et après...
+tags: 
+- uml
+---
+
+Après 10 ans de pratique d'UML, on commence a avoir suffisamment de recul pour connaître les forces et faiblesses du langage et de ses outils. 
+Il est temps de se remémorer les projets sur lesquels UML nous a été utile et tous les problèmes rencontrés.
+
+Après toutes ces années, on peut même aller jusqu'à se demander si UML est toujours d'actualité et s'il est encore vraiment utile...
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Les objectifs d'UML
+
+UMLfootnote:[Unified Modeling Language] a été élaboré au milieu des années 90, sur la base des principales méthodes objet de l'époque, OMT, Boosch, OOSE et quelques autres. 
+Son objectif était d'unifier les techniques de modélisation entre les différentes méthodes.
+
+Le premier quiproquo a été de penser que UML était un remplaçant de Merise. 
+Or les ambitions d'UML sont bien en deçà puisque limitées à la modélisation, sans aborder la démarche.
+
+Revenons à ces termes de méthode, modélisation et démarche. 
+La modélisation, c'est juste du dessin{nbsp}! On schématise ce qu'on a en tête, soit pour représenter une réalité, soit pour illustrer une conception. 
+La démarche précise l'enchaînement des tâches qui permettent de mener à bien le projet. 
+LA méthode est l'assemblage d'une démarche et d'une technique de modélisation.
+
+Le second quiproquo a été de penser que RUPfootnote:[Rational Unified Process] est la seule démarche adaptée à UML. 
+Certes les auteurs d'UML et de RUP sont les mêmesfootnote:[Rumbaugh, Jacobson et Boosch, alias les amigos de Rational], mais cela ne suffit pas...
+
+== RUP est trop lourd
+
+RUP décline toutes les possibilité d'UML dans une succession de disciplines d'ingénierie (Modélisation du métier, Expression des besoins, Analyse et conception, Réalisation), agrémentée des disciplines de support nécessaires à l'organisation du projet (planification, gestion du changement,...). 
+Il est vrai que tout ceci s'enchaîne bien et répond bien aux exigences habituelles de suivi qualité, grâce à tous les livrables intermédiaires. 
+Il est vrai aussi qu'en décryptant le vocabulaire spécifique à RUP et UML, on peut se rendre compte que le passage de Merise à RUP ressemble plus à une adaptation de la démarche à la logique objet qu'à la révolution annoncées un temps. 
+Par contre, RUP est souvent présenté comme un standard alors que ce n'est qu'un produit commercial, propriété de Rational (IBM aujourd'hui). 
+De ce point de vue, on doit le comparer à des concurrents comme https://fr.wikipedia.org/wiki/Two_Tracks_Unified_Process[2TUP]footnote:[2 tracks Unified Process] de Valtech ou à https://enterpriseunifiedprocess.com/[EUP]footnote:[Enterprise Unified Process] de Ambysoft, beaucoup moins connus, mais relativement proches.
+
+Que reproche-t-on à RUP{nbsp}? Pas d'être propriétaire, c'est le jeux de l'industrie informatique. 
+Peut-être d'être trop détaillé... 
+C'est vrai qu'en essayant d'être exhaustif, RUP  propose pléthore d'options qui laissent une trop grande liberté au projet. 
+Certes cela permet de s'adapter à de nombreux contextes, mais impose de recourir à un consultant expérimenté. 
+RUP n'est donc pas un produit livré clé en main.
+
+Ce qu'on reproche plus souvent à RUP, c'est sa lourdeur. 
+En effet, toutes les étapes et tous les livrables proposés peuvent donner l'impression qu'on passe plus de temps sur des tâches non directement productives. 
+Rational a bien essayé de corriger le défaut en éditant des notes et livres blancs nous expliquant que RUP pouvait être agile et s'adapter aux petits projets. 
+Tout ceci n'a guère convaincu face à des méthodes comme l'extreme programming.
+
+== UML dans les méthodes agiles
+
+La plus connue des méthodes agiles est http://www.extremeprogramming.org[XP]footnote:[eXtreme Programming]. 
+Elle détaille une série de principes rigoureux centrés sur la production de code de qualité. 
+La principale différence avec RUP est que pour ce dernier, toute la démarche est centrée sur le modèle, alors que pour XP elle est centrée sur le code source.
+La première surprise pour un spécialiste UML est de constater que UML est absent de XP{nbsp}! On retrouve certes des concepts similaires, comme ceux des CRC, mais sans le formalisme standard.
+
+Vue la convergence des concepts, on peut facilement utiliser des diagrammes UML avec XP, à ceci près qu'XP étant _extreme_, dès qu'on s'éloigne d'un principe, on sort du cadre de la méthode.
+
+Pour résumer, UML s'applique parfaitement aux méthodes agiles, il suffit de ne pas chercher à utiliser la totalité des diagrammes et de rechercher avant tout l'efficacité{nbsp}: 
+
+* des cas d'utilisation pour les story boards
+* des classes et des états
+* des communications (ou collaboration en UML1) pour les aspects dynamiques
+
+== Et si MDA était la solution{nbsp}?
+
+https://www.omg.org/mda/[MDA]footnote:[Model Driven Architecture] est la suite logique de RUP, ou plutôt une façon d'outiller un processus centré sur le modèle, afin d'automatiser les transformations du modèle entre les étapes du projet.
+
+Là aussi, les principes sont séduisants, mais leur mise en œuvre fastidieuse et coûteuse en investissement initial. 
+Les paramétrages et développements des moulinettes de transformation peut prendre du temps et nécessite un bon niveau de compétence.
+
+En complément de ces outils centrés sur le modèles, sont apparus, puis ont presque disparu, des outils visant à passer le plus rapidement possible du modèle (souvent limité aux classes) au code. 
+Les moins jeunes retrouveront le principe des antiques outils RAD qui permettaient de mapper des écrans directement sur la base de données. 
+Ces nouveaux outils RAD (appelés _Smart RAD_ ou _RAD architecturé_) visent le même objectif, en respectant les principes d'architecture en couche. 
+Les plus ambitieux de ces outils ont disparu, et le RAD architecturé est resté un marché de niche.
+
+== Quid d'UML dans les SOA{nbsp}?
+
+Tout d'abord, il faut constater qu'UML n'a jamais tenu compte des SOAfootnote:[Service Oriented Architecture], étant largement antérieur à ces architectures, même lorsqu'on prend en compte UML2. 
+Cette version apporte plus à l'informatique industrielle qu'à la gestion.
+
+Les services d'une SOA peuvent être modélisés sous forme de classes, d'interfaces ou de composants et leur orchestration sous forme de diagramme d'activité. 
+Le formalisme de ce dernier reste cependant trop pauvre, en particulier pour représenter les différents niveaux de détail, du plus synthétique au plus exhaustif, permettant de comprendre les services métier attendus et concevoir les services à implémenter.
+
+Admettons qu'on puisse s'en sortir pour représenter les aspects techniques d'une architecture SOA. 
+Pour les aspects métier, UML s'est fait suplanté par des formalismes propriétaires spécifiquement orientés BPMfootnote:[Business Process Modeling].
+
+== Finalement, UML est-il réellement utile{nbsp}?
+
+Dans tout l'article, j'ai détaillé les déceptions et limites d'UML. 
+Et pourtant je l'utilise sur presque tous mes projets... 
+Et pas uniquement pour utiliser un formalisme standard, mais par soucis d'efficacité, et différemment selon le format du projet.
+
+Sur les projets avec de grosses contraintes de suivi qualité, l'utilisation orientée RUP, ou UPfootnote:[Unified Process], s'impose{nbsp}; la direction de projet a besoin d'un grand nombre de livrables visibles et lisibles pour mesurer l'avancement. 
+Le très célèbre Rational Rose était bien adapté. 
+Aujourd'hui cet outil n'est plus maintenu, n'a pas évolué vers UML2 et se trouve en perte de vitesse{nbsp}; la concurrence a eu le temps de se développer avec des prix nettement inférieurs et/ou des capacités supérieures. 
+Pour les projets de type UP, on privilégie des outils adaptés aux disciplines amont (expression des besoins et analyse). 
+Il faut donc que l'outil permette d'organiser et de détailler efficacement les cas d'utilisation et d'articuler les diagrammes d'interaction (séquence et communication / collaboration) avec les diagrammes de classes. 
+La plupart des outils commerciaux répondent à ces besoins{nbsp}; pour ma part, j'apprécie particulièrement https://sparxsystems.com/products/ea/index.html[Sparx Enterprise Architect], même si un outil comme Sybase PowerAMC, souvent déjà utilisé dans les entreprises, convient tout à fait.
+
+Sur les projets orientés XP ou méthode agile, UML peut sembler a priori moins important. 
+Cependant, les cas d'utilisation pour représenter les story boards est une bonne idée et dessiner les classes facilite leur compréhension. 
+Ces méthodes étant centrées sur la production de code et qualité, c'est la représentation UML de celui-ci qui devient la priorité, et donc la capacité de l'outil à faire du reverse-engineering, c'est-à-dire générer un modèle à partir du code, ou, mieux encore, à faire du round-trip, soit faire des allers-retours entre code et modèle, en conservant les modifications portées de part et d'autre. 
+Les outils les plus évolués pour ce type de projets sont ceux qui mettent à jour le modèle et le code de façon synchrone, quel que soit l'endroit où la modification est faite. 
+Si des outils comme Rational Application Developer d'IBM supportent ces fonctionnalités, et si Together est capable de la faire depuis plusieurs années, il faut reconnaître qu'aucun outil n'est totalement satisfaisant aujourd'hui.
+
+Enfin, j'utilise souvent UML dans les missions d'audit, plus particulièrement les fonctions de reverse-engineering des outils. 
+cela permet d'avoir rapidement une vue d'ensemble du système et de faire ressortir quelques éléments fondamentaux d'une conception objet{nbsp}: l'architecture en couches et les dépendances entre packages. 
+Dans ce cas, ls contraintes sont très différentes{nbsp}: l'outil doit certes supporter correctement les diagrammes UML, mais il doit en plus être compatible avec le langage de développement. 
+Coté java, les évolutions de java 5 ont créé un fossé entre les outils. 
+Par ailleurs, l'outil de modélisation doit être facile à installer, pour pouvoir mettre en place rapidement un poste d'audit chez le client. 
+Ce dernier critère met hors-jeu bon nombre d'outils, en particulier toutes les solutions IBM.{nbsp}Enfin, et pour des raisons similaires, la licence doit être souple, et de préférence open source. 
+Sur tous ces critères ressortent https://astah.net/products/astah-uml/[Jude], pour les projets jusqu'à java 1.4, ou https://www.bouml.fr/[BoUML], moins ergonomique, mais qui supporte java 5.
+
+En conclusion, j'utilise UML pour la plupart de mes missions, je dois donc reconnaître que malgré tous ses défauts, il est devenu quasiment indispensable. 
+Par contre, il faut être conscient qu'il existe une façon différente d'utiliser UML pour chaque contexte. 
+Les 10 ans d'expérience servent à reconnaître en début de mission ce qu'on pourra en tirer...

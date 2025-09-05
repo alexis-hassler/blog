@@ -1,0 +1,164 @@
+---
+layout: post
+title: Nouveau format des supports de formation
+---
+
+Après des années d'utilisation de Libre Office Impress pour la rédaction des supports de cours, j'ai décidé de passer à une solution plus moderne.
+
+Dans cet article, j'explique ce qui a motivé ce changement, et quelles ont été les contraintes à surmonter. 
+Vous verrez que CSS a été la clé...
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Bespoke.js pour les conférences
+
+En mai 2018, je racontais sur mon https://blog.alexis-hassler.com/2018/05/09/adieu-powerpoint.html[blog] pourquoi j'avais abandonné LibreOffice comme outil de rédaction de présentations.
+Ce que je n'ai pas expliqué dans le billet, c'est que la plupart des problèmes cités se produisaient surtout avec mes supports de formation, et pas tellement avec les supports de présentation.
+
+En effet, un support de présentation est jetable, on l'utilise une saison pour présenter un sujet, puis on passe à autre chose.
+En revanche, le cycle de vie d'un support de formation s'étale sur plusieurs années.
+Un tel support passe entre plusieurs versions de la suite bureautique, avec à chaque fois un risque de perte de mise en forme.
+Et c'est sans parler de l'incapacité à suivre les versions du support.
+
+Le changement de format des supports de présentation n'était qu'un prémice au changement de format des supports de formation.
+J'avais donc choisi https://github.com/bespokejs/bespoke[Bespoke.js] pour ça.
+
+== Bespoke.js pour les formations
+
+Dans mes critères de sélection, il y avait la pérennité de la solution.
+Sur ce point, je me suis planté puisqu'il n'y a plus d'évolution depuis 4 ans !
+Ce n'est pas très grave, pour l'instant ça fait le boulot.
+
+L'autre critère important, c'était le potentiel de personnalisation.
+Et sur ce point, Bespoke.js a été à la hauteur.
+
+Pour assurer une transition douce entre des slides de bureatique et des slides HTML, mon nouvel outil devait répondre à quelques contraintes.
+
+La première ne pose pas de problème.
+Des slides de formation contiennent plus d'informations mais avec plus de sobriété que des slides de présentation.
+Sur ce point, une petite adaptation des styles CSS suffit.
+
+La deuxième contrainte, c'est la possibilité d'avoir une mise en forme cohérente entre tous les supports, tout en préservant une possibilité de personnaliser ponctuellement un support.
+La solution, c'est d'embarquer l'essentiel du CSS dans un module, centralisé et versionné, et de garder des propriétés personnalisées dans chaque support.
+
+La troisième contrainte est la possibilité d'associer des notes aux slides.
+C'est prévu nativement dans Bespoke.js avec la zone `[.cue]`.
+Le problème, c'est plutôt de l'afficher en cours de projection, en mode miroir.
+
+[source.width-90]
+----
+== Flux controlés
+
+* Contrôle de flux (back pressure)
+
+...BLA BLA...
+
+ [.cue]
+ ****
+Habituellement si on a un flux de données entre un objet A et un objet B, la pression et le débit sont imposés par A, l'objet amont.
+Le risque encourru, c'est la saturation de B si ce dernier n'est pas capable de consommer assez rapidement les données.
+
+Si le flux est piloté par l'aval, il devient plus fluide.
+ ****
+----
+
+La quatrième contrainte est l'export PDF.
+L'export des slides eux-même ne pose pas vraiment de problème.
+Avec _puppeteer_, on fait un export PDF en mode paysage, avec des dimensions compatibles avec les slides.
+
+[.center]
+image:images/article/bespoke-exemple-slide.png["Exemple de slide de formation", 400]
+
+Ça a été plus compliqué pour l'export PDF des slides avec les notes.
+Ça passe aussi par _pupeeter_, avec un export en mode potrait, avec des grosses adaptations CSS.
+
+[.center]
+image:images/article/bespoke-exemple-note.png["Exemple d'export PDF avec notes", 300]
+
+== CSS
+
+Habituellement, CSS ne fait pas partie de mes compétences de prédilection.
+Mais pour bien exploiter Bespoke.js, il faut en faire beaucoup.
+
+C'est l'export PDF avec notes qui m'a demandé le plus d'efforts.
+Pour résumer, j'ai joué avec `@media print` et avec `orientation:portrait`.
+J'ai aussi joué avec les dimensions de la zone de slide, en fonction des proportions choisies et des marges d'impression.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+*@media print* and (*orientation:portrait*)
+  @page
+    size A4
+
+  html
+    font-size unit(11 / $screen-ratio, 'px')
+
+  section 
+    width $slide-width-mm
+    height $slide-height-mm
+    background none
+    padding-top 0.5rem
+    border $print-border
+
+  ...
+----
+
+Là où j'ai le plus tatonné, c'est pour faire en sorte que les dimensions des schémas suivent celles des slides, aussi bien en PDF qu'à l'écran, et quel que soit le zoom.
+Evidemment, les dimensions doivent être proportionnels, ce qui exclu le `px`.
+J'ai essayé le `%`, le `vh` et le `vw`.
+Finalement la meilleure solution est le `rem`.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+[.center]
+image::schema/stream-read-file.svg["ReadStream: file", **30rem**]
+----
+
+== Modularité
+
+La rédaction en Asciidoc apporte des nouvelles fonctionnalités qui s'avère très pratique dans la gestion des supports pour améliorer la modularité et la réutilisation.
+
+D'une part, avec la directive `include`, il est possible de réutiliser des fichiers entre plusieurs supports.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+*include*::common/performance.adoc[]
+----
+
+A contrario, il est aussi possible d'afficher ou cacher des morceaux de support en fonction de paramètres au build.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+$ gulp serve *--bc_skip=advanced,picketbox,vault*
+----
+
+Pour les slides ou des plus petites portions, ça se fait à la fois avec des classes CSS.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+*[.elytron]*
+== Securité du management *[.picketbox]*\#(elytron)#
+
+* Bla bla...
+----
+
+Pour des parties complètes ou des chapitres, on utilise des attributs Asciidoc.
+
+[source.width-90, subs="verbatim,quotes"]
+----
+*ifndef::advanced*[include::wildfly/cluster.adoc[]]
+----
+
+Avec ça, je peux faire un gros support qui sert aux formations link:/formation-wildfly.html[Administration JBoss / WildFly], link:/formation-jboss-as7-cluster.html[JBoss / Wildfly en cluster] et à toutes les variantes sur mesure.
+Et ce support partage des parties avec l'link:/formation-tomcat.html[Administration Tomcat].
+
+== bespoke-course
+
+Tous les nouveaux supports de cours sont rédigés de cette façon (Vert.x, Nouveautés Java, Docker) et quelques supports plus anciens ont été migrés (WildFly, Tomcat, Spring).
+Ça fonctionne bien, même si il faut faire évoluer la solution de support en support.
+
+Le résultat de ce travail est compilé dans un module JS, https://www.npmjs.com/package/@sewatech/bespoke-course[bespoke-course].
+Et pour démarrer un nouveau support, on peut utiliser le template qui est dans le https://github.com/Sewatech/bespoke-course[code source].
+
+Si vos besoins ressemblent à ce que j'ai raconté, utilisez le module, adaptez le et contribuez.

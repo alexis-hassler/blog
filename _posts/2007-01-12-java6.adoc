@@ -1,0 +1,117 @@
+---
+layout: post
+title: Les apports de JavaSE 6
+keywords: 
+- java
+---
+
+JavaSE 5 a été une évolution majeure pour la plateforme java avec, pour la première fois des évolutions visant à rendre le langage plus pratique. On a aussi constaté des gains importants en production avec une meilleure stabilité, des performances améliorées et, enfin, des outils de monitoring. 
+
+Est-ce que JavaSE 6 continue sur la même voie, et quelles sont les améliorations apportées&nbsp;?
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Java 5
+
+=== JavaSE
+
+Les développeurs ont réellement apprécié le travail sur les aspects pratiques, en particulier avec la boucle "for each" et l'autoboxing. 
+Du point de vue de la conception objet, l'avancée majeure a été l'introduction des generics&nbsp;: on sait enfin ce qu'on doit mettre et ce qu'on peut trouver dans une collection&nbsp;!
+
+=== Et JavaEE&nbsp;?
+
+La spécification de JavaEE 5 est sorti environ 1 an après le Java SE de même niveau. 
+Cependant, les serveurs d'application certifiés sur cette version tardent un peu à sortir.
+Vu la proportion d'applications JavaEE en entreprise, on peut se demander s'il est opportun de sortir un JavaSE 6 alors que beaucoup de projets utilisent encore un JDK 1.4, en que certaines des avancées de JavaSE 5 sont essentiellement utiles dans un environnement EE&nbsp;; je pense en particulier aux annotations, qui ne sont utiles que si un framework (JavaEE ou autre) nous en propose un ensemble directement utilisable dans le code.
+Les nouveautés du coté du monitoring (jconsole, jstat,...) sont une évolution fondamentale pour l'exploitation des applications JavaEE, elles ne peuvent donc être utilisées qu'avec des serveurs d'application supportant les versions croisées (J2SE 1.4 avec JavaSE 5), comme Apache Tomcat, Jonas ou JBoss.
+
+== Java 6
+
+Sun a abandonné l'idée de sortir des versions mineures de Java. Ainsi, après la version 5, vient la version 6, puis 7.
+JavaSE 6 (alias Mustang) est donc une version majeure de java, mais l'évolution qu'elle propose me semble bien moins importante que celle de Java 5, et, paraît-il, moins que celle de la version suivante, JavaSE 7, alias Dolphin.
+
+On attend de cette nouvelle version qu'elle progresse encore dans les aspects pratiques pour le développement et pour l'exploitation.
+
+=== Langage de script
+
+Autant prévenir tout de suite&nbsp;: je ne suis, a priori, pas un grand fan des langages de script. 
+Cependant, j'ai trouvé quelques applications intéressantes pour BeanShell pour l'administration de JBoss.
+Par contre, je n'ai pas encore pu cerner ce que cela pouvait apporter dans le cadre d'applications métier. 
+J'ai donc du mal à m'enthousiasmer pour cette fonctionnalité.
+
+=== Annotations
+
+Les annotations s'installent progressivement, mais le retard sur le concurrent Microsoft .NET est encore très important, et ne se comblera que par leur utilisation intensive dans JavaEE.
+J'attends donc que mon environnement de développement exploite correctement ces nouvelles annotations et leur nouvelle API pour avoir un avis sur le sujet. 
+Pour l'instant, je n'en ferais pas grand chose.
+
+=== JDBC
+
+Ce sujet n'avait pas évolué avec JavaSE 5, on attendait donc des nouveautés pratiques, et elles arrivent.
+
+La gestion des drivers et des connexions est améliorée,lees requêtes XML ont été ajoutées et la gestion des exceptions a été revue, avec la mise en place de catégories d'exceptions, selon la gravité (SQLTransientException et SQLNonTransientException), et la possibilité d'itérer sur une SQLException (boucle "for each").
+
+Un driver compatible JDBC4 est fourni pour la base JavaDB, directement dérivée de Apache Derby. 
+Cette dernière est livrée directement avec le JDK.
+
+On notera que la gestion des drivers est surtout améliorée par une technique de chargement automatique fournie par la classe java.util.ServiceLoader. 
+Celle-ci est utilisable dans bien d'autres domaines pour lesquels on manipule des interfaces et leurs implémentations définies dynamiquement.
+
+Si ces évolutions me plaisent, elles seront surtout utiles dans des projets qui n'utilisent ni d'outil de mapping O/R, ni de framework de persistance, ce qui, pour moi, constitue une petite proportion.
+
+=== Web Service
+
+Là encore, c'est un domaine ou le retard sur les aspects pratiques est impressionnant. 
+Qu'est-ce qu'il est lourd de travailler avec des outils comme SOAP, malgré l'outillage qui s'est mis en place avec Ant et les outils de développement.
+
+De ce point de vue, des API comme JAX-WS et JAXB sont fondamentales et leur intégration à JavaSE, une avancée majeur.
+
+=== AWT / Swing
+
+De ce coté-là, pas de révolution, mais des petites avancées pratique, comme les classes SystemTray , Desktop et SplashScreen, qui permettent une meilleure intégration dans l'environnement de travail.
+
+Le système de layout a été complété et la création de look-and-feel facilitée.
+
+L'avancée la plus importante dans le domaine des applications clientes est l'amélioration des performances apparentes.
+
+=== Monitoring
+
+C'était une des principales améliorations de JavaSE 5, et la version 6 continue l'effort.
+En vrac, les progrès suivants ont été faits&nbsp;:
+
+* Dump à la demande (outil jmap)
+* Rattachement dynamique de jconsole (et d'autres outils) à un processus java, sans options de démarrage spécifique (attention à la sécurité...)
+* Améliorations de la jconsole&nbsp;; celle-ci est maintenant supportée officiellement
+* Gestion des OutOfMemoryError&nbsp;: diagnostic et notification
+* Portage de certains outils sur Windows (jmap, jstack)
+
+=== Performances
+
+On attend de voir avec nos propores applications, mais des gains objectifs de performances de 20 à 40% sont annoncés.
+
+C'est peut-être la meilleure nouvelle.
+
+=== Autres évolutions
+
+L'API de collection continue de s'enrichir avec, en particulier, les Set et Map navigables dans les 2 sens. 
+Vue l'historique et l'évolution de l'API, on devra peut-être mettre en place une formation spécifique pour les collections&nbsp;!
+
+L'API d'entrées/sorties (IO) s'enrichit aussi avec une nouvelle classe `java.io.Console`, des progrès dans la manipulation des fichiers et en enrichissement des informations sur les adresses réseau.
+
+Le CLASSPATH supporte enfin le caractère joker '*', ce qui nous économisera des scripts un peu répétitifs pour parcourir des répertoires lib.
+
+Pour la liste complète des évolutions, je vous invite à consulter la https://java.sun.com/javase/6/webnotes/features.html[note de livraison de JavaSE 6].
+
+== Conclusion
+
+Tout cela continue d'aller dans le bon sens&nbsp;: faire de java un langage toujours plus puissant, mais aussi pratique à utiliser et facile à apprendre.
+
+Je pense qu'on ne profitera de la plupart de ces évolutions pratiques que lorsque celle-ci seront directement intégrées dans notre environnement de projet. 
+Pour celà, nous devrons attendre les mises à niveau de plusieurs produits&nbsp;:
+
+* Eclipse ou un autre outil environnement de développement qui arriverait à se hisser à son niveau&nbsp;; ce sera peut-être NetBeans si la gains de performance de JavaSE 6 sont suffisants pour le rendre plus agile.
+* Serveur d'application&nbsp;: grâce à leur cycle de livraison plus rapide, les outils Open Source ont peut-être une opportunité d'enfoncer le clou contre les poids lourds du marché et leurs offres intégrées
+* Framework&nbsp;: en introduction, je notais le décalage en JavaSE et JavaEE&nbsp;; il existe aussi avec les frameworks classiques comme Spring. Hors je ne me vois pas démarrer un projet sans spring.</ul>
+
+Nous devrons donc ronger nos freins pour quelques temps encore.

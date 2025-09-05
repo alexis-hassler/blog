@@ -1,0 +1,75 @@
+---
+layout: post
+title: sewatech.fr sur mobile
+---
+
+Début mai 2015, le site link:https://www.sewatech.fr/[sewatech.fr] a bénéficié d'une grosse mise à jour, avec un objectif principal &colon; améliorer son affichage sur les navigateurs mobiles.
+Voyons les motivations de cette mise à jour...
+
+NOTE: Ce billet était initialement publié sur le site de https://www.sewatech.fr[Sewatech]. Il a migré ici suite à l'abandon de la section _Articles_.
+// <!--more-->
+
+== Pourquoi ?
+
+Le contenu du site link:https://www.sewatech.fr/[sewatech.fr] évolue petit à petit, en particulier du coté du catalogue de formations. Par contre, la mise en forme n'a pas changé depuis plusieurs années. 
+Ce n'était pas un problème en soi, mais l'importance pris par mobile a changé la donne...
+
+D'après plusieurs études, la navigation sur le Web depuis les mobiles est en train de dépasser celle depuis les postes de travail traditionnels. Or cette tendance ne se retrouve pas du tout sur link:https://www.sewatech.fr/[sewatech.fr]. 
+D'après les statistiques du site, la répartition est la suivante :
+
+- desktop = 97%
+- tablet = 2%
+- mobile = 1%
+
+L'importance du mobile est aussi pris en compte par les moteurs de recherche. 
+Par exemple Google a annoncé la dégradation du référencement pour les sites qui ne respectent pas un minimum de règles pour l'affichage sur mobile. 
+Et Google fournit des outils (Webmaster Tools) pour aider les gestionnaires de site à améliorer ça.
+
+Il fallait donc faire un effort pour s'accorder avec l'air du temps.
+
+== Comment ?
+
+En 2015, faire un site Web qui s'adapte aux navigateurs mobiles n'est pas très difficile. 
+Il suffit d'appliquer quelques principes de _responsive design_, et le Web regorge de ressources sur le sujet.
+
+Pour simplifier la mise en œuvre, link:https://www.sewatech.fr/[sewatech.fr] utilise le framework CSS le plus répandu actuellement : https://getbootstrap.com/[Bootstrap]. 
+Dans sa version 3, il facilite vraiment la réalisation de sites _responsive_.
+
+Par exemple, pour la page d'accueil, sur deux colonnes dans sa version large passe sur une seule colonne en version étroite. 
+De même, le bandeau avec le gros logo se transforme en en bande étroite avec un petit logo. 
+Enfin, le menu se cache derrière un bouton pour prendre moins de place.
+
+image:images/article/responsive-home-desktop-2.png["sewatech.fr sur desktop", 463, 400]
+image:images/article/responsive-home-mobile-2.png["sewatech.fr sur mobile", 277, 350]
+
+Ensuite, pour tester ça, il y a pléthore d'outils :
+
+- la "Vue adaptative", dans les outils de développement de Firefox, 
+- des sites Web spécialisés (https://mobiletest.me/,...).
+
+== Impact
+
+Forcément, la mise à jour a posé quelques problèmes avec les anciennes version d'Internet Explorer. 
+Est-ce que ça valait la peine d'adapter le site pour elles ?
+
+Même si IE 8 est encore la version la plus utilisée en 2014, elle ne représente même pas 2 % du trafic. 
+Mais comme sur link:https://www.sewatech.fr/[sewatech.fr] on aime tout le monde, on a ajouté quelques rustine pour que ça fonctionne.
+
+Si vous faites partie de 0,1 % des visiteurs qui utilisent encore IE 7, on vous aime aussi mais, s'il vous plait laissez tomber cette vieillerie.
+
+== Autres mises à jour
+
+Le site link:https://www.sewatech.fr/[sewatech.fr] a vu quelques autres mises à jours. 
+Par exemple, le moteur de recherche était cassé, à cause de problèmes d'encodage. C'est réparé.
+
+Du coté du contenu, on a ajouté la notion d'archivage pour les formations. 
+Les vieux programmes de cours étaient présentés de la même façon que les récents. 
+C'est fini. 
+Dorénavant, les anciens programmes n'apparaissent plus dans les listes, sauf sur le plan du site, et si vous y accédez tout de même, ils sont marqués comme archivés.
+
+== La suite...
+
+Il reste certainement des bugs ! 
+On va essayer de les repérer et de les corriger. 
+On a aussi des améliorations prévu du coté des performances, en particulier pour les accès depuis des mobiles. 
+Enfin du coté du contenu, des nouvelles formations devraient apparaître prochainement.
